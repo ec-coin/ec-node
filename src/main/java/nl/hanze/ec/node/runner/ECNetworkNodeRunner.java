@@ -1,6 +1,6 @@
-package nl.hanze.ec.network.runner;
+package nl.hanze.ec.node.runner;
 
-import nl.hanze.ec.network.Application;
+import nl.hanze.ec.node.Application;
 
 /**
  * Hanzehogeschool Groningen University of Applied Sciences HBO-ICT

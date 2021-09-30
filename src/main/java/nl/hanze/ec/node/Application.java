@@ -1,4 +1,4 @@
-package nl.hanze.ec.network;
+package nl.hanze.ec.node;
 
 public class Application {
     public String run() {

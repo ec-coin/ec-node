@@ -1,4 +1,4 @@
-package nl.hanze.ec.network;
+package nl.hanze.ec.node;
 
 import junit.framework.TestCase;
 import org.junit.Test;
