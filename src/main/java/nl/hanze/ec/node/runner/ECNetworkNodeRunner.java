@@ -1,5 +1,7 @@
 package nl.hanze.ec.node.runner;
 
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 import nl.hanze.ec.node.Application;
 
 /**
@@ -16,6 +18,7 @@ import nl.hanze.ec.node.Application;
  */
 public class ECNetworkNodeRunner {
     public static void main(String[] args) {
-        new Application().run();
+        Injector injection = Guice.createInjector();
+        injection.getInstance(Application.class).run();
     }
 }
