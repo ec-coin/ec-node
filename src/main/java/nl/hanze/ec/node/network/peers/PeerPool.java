@@ -28,7 +28,7 @@ public class PeerPool implements Runnable {
     @Override
     public void run() {
         while (true) {
-            int peersNeeded = Math.abs(maxPeers - connectedPeers.size());
+            int peersNeeded = Math.max(maxPeers - connectedPeers.size(), 0);
 
             if (peersNeeded != 0) {
                 connectToPeers(peersNeeded);
