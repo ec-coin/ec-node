@@ -2,15 +2,14 @@ package nl.hanze.ec.node;
 
 import com.google.inject.Inject;
 import nl.hanze.ec.node.network.Message;
+import nl.hanze.ec.node.utils.FileUtils;
 
 public class Application {
-    @Inject
-    Application(Message message) {
-        System.out.println(message.t);
+    public void run() {
+        printWelcome();
     }
 
-    public String run() {
-        System.out.println("test");
-        return "Hello world!";
+    private void printWelcome() {
+        System.out.println(FileUtils.readFromResources("welcome.txt"));
     }
 }
