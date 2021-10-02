@@ -1,4 +1,4 @@
-package nl.hanze.ec.node.network;
+package nl.hanze.ec.node.network.peers;
 
 public class Peer {
     private final String ip;
@@ -15,5 +15,13 @@ public class Peer {
 
     public int getPort() {
         return port;
+    }
+
+    @Override
+    public String toString() {
+        return "Peer{" +
+                "ip='" + ip + '\'' +
+                ", port=" + port +
+                '}';
     }
 }
