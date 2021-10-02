@@ -23,7 +23,7 @@ public class Application {
     }
 
     private void setupConnectionManager() {
-        this.connectionManager.setup(5000);
+        this.connectionManager.setup();
     }
 
     /**
