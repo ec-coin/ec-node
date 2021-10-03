@@ -1,12 +1,17 @@
 package nl.hanze.ec.node.network.peers;
 
+import nl.hanze.ec.node.network.commands.Command;
+import nl.hanze.ec.node.network.commands.VersionCommand;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import java.util.*;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class PeerPool implements Runnable {
     private static final Logger logger = LogManager.getLogger(PeerPool.class);
+    private final int maxPeers;
 
     /**
      * List containing all unconnected peers
@@ -14,11 +19,9 @@ public class PeerPool implements Runnable {
     private final Queue<Peer> unconnectedPeers = new LinkedList<>();
 
     /**
-     * List containing all connected peers
+     * Maps each peer to their command queue
      */
-    private final List<PeerConnection> connectedPeers = new ArrayList<>();
-
-    private final int maxPeers;
+    Map<Peer, BlockingQueue<Command>> connectedPeers = new HashMap<>();
 
     public PeerPool(int maxPeers, Peer[] seeds) {
         this.maxPeers = maxPeers;
@@ -48,18 +51,20 @@ public class PeerPool implements Runnable {
     }
 
     private void removeDeadPeers() {
-        new ArrayList<>(connectedPeers).forEach(peerConnection -> {
-            if (!peerConnection.isConnected()) {
-                logger.info(peerConnection.getPeer() + " is dead. Removing.");
-                connectedPeers.remove(peerConnection);
+        for (Peer peer : connectedPeers.keySet()) {
+            if (peer.getState() == PeerState.DISCONNECTED) {
+                logger.info(peer + " is dead. Removing.");
+
+                connectedPeers.remove(peer);
+
                 // TODO: totally remove peer if it could not connect x times
-                unconnectedPeers.add(peerConnection.getPeer());
+                unconnectedPeers.add(peer);
             }
-        });
+        }
     }
 
     private void connectToPeers(int peersNeeded) {
-        Peer peerCandidate = null;
+        Peer peerCandidate;
 
         for (int i = 0; i < peersNeeded; i++) {
             peerCandidate = unconnectedPeers.poll();
@@ -74,13 +79,28 @@ public class PeerPool implements Runnable {
                 }
             }
 
-            PeerConnection connection = new PeerConnection(peerCandidate);
-            if (connection.isConnected()) {
-                connectedPeers.add(connection);
+            BlockingQueue<Command> commandsQueue = new LinkedBlockingQueue<>();
+            Thread peerConnectionThread = new Thread(new PeerConnection(peerCandidate, commandsQueue));
+            peerConnectionThread.start();
+
+            if (peerCandidate.getState() == PeerState.UNKNOWN_VERSION) {
+                connectedPeers.put(peerCandidate, commandsQueue);
+                // Add version command
+                commandsQueue.add(new VersionCommand());
             } else {
                 unconnectedPeers.add(peerCandidate);
             }
         }
+    }
+
+    public void sendBroadcast(Command command) {
+        for (BlockingQueue<Command> queue : connectedPeers.values()) {
+            queue.add(command);
+        }
+    }
+
+    public void sendCommand(Peer peer, Command command) {
+        connectedPeers.get(peer).add(command);
     }
 
     // TODO: asks connected peers to send their peers

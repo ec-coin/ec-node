@@ -23,6 +23,9 @@ import nl.hanze.ec.node.modules.ConfigModule;
  */
 public class ECNetworkNodeRunner {
     public static void main(String[] args) {
+        //################################
+        //  Define command line arguments
+        //################################
         ArgumentParser parser = ArgumentParsers.newFor("ECNode").build()
                 .defaultHelp(true)
                 .description("ECNode is the core product of EC Blockchain");
@@ -38,7 +41,9 @@ public class ECNetworkNodeRunner {
                 .setDefault(10)
                 .help("Maximum peers to connect to");
 
-
+        //################################
+        //  Parse command line arguments
+        //################################
         Namespace ns = null;
         try {
             ns = parser.parseArgs(args);
@@ -48,11 +53,10 @@ public class ECNetworkNodeRunner {
         }
 
         //################################
-        //  Launch the application
+        //  Create IoC Container and launch application
         //################################
-        Injector injection = Guice.createInjector(
+        Guice.createInjector(
                 new ConfigModule(ns)
-        );
-        injection.getInstance(Application.class).run();
+        ).getInstance(Application.class).run();
     }
 }

@@ -1,7 +1,9 @@
 package nl.hanze.ec.node.network.commands;
 
-import nl.hanze.ec.node.network.Message;
+import org.json.JSONObject;
 
 public interface Command {
-    Message execute();
+    JSONObject execute();
+
+    String getCommandName();
 }
