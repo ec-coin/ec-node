@@ -1,10 +1,16 @@
 package nl.hanze.ec.node.network.peers;
 
-import nl.hanze.ec.node.network.commands.Command;
-import nl.hanze.ec.node.network.commands.VersionCommand;
+import nl.hanze.ec.node.network.ConnectionManager;
+import nl.hanze.ec.node.network.peers.commands.Command;
+import nl.hanze.ec.node.network.peers.commands.VersionCommand;
+import nl.hanze.ec.node.network.peers.peer.Peer;
+import nl.hanze.ec.node.network.peers.peer.PeerConnection;
+import nl.hanze.ec.node.network.peers.peer.PeerState;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -33,6 +39,23 @@ public class PeerPool implements Runnable {
         while (true) {
             int peersNeeded = Math.max(maxPeers - connectedPeers.size(), 0);
 
+            Socket socket;
+            while ((socket = ConnectionManager.incomingConnections.poll()) != null) {
+                if (peersNeeded == 0) {
+                    // TODO: send: not accepting new connections
+                }
+
+                Peer peer = new Peer(socket.getInetAddress().getHostAddress(), socket.getPort());
+
+                BlockingQueue<Command> commandsQueue = new LinkedBlockingQueue<>();
+                (new Thread(
+                        new PeerConnection(peer, commandsQueue, socket)
+                )).start();
+            }
+
+            // TODO: don't know is this is needed al the time,
+            //  otherwise other nodes will never be able to connect to you
+            //  Maybe only on start up? or if number very high
             if (peersNeeded != 0) {
                 connectToPeers(peersNeeded);
             }
@@ -80,13 +103,12 @@ public class PeerPool implements Runnable {
             }
 
             BlockingQueue<Command> commandsQueue = new LinkedBlockingQueue<>();
-            Thread peerConnectionThread = new Thread(new PeerConnection(peerCandidate, commandsQueue));
-            peerConnectionThread.start();
+            (new Thread(
+                    PeerConnection.PeerConnectionFactory(peerCandidate, commandsQueue)
+            )).start();
 
             if (peerCandidate.getState() == PeerState.UNKNOWN_VERSION) {
                 connectedPeers.put(peerCandidate, commandsQueue);
-                // Add version command
-                commandsQueue.add(new VersionCommand());
             } else {
                 unconnectedPeers.add(peerCandidate);
             }

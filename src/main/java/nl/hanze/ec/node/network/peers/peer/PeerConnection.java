@@ -1,8 +1,10 @@
-package nl.hanze.ec.node.network.peers;
+package nl.hanze.ec.node.network.peers.peer;
 
 import nl.hanze.ec.node.exceptions.InvalidCommand;
-import nl.hanze.ec.node.network.commands.Command;
-import nl.hanze.ec.node.network.commands.CommandFactory;
+import nl.hanze.ec.node.network.peers.commands.Command;
+import nl.hanze.ec.node.network.peers.commands.CommandFactory;
+import nl.hanze.ec.node.network.peers.commands.VersionAckCommand;
+import nl.hanze.ec.node.network.peers.commands.VersionCommand;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.json.JSONException;
@@ -28,24 +30,24 @@ public class PeerConnection implements Runnable {
     private BufferedReader in;
     private final BlockingQueue<Command> commandQueue;
 
-    public PeerConnection(Peer peer, BlockingQueue<Command> commandQueue) {
+    public PeerConnection(Peer peer, BlockingQueue<Command> commandQueue, Socket socket) {
         this.peer = peer;
         this.commandQueue = commandQueue;
+        this.socket = socket;
 
         try {
-            this.socket = new Socket(peer.getIp(), peer.getPort());
             this.socket.setSoTimeout(MAX_TIMEOUT);
 
-            out = new PrintWriter(this.socket.getOutputStream(), true);
+            out = new PrintWriter(socket.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
             peer.setState(PeerState.UNKNOWN_VERSION);
-        } catch (UnknownHostException e) {
-            logger.warn("Unknown host: " + peer);
+
+            commandQueue.add(new VersionCommand());
         } catch (SocketTimeoutException e) {
             logger.warn("Socket timeout " + peer);
         } catch (IOException e) {
-            logger.warn("I/O error occurred when creating the output or input stream " + peer);
+            logger.warn("I/O error occurred when creating the socket or output/input stream " + peer);
         } catch (Exception e) {
             logger.warn("Could not connect to: " + peer + ", " + e.getMessage());
         }
@@ -83,6 +85,11 @@ public class PeerConnection implements Runnable {
                         JSONObject payload = new JSONObject(response);
 
                         Command receivedCommand = CommandFactory.create(payload);
+
+                        if (receivedCommand instanceof VersionCommand) {
+                            this.getPeer().setVersion(((VersionCommand) receivedCommand).getVersion());
+                            commandQueue.add(new VersionAckCommand());
+                        }
                     } catch (JSONException | InvalidCommand e) {
                         System.err.println("Invalid json payload received");
                     }
@@ -111,5 +118,17 @@ public class PeerConnection implements Runnable {
 
     public Peer getPeer() {
         return this.peer;
+    }
+
+    public static PeerConnection PeerConnectionFactory(Peer peer, BlockingQueue<Command> commandQueue) {
+        try {
+            return new PeerConnection(peer, commandQueue, new Socket(peer.getIp(), peer.getPort()));
+        } catch (UnknownHostException e) {
+            logger.warn("Unknown host: " + peer);
+        } catch (IOException e) {
+            logger.warn("I/O error occurred when creating the socket " + peer);
+        }
+
+        return null;
     }
 }

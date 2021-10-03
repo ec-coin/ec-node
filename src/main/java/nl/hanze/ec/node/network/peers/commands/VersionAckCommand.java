@@ -1,10 +1,6 @@
-package nl.hanze.ec.node.network.commands;
+package nl.hanze.ec.node.network.peers.commands;
 
-import nl.hanze.ec.node.Application;
 import org.json.JSONObject;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class VersionAckCommand implements Command {
     @Override

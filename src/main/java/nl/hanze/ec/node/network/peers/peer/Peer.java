@@ -1,4 +1,4 @@
-package nl.hanze.ec.node.network.peers;
+package nl.hanze.ec.node.network.peers.peer;
 
 import java.util.concurrent.atomic.AtomicReference;
 

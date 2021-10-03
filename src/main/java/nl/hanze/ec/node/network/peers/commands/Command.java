@@ -1,4 +1,4 @@
-package nl.hanze.ec.node.network.commands;
+package nl.hanze.ec.node.network.peers.commands;
 
 import org.json.JSONObject;
 

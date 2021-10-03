@@ -24,13 +24,8 @@ public class Server implements Runnable {
                 Socket socket = serverSocket.accept();
                 logger.info("New client connected");
 
-                // TODO: add peer to peer pool?
-
-//                OutputStream output = socket.getOutputStream();
-//                PrintWriter writer = new PrintWriter(output, true);
-//                writer.println(new Date().toString());
+                ConnectionManager.incomingConnections.add(socket);
             }
-
         } catch (IOException ex) {
             logger.debug("Server exception: " + ex.getMessage());
             ex.printStackTrace();

@@ -18,21 +18,10 @@ public class Application {
      * Launches the application
      */
     public void run() {
-        printWelcome();
-        setupConnectionManager();
-    }
-
-    /**
-     * Sets up the connection manager
-     */
-    private void setupConnectionManager() {
-        this.connectionManager.setup();
-    }
-
-    /**
-     * Prints welcome message to console
-     */
-    private void printWelcome() {
+        // Prints welcome message to console
         System.out.println(FileUtils.readFromResources("welcome.txt"));
+
+        // Sets up the connection manager
+        this.connectionManager.setup();
     }
 }

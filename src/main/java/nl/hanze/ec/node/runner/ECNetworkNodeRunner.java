@@ -1,13 +1,13 @@
 package nl.hanze.ec.node.runner;
 
 import com.google.inject.Guice;
-import com.google.inject.Injector;
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.ArgumentParserException;
 import net.sourceforge.argparse4j.inf.Namespace;
 import nl.hanze.ec.node.Application;
 import nl.hanze.ec.node.modules.ConfigModule;
+import nl.hanze.ec.node.modules.NetworkModule;
 
 /**
  * Hanzehogeschool Groningen University of Applied Sciences HBO-ICT
@@ -56,7 +56,8 @@ public class ECNetworkNodeRunner {
         //  Create IoC Container and launch application
         //################################
         Guice.createInjector(
-                new ConfigModule(ns)
+                new ConfigModule(ns),
+                new NetworkModule()
         ).getInstance(Application.class).run();
     }
 }
