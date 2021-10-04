@@ -23,11 +23,9 @@ public class Server implements Runnable {
             while (true) {
                 Socket socket = serverSocket.accept();
                 logger.info("New client connected");
-//                OutputStream output = socket.getOutputStream();
-//                PrintWriter writer = new PrintWriter(output, true);
-//                writer.println(new Date().toString());
-            }
 
+                ConnectionManager.incomingConnections.add(socket);
+            }
         } catch (IOException ex) {
             logger.debug("Server exception: " + ex.getMessage());
             ex.printStackTrace();

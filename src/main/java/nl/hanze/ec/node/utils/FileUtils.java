@@ -11,7 +11,7 @@ public class FileUtils {
     private static final Logger logger = LogManager.getLogger(FileUtils.class);
 
     /**
-     * Read a file from the resource folder
+     * Reads a file from the resource folder
      *
      * @param path location of the file in the resource folder
      * @return content of file

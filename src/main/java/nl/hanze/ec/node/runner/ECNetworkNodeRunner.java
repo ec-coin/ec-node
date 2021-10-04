@@ -1,13 +1,13 @@
 package nl.hanze.ec.node.runner;
 
 import com.google.inject.Guice;
-import com.google.inject.Injector;
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.ArgumentParserException;
 import net.sourceforge.argparse4j.inf.Namespace;
 import nl.hanze.ec.node.Application;
 import nl.hanze.ec.node.modules.ConfigModule;
+import nl.hanze.ec.node.modules.NetworkModule;
 
 /**
  * Hanzehogeschool Groningen University of Applied Sciences HBO-ICT
@@ -23,6 +23,9 @@ import nl.hanze.ec.node.modules.ConfigModule;
  */
 public class ECNetworkNodeRunner {
     public static void main(String[] args) {
+        //################################
+        //  Define command line arguments
+        //################################
         ArgumentParser parser = ArgumentParsers.newFor("ECNode").build()
                 .defaultHelp(true)
                 .description("ECNode is the core product of EC Blockchain");
@@ -38,7 +41,9 @@ public class ECNetworkNodeRunner {
                 .setDefault(10)
                 .help("Maximum peers to connect to");
 
-
+        //################################
+        //  Parse command line arguments
+        //################################
         Namespace ns = null;
         try {
             ns = parser.parseArgs(args);
@@ -48,11 +53,11 @@ public class ECNetworkNodeRunner {
         }
 
         //################################
-        //  Launch the application
+        //  Create IoC Container and launch application
         //################################
-        Injector injection = Guice.createInjector(
-                new ConfigModule(ns)
-        );
-        injection.getInstance(Application.class).run();
+        Guice.createInjector(
+                new ConfigModule(ns),
+                new NetworkModule()
+        ).getInstance(Application.class).run();
     }
 }
