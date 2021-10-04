@@ -51,6 +51,7 @@ public class PeerPool implements Runnable {
                 (new Thread(
                         new PeerConnection(peer, commandsQueue, socket)
                 )).start();
+                connectedPeers.put(peer, commandsQueue);
             }
 
             // TODO: don't know is this is needed al the time,

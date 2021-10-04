@@ -23,7 +23,6 @@ public class ConnectionManager {
         this.peerPool = peerPool;
     }
 
-    @Inject
     public void setup() {
         // temporary
         try {
