@@ -2,7 +2,7 @@ package nl.hanze.ec.node.network.peers.commands;
 
 import org.json.JSONObject;
 
-public class VersionAckCommand implements Command {
+public class VersionAckCommand implements Command, Handshake {
     @Override
     public JSONObject execute() {
         JSONObject payload = new JSONObject();

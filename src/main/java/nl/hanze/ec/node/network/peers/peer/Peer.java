@@ -11,7 +11,7 @@ public class Peer {
     public Peer(String ip, int port) {
         this.ip = ip;
         this.port = port;
-        this.state = new AtomicReference<>(PeerState.UNCONNECTED);
+        this.state = new AtomicReference<>(PeerState.CLOSED);
     }
 
     public String getIp() {

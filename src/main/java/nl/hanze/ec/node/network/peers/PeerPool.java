@@ -2,14 +2,12 @@ package nl.hanze.ec.node.network.peers;
 
 import nl.hanze.ec.node.network.ConnectionManager;
 import nl.hanze.ec.node.network.peers.commands.Command;
-import nl.hanze.ec.node.network.peers.commands.VersionCommand;
 import nl.hanze.ec.node.network.peers.peer.Peer;
 import nl.hanze.ec.node.network.peers.peer.PeerConnection;
 import nl.hanze.ec.node.network.peers.peer.PeerState;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
-import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
@@ -76,7 +74,7 @@ public class PeerPool implements Runnable {
 
     private void removeDeadPeers() {
         for (Peer peer : connectedPeers.keySet()) {
-            if (peer.getState() == PeerState.DISCONNECTED) {
+            if (peer.getState() == PeerState.CLOSING) {
                 logger.info(peer + " is dead. Removing.");
 
                 connectedPeers.remove(peer);

@@ -3,7 +3,7 @@ package nl.hanze.ec.node.network.peers.commands;
 import nl.hanze.ec.node.Application;
 import org.json.JSONObject;
 
-public class VersionCommand implements Command {
+public class VersionCommand implements Command, Handshake {
     double version;
     int start_height;
 
