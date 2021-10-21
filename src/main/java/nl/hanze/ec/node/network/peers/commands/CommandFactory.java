@@ -10,6 +10,8 @@ public class CommandFactory {
                 return new VersionCommand(payload);
             case "verack":
                 return new VersionAckCommand();
+            case "test":
+                return new TestCommand(payload);
             default:
                 throw new InvalidCommand("Invalid or no command found in payload");
         }

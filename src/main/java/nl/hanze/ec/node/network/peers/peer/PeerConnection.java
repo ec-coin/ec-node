@@ -1,5 +1,6 @@
 package nl.hanze.ec.node.network.peers.peer;
 
+import nl.hanze.ec.node.CommandConsumer;
 import nl.hanze.ec.node.exceptions.InvalidCommand;
 import nl.hanze.ec.node.network.peers.commands.*;
 import org.apache.log4j.LogManager;
@@ -14,6 +15,9 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 
 public class PeerConnection implements Runnable {
@@ -28,10 +32,9 @@ public class PeerConnection implements Runnable {
     private BufferedReader in;
     private final BlockingQueue<Command> commandQueue;
 
-    public PeerConnection(Peer peer, BlockingQueue<Command> commandQueue, Socket socket) {
-        this(peer, commandQueue, socket, new PeerStateMachine(peer, commandQueue));
+    public PeerConnection(Peer peer, BlockingQueue<Command> commandQueue, Socket socket, Collection<BlockingQueue<Command>> commandConsumers) {
+        this(peer, commandQueue, socket, new PeerStateMachine(peer, commandQueue, commandConsumers));
     }
-
 
     public PeerConnection(Peer peer, BlockingQueue<Command> commandQueue, Socket socket, PeerStateMachine stateMachine) {
         this.peer = peer;
@@ -108,38 +111,16 @@ public class PeerConnection implements Runnable {
 
                         logger.info("Response:" + response);
                     } catch (JSONException | InvalidCommand e) {
-                        System.err.println("Invalid json payload received");
+                        logger.error("Invalid json payload received");
                     }
                 }
             } catch (IOException e) { e.printStackTrace(); }
         }
     }
 
-    public void closeConnection() {
-
-    }
-
-    public boolean isConnected() {
-        if (socket == null) {
-            return false;
-        }
-
+    public static PeerConnection PeerConnectionFactory(Peer peer, BlockingQueue<Command> commandQueue, Collection<BlockingQueue<Command>> commandConsumers) {
         try {
-            // TODO, this does not work (it pings the host), we should have a heartbeat for each peer and check when
-            // we got the last heartbeat
-            return socket.getInetAddress().isReachable(MAX_TIMEOUT);
-        } catch (IOException e) {
-            return false;
-        }
-    }
-
-    public Peer getPeer() {
-        return this.peer;
-    }
-
-    public static PeerConnection PeerConnectionFactory(Peer peer, BlockingQueue<Command> commandQueue) {
-        try {
-            return new PeerConnection(peer, commandQueue, new Socket(peer.getIp(), peer.getPort()));
+            return new PeerConnection(peer, commandQueue, new Socket(peer.getIp(), peer.getPort()), commandConsumers);
         } catch (UnknownHostException e) {
             logger.warn("Unknown host: " + peer);
         } catch (IOException e) {

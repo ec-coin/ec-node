@@ -1,20 +1,23 @@
 package nl.hanze.ec.node.network.peers.peer;
 
-import nl.hanze.ec.node.network.peers.commands.Command;
-import nl.hanze.ec.node.network.peers.commands.Handshake;
-import nl.hanze.ec.node.network.peers.commands.VersionAckCommand;
-import nl.hanze.ec.node.network.peers.commands.VersionCommand;
-import org.json.JSONObject;
+import nl.hanze.ec.node.network.peers.commands.*;
 
+import java.util.Collection;
 import java.util.concurrent.BlockingQueue;
 
 public class PeerStateMachine {
     private final Peer peer;
     private final BlockingQueue<Command> commandQueue;
+    private final Collection<BlockingQueue<Command>> commandConsumers;
 
-    PeerStateMachine(Peer peer, BlockingQueue<Command> commandQueue) {
+    PeerStateMachine(
+            Peer peer,
+            BlockingQueue<Command> commandQueue,
+            Collection<BlockingQueue<Command>> commandConsumers
+    ) {
         this.peer = peer;
         this.commandQueue = commandQueue;
+        this.commandConsumers = commandConsumers;
     }
 
     public void start() {
@@ -45,6 +48,10 @@ public class PeerStateMachine {
                         ? PeerState.ESTABLISHED : PeerState.VERSION_RCVD);
 
                 commandQueue.add(new VersionAckCommand());
+
+                if (peer.getState() == PeerState.ESTABLISHED) {
+                    commandQueue.add(new TestCommand());
+                }
             }
 
             if (command instanceof VersionAckCommand) {
@@ -52,10 +59,16 @@ public class PeerStateMachine {
                 // else wait for VERSION_RCVD
                 peer.setState((peer.getState() == PeerState.VERSION_RCVD)
                         ? PeerState.ESTABLISHED : PeerState.VERSION_ACK);
+
+                if (peer.getState() == PeerState.ESTABLISHED) {
+                    commandQueue.add(new TestCommand());
+                }
             }
         // Only allow non handshake commands when state is ESTABLISHED
         } else if (peer.getState() == PeerState.ESTABLISHED) {
-            // handel command
+            for (BlockingQueue<Command> queue : commandConsumers) {
+                queue.add(command);
+            }
         }
     }
 }

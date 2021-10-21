@@ -1,5 +1,7 @@
 package nl.hanze.ec.node.network;
 
+import com.google.inject.Inject;
+import nl.hanze.ec.node.modules.annotations.Port;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -11,7 +13,8 @@ public class Server implements Runnable {
     private static final Logger logger = LogManager.getLogger(Server.class);
     private final int port;
 
-    public Server(int port) {
+    @Inject
+    public Server(@Port int port) {
         this.port = port;
     }
 
