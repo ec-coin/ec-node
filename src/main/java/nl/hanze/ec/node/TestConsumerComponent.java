@@ -11,13 +11,6 @@ import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 
 public class TestConsumerComponent extends CommandConsumer {
-    @Inject
-    public TestConsumerComponent(
-            @CommandConsumerQueues Map<CommandConsumer, BlockingQueue<Command>> commandConsumerQueues
-    ) {
-        super(commandConsumerQueues);
-    }
-
     @Override
     protected void handle(Command command) {
         System.out.println("TestObserveComponent RECEIVED: " + command.execute());

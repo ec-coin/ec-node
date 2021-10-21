@@ -38,13 +38,17 @@ public class Application {
     }
 
     private void addCommandConsumer(CommandConsumer consumer) {
-        this.consumers.add(consumer);
+        consumers.add(consumer);
 
         commandConsumerQueues.put(consumer, new LinkedBlockingQueue<>());
+
+        consumer.setQueue(commandConsumerQueues.get(consumer));
     }
 
     private void addCommandProducer(CommandProducer producer) {
         this.producers.add(producer);
+
+        producer.setPeerPool(connectionManager.getPeerPool());
     }
 
     /**

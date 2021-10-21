@@ -3,13 +3,8 @@ package nl.hanze.ec.node.network;
 import com.google.inject.Inject;
 import nl.hanze.ec.node.network.peers.PeerPool;
 
-import java.net.Socket;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-
 
 public class ConnectionManager {
-    public static final BlockingQueue<Socket> incomingConnections = new LinkedBlockingQueue<>();
     private final Server server;
     private final PeerPool peerPool;
 
@@ -25,5 +20,9 @@ public class ConnectionManager {
 
         serverThread.start();
         peersThread.start();
+    }
+
+    public PeerPool getPeerPool() {
+        return peerPool;
     }
 }

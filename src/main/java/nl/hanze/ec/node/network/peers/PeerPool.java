@@ -3,6 +3,7 @@ package nl.hanze.ec.node.network.peers;
 import com.google.inject.Inject;
 import nl.hanze.ec.node.CommandConsumer;
 import nl.hanze.ec.node.modules.annotations.CommandConsumerQueues;
+import nl.hanze.ec.node.modules.annotations.IncomingConnectionsQueue;
 import nl.hanze.ec.node.modules.annotations.MaxPeers;
 import nl.hanze.ec.node.modules.annotations.Port;
 import nl.hanze.ec.node.network.ConnectionManager;
@@ -22,6 +23,7 @@ public class PeerPool implements Runnable {
     private static final Logger logger = LogManager.getLogger(PeerPool.class);
     private final int maxPeers;
     private final Collection<BlockingQueue<Command>> commandConsumers;
+    private final BlockingQueue<Socket> incomingConnectionsQueue;
 
     /**
      * List containing all unconnected peers
@@ -37,11 +39,13 @@ public class PeerPool implements Runnable {
     public PeerPool(
             @MaxPeers int maxPeers,
             @Port int port,
-            @CommandConsumerQueues Map<CommandConsumer, BlockingQueue<Command>> commandConsumers
+            @CommandConsumerQueues Map<CommandConsumer, BlockingQueue<Command>> commandConsumers,
+            @IncomingConnectionsQueue BlockingQueue<Socket> incomingConnectionsQueue
     ) {
         this.maxPeers = maxPeers;
         this.unconnectedPeers.addAll(List.of(new Peer[] {new Peer("127.0.0.1", port + 1)}));
         this.commandConsumers = commandConsumers.values();
+        this.incomingConnectionsQueue = incomingConnectionsQueue;
     }
 
     @Override
@@ -50,7 +54,7 @@ public class PeerPool implements Runnable {
             int peersNeeded = Math.max(maxPeers - connectedPeers.size(), 0);
 
             Socket socket;
-            while ((socket = ConnectionManager.incomingConnections.poll()) != null) {
+            while ((socket = incomingConnectionsQueue.poll()) != null) {
                 if (peersNeeded == 0) {
                     // TODO: send: not accepting new connections
                 }

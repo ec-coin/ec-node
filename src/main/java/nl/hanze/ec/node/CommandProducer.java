@@ -1,4 +1,20 @@
 package nl.hanze.ec.node;
 
-public interface CommandProducer extends Runnable {
+import nl.hanze.ec.node.network.peers.PeerPool;
+import nl.hanze.ec.node.network.peers.commands.Command;
+
+public abstract class CommandProducer implements Runnable {
+    private PeerPool peerPool;
+
+    public void setPeerPool(PeerPool peerPool) {
+        this.peerPool = peerPool;
+    }
+
+    public void run() {
+        if (peerPool == null) {
+            throw new RuntimeException("Peer Pool not set");
+        }
+    }
+
+    protected abstract void handle();
 }

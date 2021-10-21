@@ -2,23 +2,22 @@ package nl.hanze.ec.node;
 
 import nl.hanze.ec.node.network.peers.commands.Command;
 
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 
 public abstract class CommandConsumer implements Runnable {
-    public final Map<CommandConsumer, BlockingQueue<Command>> commandConsumerQueues;
-
-    public CommandConsumer(Map<CommandConsumer, BlockingQueue<Command>> commandConsumerQueues) {
-        this.commandConsumerQueues = commandConsumerQueues;
-    }
+    private BlockingQueue<Command> queue = null;
 
     @Override
     public void run() {
+        if (queue == null) {
+            throw new RuntimeException("Command Queue not set");
+        }
+
         while (true) {
             Command command;
 
-            while ((command = getQueue().poll()) != null) {
+            while ((command = queue.poll()) != null) {
                 if (filter().contains(command.getClass())) {
                     handle(command);
                 }
@@ -26,8 +25,8 @@ public abstract class CommandConsumer implements Runnable {
         }
     }
 
-    public BlockingQueue<Command> getQueue() {
-        return commandConsumerQueues.get(this);
+    public void setQueue(BlockingQueue<Command> queue) {
+        this.queue = queue;
     }
 
     protected abstract void handle(Command command);
