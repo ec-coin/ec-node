@@ -25,7 +25,7 @@ public class Application {
             ArrayList<CommandProducer> producers,
             @CommandConsumerQueues Map<CommandConsumer, BlockingQueue<Command>> commandConsumerQueues,
             TestConsumerComponent component1,
-            TestProduceComponent component2
+            TestProducerComponent component2
     ) {
         this.connectionManager = connectionManager;
         this.consumers = consumers;

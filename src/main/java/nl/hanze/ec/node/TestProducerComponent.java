@@ -1,6 +1,6 @@
 package nl.hanze.ec.node;
 
-public class TestProduceComponent extends CommandProducer {
+public class TestProducerComponent extends CommandProducer {
     @Override
     public void handle() {
         // TODO

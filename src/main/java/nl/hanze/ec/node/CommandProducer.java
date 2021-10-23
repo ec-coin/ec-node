@@ -4,7 +4,7 @@ import nl.hanze.ec.node.network.peers.PeerPool;
 import nl.hanze.ec.node.network.peers.commands.Command;
 
 public abstract class CommandProducer implements Runnable {
-    private PeerPool peerPool;
+    protected PeerPool peerPool;
 
     public void setPeerPool(PeerPool peerPool) {
         this.peerPool = peerPool;
