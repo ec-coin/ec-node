@@ -1,12 +1,11 @@
 package nl.hanze.ec.node.network.peers;
 
 import com.google.inject.Inject;
-import nl.hanze.ec.node.CommandConsumer;
-import nl.hanze.ec.node.modules.annotations.CommandConsumerQueues;
+import nl.hanze.ec.node.CommandResponder;
+import nl.hanze.ec.node.modules.annotations.CommandResponderQueues;
 import nl.hanze.ec.node.modules.annotations.IncomingConnectionsQueue;
 import nl.hanze.ec.node.modules.annotations.MaxPeers;
 import nl.hanze.ec.node.modules.annotations.Port;
-import nl.hanze.ec.node.network.ConnectionManager;
 import nl.hanze.ec.node.network.peers.commands.Command;
 import nl.hanze.ec.node.network.peers.peer.Peer;
 import nl.hanze.ec.node.network.peers.peer.PeerConnection;
@@ -22,7 +21,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class PeerPool implements Runnable {
     private static final Logger logger = LogManager.getLogger(PeerPool.class);
     private final int maxPeers;
-    private final Collection<BlockingQueue<Command>> commandConsumers;
+    private final Collection<BlockingQueue<Command>> commandResponder;
     private final BlockingQueue<Socket> incomingConnectionsQueue;
 
     /**
@@ -39,12 +38,12 @@ public class PeerPool implements Runnable {
     public PeerPool(
             @MaxPeers int maxPeers,
             @Port int port,
-            @CommandConsumerQueues Map<CommandConsumer, BlockingQueue<Command>> commandConsumers,
+            @CommandResponderQueues Map<CommandResponder, BlockingQueue<Command>> commandResponder,
             @IncomingConnectionsQueue BlockingQueue<Socket> incomingConnectionsQueue
     ) {
         this.maxPeers = maxPeers;
         this.unconnectedPeers.addAll(List.of(new Peer[] {new Peer("127.0.0.1", port + 1)}));
-        this.commandConsumers = commandConsumers.values();
+        this.commandResponder = commandResponder.values();
         this.incomingConnectionsQueue = incomingConnectionsQueue;
     }
 
@@ -63,7 +62,7 @@ public class PeerPool implements Runnable {
 
                 BlockingQueue<Command> commandsQueue = new LinkedBlockingQueue<>();
                 (new Thread(
-                        new PeerConnection(peer, commandsQueue, socket, commandConsumers)
+                        new PeerConnection(peer, commandsQueue, socket, commandResponder)
                 )).start();
                 connectedPeers.put(peer, commandsQueue);
             }
@@ -118,7 +117,7 @@ public class PeerPool implements Runnable {
             }
 
             BlockingQueue<Command> commandsQueue = new LinkedBlockingQueue<>();
-            PeerConnection peerConnection = PeerConnection.PeerConnectionFactory(peerCandidate, commandsQueue, commandConsumers);
+            PeerConnection peerConnection = PeerConnection.PeerConnectionFactory(peerCandidate, commandsQueue, commandResponder);
 
             if (peerConnection == null) {
                 unconnectedPeers.add(peerCandidate);

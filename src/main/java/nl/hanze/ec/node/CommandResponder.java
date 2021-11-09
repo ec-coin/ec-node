@@ -5,7 +5,7 @@ import nl.hanze.ec.node.network.peers.commands.Command;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 
-public abstract class CommandConsumer implements Runnable {
+public abstract class CommandResponder implements Runnable {
     private BlockingQueue<Command> queue = null;
 
     @Override
@@ -17,6 +17,7 @@ public abstract class CommandConsumer implements Runnable {
         while (true) {
             Command command;
 
+            // TODO: use take() instead of poll()
             while ((command = queue.poll()) != null) {
                 if (filter().contains(command.getClass())) {
                     handle(command);

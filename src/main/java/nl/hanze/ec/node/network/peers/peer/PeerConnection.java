@@ -1,6 +1,5 @@
 package nl.hanze.ec.node.network.peers.peer;
 
-import nl.hanze.ec.node.CommandConsumer;
 import nl.hanze.ec.node.exceptions.InvalidCommand;
 import nl.hanze.ec.node.network.peers.commands.*;
 import org.apache.log4j.LogManager;
@@ -16,8 +15,6 @@ import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.Collection;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 
 public class PeerConnection implements Runnable {
@@ -32,8 +29,8 @@ public class PeerConnection implements Runnable {
     private BufferedReader in;
     private final BlockingQueue<Command> commandQueue;
 
-    public PeerConnection(Peer peer, BlockingQueue<Command> commandQueue, Socket socket, Collection<BlockingQueue<Command>> commandConsumers) {
-        this(peer, commandQueue, socket, new PeerStateMachine(peer, commandQueue, commandConsumers));
+    public PeerConnection(Peer peer, BlockingQueue<Command> commandQueue, Socket socket, Collection<BlockingQueue<Command>> commandResponders) {
+        this(peer, commandQueue, socket, new PeerStateMachine(peer, commandQueue, commandResponders));
     }
 
     public PeerConnection(Peer peer, BlockingQueue<Command> commandQueue, Socket socket, PeerStateMachine stateMachine) {
@@ -118,9 +115,9 @@ public class PeerConnection implements Runnable {
         }
     }
 
-    public static PeerConnection PeerConnectionFactory(Peer peer, BlockingQueue<Command> commandQueue, Collection<BlockingQueue<Command>> commandConsumers) {
+    public static PeerConnection PeerConnectionFactory(Peer peer, BlockingQueue<Command> commandQueue, Collection<BlockingQueue<Command>> commandProducers) {
         try {
-            return new PeerConnection(peer, commandQueue, new Socket(peer.getIp(), peer.getPort()), commandConsumers);
+            return new PeerConnection(peer, commandQueue, new Socket(peer.getIp(), peer.getPort()), commandProducers);
         } catch (UnknownHostException e) {
             logger.warn("Unknown host: " + peer);
         } catch (IOException e) {

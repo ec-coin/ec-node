@@ -8,16 +8,16 @@ import java.util.concurrent.BlockingQueue;
 public class PeerStateMachine {
     private final Peer peer;
     private final BlockingQueue<Command> commandQueue;
-    private final Collection<BlockingQueue<Command>> commandConsumers;
+    private final Collection<BlockingQueue<Command>> commandResponder;
 
     PeerStateMachine(
             Peer peer,
             BlockingQueue<Command> commandQueue,
-            Collection<BlockingQueue<Command>> commandConsumers
+            Collection<BlockingQueue<Command>> commandResponder
     ) {
         this.peer = peer;
         this.commandQueue = commandQueue;
-        this.commandConsumers = commandConsumers;
+        this.commandResponder = commandResponder;
     }
 
     public void start() {
@@ -66,7 +66,7 @@ public class PeerStateMachine {
             }
         // Only allow non handshake commands when state is ESTABLISHED
         } else if (peer.getState() == PeerState.ESTABLISHED) {
-            for (BlockingQueue<Command> queue : commandConsumers) {
+            for (BlockingQueue<Command> queue : commandResponder) {
                 queue.add(command);
             }
         }

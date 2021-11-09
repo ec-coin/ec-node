@@ -9,4 +9,4 @@ import java.lang.annotation.Target;
 @Qualifier
 @Target({ ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
-public @interface CommandConsumerQueues {}
+public @interface CommandResponderQueues {}
