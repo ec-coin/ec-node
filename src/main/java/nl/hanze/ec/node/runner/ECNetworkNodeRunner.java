@@ -55,11 +55,6 @@ public class ECNetworkNodeRunner {
         }
 
         //################################
-        //  Prints welcome message to console
-        //################################
-        System.out.println(FileUtils.readFromResources("welcome.txt"));
-
-        //################################
         //  Create IoC Container and launch application
         //################################
         Guice.createInjector(
