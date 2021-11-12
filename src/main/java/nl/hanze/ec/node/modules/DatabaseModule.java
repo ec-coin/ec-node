@@ -3,6 +3,7 @@ package nl.hanze.ec.node.modules;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 
+import com.google.inject.TypeLiteral;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.jdbc.JdbcConnectionSource;
@@ -35,7 +36,9 @@ public class DatabaseModule extends AbstractModule {
 
     protected void configure() {
         try {
-            bind(Dao.class).annotatedWith(NeighbourDAO.class).toInstance(DaoManager.createDao(connectionSource, Neighbour.class));
+            // we need to define a TypeLiteral because you cannot bind to interface with generics without it
+            TypeLiteral<Dao<Neighbour, String>> neighbourDAOType = new TypeLiteral<>() {};
+            bind(neighbourDAOType).annotatedWith(NeighbourDAO.class).toInstance(DaoManager.createDao(connectionSource, Neighbour.class));
         } catch (SQLException e) {
             e.printStackTrace();
         }
