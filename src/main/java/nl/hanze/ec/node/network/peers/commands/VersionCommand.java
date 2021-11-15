@@ -1,9 +1,12 @@
 package nl.hanze.ec.node.network.peers.commands;
 
 import nl.hanze.ec.node.Application;
+import nl.hanze.ec.node.workers.Worker;
 import org.json.JSONObject;
 
-public class VersionCommand implements Command, Handshake {
+import java.util.concurrent.BlockingQueue;
+
+public class VersionCommand implements Handshake {
     double version;
     int start_height;
 
@@ -19,7 +22,7 @@ public class VersionCommand implements Command, Handshake {
     }
 
     @Override
-    public JSONObject execute() {
+    public JSONObject getPayload() {
         JSONObject payload = new JSONObject();
 
         payload.put("command", getCommandName());
@@ -36,4 +39,9 @@ public class VersionCommand implements Command, Handshake {
     }
 
     public double getVersion() { return version; }
+
+    @Override
+    public Worker getWorker(Command receivedCommand, BlockingQueue<Command> peerCommandQueue) {
+        throw new UnsupportedOperationException("Workers not supported for Handshake commands.");
+    }
 }

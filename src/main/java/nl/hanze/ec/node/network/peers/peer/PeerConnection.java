@@ -14,7 +14,6 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
-import java.util.Collection;
 import java.util.concurrent.BlockingQueue;
 
 public class PeerConnection implements Runnable {
@@ -29,8 +28,8 @@ public class PeerConnection implements Runnable {
     private BufferedReader in;
     private final BlockingQueue<Command> commandQueue;
 
-    public PeerConnection(Peer peer, BlockingQueue<Command> commandQueue, Socket socket, Collection<BlockingQueue<Command>> commandResponders) {
-        this(peer, commandQueue, socket, new PeerStateMachine(peer, commandQueue, commandResponders));
+    public PeerConnection(Peer peer, BlockingQueue<Command> commandQueue, Socket socket) {
+        this(peer, commandQueue, socket, new PeerStateMachine(peer, commandQueue));
     }
 
     public PeerConnection(Peer peer, BlockingQueue<Command> commandQueue, Socket socket, PeerStateMachine stateMachine) {
@@ -104,9 +103,9 @@ public class PeerConnection implements Runnable {
 
                         Command cmd = CommandFactory.create(payload);
 
-                        stateMachine.input(cmd);
-
                         logger.info("Response:" + response);
+
+                        stateMachine.input(cmd);
                     } catch (JSONException | InvalidCommand e) {
                         logger.error("Invalid json payload received");
                     }
@@ -115,9 +114,9 @@ public class PeerConnection implements Runnable {
         }
     }
 
-    public static PeerConnection PeerConnectionFactory(Peer peer, BlockingQueue<Command> commandQueue, Collection<BlockingQueue<Command>> commandProducers) {
+    public static PeerConnection PeerConnectionFactory(Peer peer, BlockingQueue<Command> commandQueue) {
         try {
-            return new PeerConnection(peer, commandQueue, new Socket(peer.getIp(), peer.getPort()), commandProducers);
+            return new PeerConnection(peer, commandQueue, new Socket(peer.getIp(), peer.getPort()));
         } catch (UnknownHostException e) {
             logger.warn("Unknown host: " + peer);
         } catch (IOException e) {

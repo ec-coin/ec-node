@@ -1,23 +1,23 @@
 package nl.hanze.ec.node.network.peers.peer;
 
 import nl.hanze.ec.node.network.peers.commands.*;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 
 import java.util.Collection;
 import java.util.concurrent.BlockingQueue;
 
 public class PeerStateMachine {
+    private static final Logger logger = LogManager.getLogger(PeerStateMachine.class);
     private final Peer peer;
     private final BlockingQueue<Command> commandQueue;
-    private final Collection<BlockingQueue<Command>> commandResponder;
 
     PeerStateMachine(
             Peer peer,
-            BlockingQueue<Command> commandQueue,
-            Collection<BlockingQueue<Command>> commandResponder
+            BlockingQueue<Command> commandQueue
     ) {
         this.peer = peer;
         this.commandQueue = commandQueue;
-        this.commandResponder = commandResponder;
     }
 
     public void start() {
@@ -32,7 +32,7 @@ public class PeerStateMachine {
         }
 
         // Retrieve JSON representation of command
-        return command.execute().toString();
+        return command.getPayload().toString();
     }
 
     public void input(Command command) {
@@ -60,15 +60,16 @@ public class PeerStateMachine {
                 peer.setState((peer.getState() == PeerState.VERSION_RCVD)
                         ? PeerState.ESTABLISHED : PeerState.VERSION_ACK);
 
+                logger.info("Connection with peer " + peer.getIp() + "@" + peer.getPort() + " is now established");
+
+                // TODO: This is temporary
                 if (peer.getState() == PeerState.ESTABLISHED) {
                     commandQueue.add(new TestCommand());
                 }
             }
         // Only allow non handshake commands when state is ESTABLISHED
         } else if (peer.getState() == PeerState.ESTABLISHED) {
-            for (BlockingQueue<Command> queue : commandResponder) {
-                queue.add(command);
-            }
+            new Thread(command.getWorker(command, commandQueue)).start();
         }
     }
 }

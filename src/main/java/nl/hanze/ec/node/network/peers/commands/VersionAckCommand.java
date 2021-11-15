@@ -1,10 +1,13 @@
 package nl.hanze.ec.node.network.peers.commands;
 
+import nl.hanze.ec.node.workers.Worker;
 import org.json.JSONObject;
 
-public class VersionAckCommand implements Command, Handshake {
+import java.util.concurrent.BlockingQueue;
+
+public class VersionAckCommand implements Handshake {
     @Override
-    public JSONObject execute() {
+    public JSONObject getPayload() {
         JSONObject payload = new JSONObject();
 
         payload.put("command", getCommandName());
@@ -15,5 +18,10 @@ public class VersionAckCommand implements Command, Handshake {
     @Override
     public String getCommandName() {
         return "verack";
+    }
+
+    @Override
+    public Worker getWorker(Command receivedCommand, BlockingQueue<Command> peerCommandQueue) {
+        throw new UnsupportedOperationException("Workers not supported for Handshake commands.");
     }
 }
