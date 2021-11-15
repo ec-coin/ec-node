@@ -1,4 +1,4 @@
-package nl.hanze.ec.node.network.peers.commands.decorators;
+package nl.hanze.ec.node.network.peers.commands;
 
 import nl.hanze.ec.node.network.peers.commands.Command;
 import nl.hanze.ec.node.workers.Worker;

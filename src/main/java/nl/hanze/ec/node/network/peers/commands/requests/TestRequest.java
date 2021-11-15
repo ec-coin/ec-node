@@ -1,21 +1,20 @@
-package nl.hanze.ec.node.network.peers.commands;
+package nl.hanze.ec.node.network.peers.commands.requests;
 
-import nl.hanze.ec.node.Application;
-import nl.hanze.ec.node.workers.TestWorker;
+import nl.hanze.ec.node.network.peers.commands.Command;
 import nl.hanze.ec.node.workers.Worker;
 import org.json.JSONObject;
 
 import java.util.concurrent.BlockingQueue;
 
-public class TestAnnouncement implements Command {
+public class TestRequest implements Command {
     String msg;
 
-    public TestAnnouncement(JSONObject payload) {
+    public TestRequest(JSONObject payload) {
         this.msg = payload.getString("msg");
     }
 
-    public TestAnnouncement() {
-        this.msg = "Hello world";
+    public TestRequest() {
+        this.msg = "Test request command message";
     }
 
     @Override
@@ -29,11 +28,13 @@ public class TestAnnouncement implements Command {
         return payload;
     }
 
+    @Override
     public String getCommandName() {
-        return "test";
+        return "test-request";
     }
 
+    @Override
     public Worker getWorker(Command receivedCommand, BlockingQueue<Command> peerCommandQueue) {
-        return new TestWorker(receivedCommand, peerCommandQueue);
+        return null;
     }
 }

@@ -1,12 +1,11 @@
 package nl.hanze.ec.node.workers;
 
 import nl.hanze.ec.node.network.peers.commands.Command;
-import nl.hanze.ec.node.network.peers.commands.TestAnnouncement;
 
 import java.util.concurrent.BlockingQueue;
 
-public class TestWorker extends Worker {
-    public TestWorker(Command receivedCommand, BlockingQueue<Command> peerCommandQueue) {
+public class TestAnnouncementWorker extends Worker {
+    public TestAnnouncementWorker(Command receivedCommand, BlockingQueue<Command> peerCommandQueue) {
         super(receivedCommand, peerCommandQueue);
     }
 

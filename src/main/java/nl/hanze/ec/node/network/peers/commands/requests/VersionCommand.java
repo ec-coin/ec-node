@@ -1,6 +1,8 @@
-package nl.hanze.ec.node.network.peers.commands;
+package nl.hanze.ec.node.network.peers.commands.requests;
 
 import nl.hanze.ec.node.Application;
+import nl.hanze.ec.node.network.peers.commands.Command;
+import nl.hanze.ec.node.network.peers.commands.Handshake;
 import nl.hanze.ec.node.workers.Worker;
 import org.json.JSONObject;
 

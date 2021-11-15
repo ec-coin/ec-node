@@ -1,6 +1,9 @@
 package nl.hanze.ec.node.network.peers.peer;
 
 import nl.hanze.ec.node.network.peers.commands.*;
+import nl.hanze.ec.node.network.peers.commands.announcements.TestAnnouncement;
+import nl.hanze.ec.node.network.peers.commands.requests.VersionCommand;
+import nl.hanze.ec.node.network.peers.commands.responses.VersionAckCommand;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
