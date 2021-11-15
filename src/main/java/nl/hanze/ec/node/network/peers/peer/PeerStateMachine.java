@@ -4,7 +4,6 @@ import nl.hanze.ec.node.network.peers.commands.*;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
-import java.util.Collection;
 import java.util.concurrent.BlockingQueue;
 
 public class PeerStateMachine {
@@ -50,7 +49,7 @@ public class PeerStateMachine {
                 commandQueue.add(new VersionAckCommand());
 
                 if (peer.getState() == PeerState.ESTABLISHED) {
-                    commandQueue.add(new TestCommand());
+                    commandQueue.add(new TestAnnouncement());
                 }
             }
 
@@ -64,7 +63,7 @@ public class PeerStateMachine {
 
                 // TODO: This is temporary
                 if (peer.getState() == PeerState.ESTABLISHED) {
-                    commandQueue.add(new TestCommand());
+                    commandQueue.add(new TestAnnouncement());
                 }
             }
         // Only allow non handshake commands when state is ESTABLISHED

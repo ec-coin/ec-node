@@ -7,14 +7,14 @@ import org.json.JSONObject;
 
 import java.util.concurrent.BlockingQueue;
 
-public class TestCommand implements Command {
+public class TestAnnouncement implements Command {
     String msg;
 
-    public TestCommand(JSONObject payload) {
+    public TestAnnouncement(JSONObject payload) {
         this.msg = payload.getString("msg");
     }
 
-    public TestCommand() {
+    public TestAnnouncement() {
         this.msg = "Hello world";
     }
 
