@@ -5,8 +5,6 @@ import nl.hanze.ec.node.modules.annotations.IncomingConnectionsQueue;
 import nl.hanze.ec.node.modules.annotations.MaxPeers;
 import nl.hanze.ec.node.modules.annotations.Port;
 import nl.hanze.ec.node.network.peers.commands.Command;
-import nl.hanze.ec.node.network.peers.commands.WaitForResponse;
-import nl.hanze.ec.node.network.peers.commands.requests.NeighborsRequest;
 import nl.hanze.ec.node.network.peers.peer.Peer;
 import nl.hanze.ec.node.network.peers.peer.PeerConnection;
 import nl.hanze.ec.node.network.peers.peer.PeerState;
@@ -68,17 +66,6 @@ public class PeerPool implements Runnable {
             //  otherwise other nodes will never be able to connect to you
             //  Maybe only on start up? or if number very high
             if (peersNeeded != 0) {
-                // TODO: testing purposes
-                if (this.connectedPeers.size() == 1) {
-                    Iterator<BlockingQueue<Command>> it = this.connectedPeers.values().iterator();
-                    BlockingQueue<Command> cmdQueue = it.next();
-
-                    WaitForResponse cmd = new WaitForResponse(new NeighborsRequest());
-                    cmdQueue.add(cmd);
-                    cmd.await();
-                    System.out.println("AWAIT IS RESOLVED");
-                }
-
                 connectToPeers(peersNeeded);
             }
 

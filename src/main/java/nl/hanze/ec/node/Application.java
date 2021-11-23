@@ -8,7 +8,6 @@ import com.j256.ormlite.table.TableUtils;
 import nl.hanze.ec.node.database.models.Neighbour;
 import nl.hanze.ec.node.database.repositories.NeighboursRepository;
 import nl.hanze.ec.node.modules.annotations.DatabaseConnection;
-import nl.hanze.ec.node.network.ConnectionManager;
 import nl.hanze.ec.node.network.Server;
 import nl.hanze.ec.node.network.peers.PeerPool;
 import nl.hanze.ec.node.utils.FileUtils;
@@ -28,7 +27,6 @@ public class Application {
     public Application(Server server, PeerPool peerPool,
                        @DatabaseConnection ConnectionSource databaseConnection,
                        NeighboursRepository neighboursRepository) {
-        this.connectionManager = connectionManager;
         this.databaseConnection = databaseConnection;
         this.neighboursRepository = neighboursRepository;
         this.server = server;

@@ -1,5 +1,6 @@
 package nl.hanze.ec.node.network.peers.peer;
 
+import com.j256.ormlite.stmt.query.In;
 import nl.hanze.ec.node.network.peers.commands.*;
 import nl.hanze.ec.node.network.peers.commands.handshake.Handshake;
 import nl.hanze.ec.node.network.peers.commands.handshake.VersionCommand;
@@ -77,9 +78,11 @@ public class PeerStateMachine {
             command.getWorker(command, commandQueue).run();
 
             if (command instanceof Response) {
-                WaitForResponse request = requestsWaitingForResponse.get(((Response) command).inResponseTo());
+                Integer responseTo = ((Response) command).inResponseTo();
+                WaitForResponse request = requestsWaitingForResponse.get(responseTo);
                 if (request != null) {
                     request.resolve();
+                    requestsWaitingForResponse.remove(responseTo);
                 }
             }
         }
