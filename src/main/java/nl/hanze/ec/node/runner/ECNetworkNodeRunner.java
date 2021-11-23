@@ -8,6 +8,9 @@ import net.sourceforge.argparse4j.inf.Namespace;
 import nl.hanze.ec.node.Application;
 import nl.hanze.ec.node.modules.ConfigModule;
 import nl.hanze.ec.node.modules.ThreadCommunicationModule;
+import nl.hanze.ec.node.modules.DatabaseModule;
+import nl.hanze.ec.node.utils.FileUtils;
+
 
 /**
  * Hanzehogeschool Groningen University of Applied Sciences HBO-ICT
@@ -57,7 +60,8 @@ public class ECNetworkNodeRunner {
         //################################
         Guice.createInjector(
                 new ConfigModule(ns),
-                new ThreadCommunicationModule()
+                new ThreadCommunicationModule(),
+                new DatabaseModule()
         ).getInstance(Application.class).run();
     }
 }
