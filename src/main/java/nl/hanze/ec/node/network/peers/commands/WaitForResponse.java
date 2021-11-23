@@ -1,6 +1,5 @@
 package nl.hanze.ec.node.network.peers.commands;
 
-import nl.hanze.ec.node.network.peers.commands.Command;
 import nl.hanze.ec.node.workers.Worker;
 import org.json.JSONObject;
 
@@ -8,7 +7,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-public class WaitForResponse implements Command {
+public class WaitForResponse extends Command {
     protected Command command;
     protected long timeout;
     CountDownLatch latch = new CountDownLatch(1);
@@ -34,6 +33,16 @@ public class WaitForResponse implements Command {
     }
 
     @Override
+    public int getMessageNumber() {
+        return command.getMessageNumber();
+    }
+
+    @Override
+    public void setMessageNumber(int messageNumber) {
+        command.setMessageNumber(messageNumber);
+    }
+
+    @Override
     public Worker getWorker(Command receivedCommand, BlockingQueue<Command> peerCommandQueue) {
         return command.getWorker(receivedCommand, peerCommandQueue);
     }
@@ -47,5 +56,12 @@ public class WaitForResponse implements Command {
         } catch (InterruptedException e) {
             return false;
         }
+    }
+
+    /**
+     * Notify the awaiting threads that the response has been handled
+     */
+    public void resolve() {
+        latch.countDown();
     }
 }

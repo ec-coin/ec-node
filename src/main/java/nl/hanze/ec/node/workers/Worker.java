@@ -4,7 +4,7 @@ import nl.hanze.ec.node.network.peers.commands.Command;
 
 import java.util.concurrent.BlockingQueue;
 
-public abstract class Worker implements Runnable{
+public abstract class Worker implements Runnable {
     Command receivedCommand;
     BlockingQueue<Command> peerCommandQueue;
 

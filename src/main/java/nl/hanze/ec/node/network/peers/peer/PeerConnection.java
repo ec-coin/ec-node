@@ -107,7 +107,7 @@ public class PeerConnection implements Runnable {
 
                         stateMachine.input(cmd);
                     } catch (JSONException | InvalidCommand e) {
-                        logger.error("Invalid json payload received");
+                        logger.error("Invalid json payload received: " + e.getMessage());
                     }
                 }
             } catch (IOException e) { e.printStackTrace(); }

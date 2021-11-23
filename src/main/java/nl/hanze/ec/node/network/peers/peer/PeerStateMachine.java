@@ -1,18 +1,23 @@
 package nl.hanze.ec.node.network.peers.peer;
 
 import nl.hanze.ec.node.network.peers.commands.*;
-import nl.hanze.ec.node.network.peers.commands.announcements.TestAnnouncement;
-import nl.hanze.ec.node.network.peers.commands.requests.VersionCommand;
-import nl.hanze.ec.node.network.peers.commands.responses.VersionAckCommand;
+import nl.hanze.ec.node.network.peers.commands.handshake.Handshake;
+import nl.hanze.ec.node.network.peers.commands.handshake.VersionCommand;
+import nl.hanze.ec.node.network.peers.commands.handshake.VersionAckCommand;
+import nl.hanze.ec.node.network.peers.commands.responses.Response;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 
 public class PeerStateMachine {
     private static final Logger logger = LogManager.getLogger(PeerStateMachine.class);
     private final Peer peer;
     private final BlockingQueue<Command> commandQueue;
+    private final Map<Integer, WaitForResponse> requestsWaitingForResponse = new HashMap<>();
+    private int commandCounter = 0;
 
     PeerStateMachine(
             Peer peer,
@@ -33,6 +38,13 @@ public class PeerStateMachine {
             return null;
         }
 
+        command.setMessageNumber(commandCounter);
+        this.commandCounter++;
+
+        if (command instanceof WaitForResponse) {
+            requestsWaitingForResponse.put(command.getMessageNumber(), (WaitForResponse) command);
+        }
+
         // Retrieve JSON representation of command
         return command.getPayload().toString();
     }
@@ -50,10 +62,6 @@ public class PeerStateMachine {
                         ? PeerState.ESTABLISHED : PeerState.VERSION_RCVD);
 
                 commandQueue.add(new VersionAckCommand());
-
-                if (peer.getState() == PeerState.ESTABLISHED) {
-                    commandQueue.add(new TestAnnouncement());
-                }
             }
 
             if (command instanceof VersionAckCommand) {
@@ -63,15 +71,17 @@ public class PeerStateMachine {
                         ? PeerState.ESTABLISHED : PeerState.VERSION_ACK);
 
                 logger.info("Connection with peer " + peer.getIp() + "@" + peer.getPort() + " is now established");
-
-                // TODO: This is temporary
-                if (peer.getState() == PeerState.ESTABLISHED) {
-                    commandQueue.add(new TestAnnouncement());
-                }
             }
         // Only allow non handshake commands when state is ESTABLISHED
         } else if (peer.getState() == PeerState.ESTABLISHED) {
-            new Thread(command.getWorker(command, commandQueue)).start();
+            command.getWorker(command, commandQueue).run();
+
+            if (command instanceof Response) {
+                WaitForResponse request = requestsWaitingForResponse.get(((Response) command).inResponseTo());
+                if (request != null) {
+                    request.resolve();
+                }
+            }
         }
     }
 }

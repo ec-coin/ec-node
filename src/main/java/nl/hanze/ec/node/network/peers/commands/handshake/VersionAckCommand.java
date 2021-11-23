@@ -1,20 +1,17 @@
-package nl.hanze.ec.node.network.peers.commands.responses;
+package nl.hanze.ec.node.network.peers.commands.handshake;
 
 import nl.hanze.ec.node.network.peers.commands.Command;
-import nl.hanze.ec.node.network.peers.commands.Handshake;
 import nl.hanze.ec.node.workers.Worker;
 import org.json.JSONObject;
 
 import java.util.concurrent.BlockingQueue;
 
-public class VersionAckCommand implements Handshake {
-    @Override
-    public JSONObject getPayload() {
-        JSONObject payload = new JSONObject();
+public class VersionAckCommand extends Command implements Handshake {
+    public VersionAckCommand() {
+    }
 
-        payload.put("command", getCommandName());
-
-        return payload;
+    public VersionAckCommand(JSONObject payload) {
+        super(payload);
     }
 
     @Override
