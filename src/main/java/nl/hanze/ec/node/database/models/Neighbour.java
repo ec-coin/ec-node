@@ -18,9 +18,7 @@ public class Neighbour {
     @DatabaseField(defaultValue = "true")
     private boolean trustable;
 
-    public Neighbour() {
-
-    }
+    public Neighbour() {} // is needed
 
     public Neighbour(String ip, int port) {
         this.ip = ip;
