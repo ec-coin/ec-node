@@ -1,15 +1,18 @@
 package nl.hanze.ec.node.network.peers;
 
-import nl.hanze.ec.node.network.ConnectionManager;
+import com.google.inject.Inject;
+import nl.hanze.ec.node.modules.annotations.IncomingConnectionsQueue;
+import nl.hanze.ec.node.modules.annotations.MaxPeers;
+import nl.hanze.ec.node.modules.annotations.Port;
 import nl.hanze.ec.node.network.peers.commands.Command;
-import nl.hanze.ec.node.network.peers.commands.VersionCommand;
+import nl.hanze.ec.node.network.peers.commands.WaitForResponse;
+import nl.hanze.ec.node.network.peers.commands.requests.NeighborsRequest;
 import nl.hanze.ec.node.network.peers.peer.Peer;
 import nl.hanze.ec.node.network.peers.peer.PeerConnection;
 import nl.hanze.ec.node.network.peers.peer.PeerState;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
-import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
@@ -18,6 +21,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class PeerPool implements Runnable {
     private static final Logger logger = LogManager.getLogger(PeerPool.class);
     private final int maxPeers;
+    private final BlockingQueue<Socket> incomingConnectionsQueue;
 
     /**
      * List containing all unconnected peers
@@ -29,9 +33,15 @@ public class PeerPool implements Runnable {
      */
     Map<Peer, BlockingQueue<Command>> connectedPeers = new HashMap<>();
 
-    public PeerPool(int maxPeers, Peer[] seeds) {
+    @Inject
+    public PeerPool(
+            @MaxPeers int maxPeers,
+            @Port int port,
+            @IncomingConnectionsQueue BlockingQueue<Socket> incomingConnectionsQueue
+    ) {
         this.maxPeers = maxPeers;
-        this.unconnectedPeers.addAll(List.of(seeds));
+        this.unconnectedPeers.addAll(List.of(new Peer[] {new Peer("127.0.0.1", port + 1)}));
+        this.incomingConnectionsQueue = incomingConnectionsQueue;
     }
 
     @Override
@@ -40,7 +50,7 @@ public class PeerPool implements Runnable {
             int peersNeeded = Math.max(maxPeers - connectedPeers.size(), 0);
 
             Socket socket;
-            while ((socket = ConnectionManager.incomingConnections.poll()) != null) {
+            while ((socket = incomingConnectionsQueue.poll()) != null) {
                 if (peersNeeded == 0) {
                     // TODO: send: not accepting new connections
                 }
@@ -58,6 +68,17 @@ public class PeerPool implements Runnable {
             //  otherwise other nodes will never be able to connect to you
             //  Maybe only on start up? or if number very high
             if (peersNeeded != 0) {
+                // TODO: testing purposes
+                if (this.connectedPeers.size() == 1) {
+                    Iterator<BlockingQueue<Command>> it = this.connectedPeers.values().iterator();
+                    BlockingQueue<Command> cmdQueue = it.next();
+
+                    WaitForResponse cmd = new WaitForResponse(new NeighborsRequest());
+                    cmdQueue.add(cmd);
+                    cmd.await();
+                    System.out.println("AWAIT IS RESOLVED");
+                }
+
                 connectToPeers(peersNeeded);
             }
 
@@ -76,7 +97,7 @@ public class PeerPool implements Runnable {
 
     private void removeDeadPeers() {
         for (Peer peer : connectedPeers.keySet()) {
-            if (peer.getState() == PeerState.DISCONNECTED) {
+            if (peer.getState() == PeerState.CLOSING) {
                 logger.info(peer + " is dead. Removing.");
 
                 connectedPeers.remove(peer);
@@ -104,15 +125,16 @@ public class PeerPool implements Runnable {
             }
 
             BlockingQueue<Command> commandsQueue = new LinkedBlockingQueue<>();
-            (new Thread(
-                    PeerConnection.PeerConnectionFactory(peerCandidate, commandsQueue)
-            )).start();
+            PeerConnection peerConnection = PeerConnection.PeerConnectionFactory(peerCandidate, commandsQueue);
 
-            if (peerCandidate.getState() == PeerState.UNKNOWN_VERSION) {
-                connectedPeers.put(peerCandidate, commandsQueue);
-            } else {
+            if (peerConnection == null) {
                 unconnectedPeers.add(peerCandidate);
+                break;
             }
+
+            (new Thread(peerConnection)).start();
+
+            connectedPeers.put(peerCandidate, commandsQueue);
         }
     }
 

@@ -1,18 +1,25 @@
 package nl.hanze.ec.node.network;
 
+import com.google.inject.Inject;
+import nl.hanze.ec.node.modules.annotations.IncomingConnectionsQueue;
+import nl.hanze.ec.node.modules.annotations.Port;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.BlockingQueue;
 
 public class Server implements Runnable {
     private static final Logger logger = LogManager.getLogger(Server.class);
     private final int port;
+    private final BlockingQueue<Socket> incomingConnectionsQueue;
 
-    public Server(int port) {
+    @Inject
+    public Server(@Port int port, @IncomingConnectionsQueue BlockingQueue<Socket> incomingConnectionsQueue) {
         this.port = port;
+        this.incomingConnectionsQueue = incomingConnectionsQueue;
     }
 
     @Override
@@ -24,7 +31,7 @@ public class Server implements Runnable {
                 Socket socket = serverSocket.accept();
                 logger.info("New client connected");
 
-                ConnectionManager.incomingConnections.add(socket);
+                incomingConnectionsQueue.add(socket);
             }
         } catch (IOException ex) {
             logger.debug("Server exception: " + ex.getMessage());

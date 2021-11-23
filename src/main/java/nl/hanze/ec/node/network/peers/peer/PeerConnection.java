@@ -1,10 +1,7 @@
 package nl.hanze.ec.node.network.peers.peer;
 
 import nl.hanze.ec.node.exceptions.InvalidCommand;
-import nl.hanze.ec.node.network.peers.commands.Command;
-import nl.hanze.ec.node.network.peers.commands.CommandFactory;
-import nl.hanze.ec.node.network.peers.commands.VersionAckCommand;
-import nl.hanze.ec.node.network.peers.commands.VersionCommand;
+import nl.hanze.ec.node.network.peers.commands.*;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.json.JSONException;
@@ -23,27 +20,35 @@ public class PeerConnection implements Runnable {
     private static final Logger logger = LogManager.getLogger(PeerConnection.class);
     private static final int MAX_TIMEOUT = 10 * 1000; // 10 sec
 
-    private Socket socket;
-    private Peer peer;
+    private final Socket socket;
+    private final Peer peer;
+    private final PeerStateMachine stateMachine;
 
     private PrintWriter out;
     private BufferedReader in;
     private final BlockingQueue<Command> commandQueue;
 
     public PeerConnection(Peer peer, BlockingQueue<Command> commandQueue, Socket socket) {
+        this(peer, commandQueue, socket, new PeerStateMachine(peer, commandQueue));
+    }
+
+    public PeerConnection(Peer peer, BlockingQueue<Command> commandQueue, Socket socket, PeerStateMachine stateMachine) {
         this.peer = peer;
         this.commandQueue = commandQueue;
         this.socket = socket;
+        this.stateMachine = stateMachine;
 
+        /*
+         * Retrieved input and output streams of socket
+         */
         try {
             this.socket.setSoTimeout(MAX_TIMEOUT);
 
             out = new PrintWriter(socket.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-            peer.setState(PeerState.UNKNOWN_VERSION);
-
-            commandQueue.add(new VersionCommand());
+            // Initiate handshake
+            stateMachine.start();
         } catch (SocketTimeoutException e) {
             logger.warn("Socket timeout " + peer);
         } catch (IOException e) {
@@ -55,23 +60,37 @@ public class PeerConnection implements Runnable {
 
     @Override
     public void run() {
+        // Allocated space for command (output stream) and response (input stream)
         Command command;
         String response;
         boolean running = true;
 
+        /*
+         * Continuously poll command queue and read the output buffer
+         */
         while (running) {
-            if (getPeer().getState() == PeerState.DISCONNECTED || getPeer().getState() == PeerState.UNCONNECTED) {
-                if (getPeer().getState() == PeerState.DISCONNECTED) running = false;
+            // When state closing, close socket and terminate thread
+            if (peer.getState() == PeerState.CLOSING) {
+                running = false;
+
+                try {
+                    socket.close();
+                } catch (IOException ignored) {}
 
                 continue;
             }
 
-            // send commands from queue to the peer
+            // Poll command queue for to be outputted commands
             while ((command = commandQueue.poll()) != null) {
-                String cmd = command.execute().toString();
+                // State machine validation on to be outputted command
+                String cmd = stateMachine.output(command);
 
-                System.out.println("Command:" + cmd);
+                // Invalid command in current state, ignoring
+                if (cmd == null) continue;
 
+                logger.info("Command:" + cmd);
+
+                // Write to output stream
                 out.println(cmd);
                 out.flush();
             }
@@ -79,45 +98,20 @@ public class PeerConnection implements Runnable {
             try {
                 // Read peer responses and notify observers
                 while (in.ready() && (response = in.readLine()) != null) {
-                    System.out.println("Response:" + response);
-
                     try {
                         JSONObject payload = new JSONObject(response);
 
-                        Command receivedCommand = CommandFactory.create(payload);
+                        Command cmd = CommandFactory.create(payload);
 
-                        if (receivedCommand instanceof VersionCommand) {
-                            this.getPeer().setVersion(((VersionCommand) receivedCommand).getVersion());
-                            commandQueue.add(new VersionAckCommand());
-                        }
+                        logger.info("Response:" + response);
+
+                        stateMachine.input(cmd);
                     } catch (JSONException | InvalidCommand e) {
-                        System.err.println("Invalid json payload received");
+                        logger.error("Invalid json payload received: " + e.getMessage());
                     }
                 }
             } catch (IOException e) { e.printStackTrace(); }
         }
-    }
-
-    public void closeConnection() {
-
-    }
-
-    public boolean isConnected() {
-        if (socket == null) {
-            return false;
-        }
-
-        try {
-            // TODO, this does not work (it pings the host), we should have a heartbeat for each peer and check when
-            // we got the last heartbeat
-            return socket.getInetAddress().isReachable(MAX_TIMEOUT);
-        } catch (IOException e) {
-            return false;
-        }
-    }
-
-    public Peer getPeer() {
-        return this.peer;
     }
 
     public static PeerConnection PeerConnectionFactory(Peer peer, BlockingQueue<Command> commandQueue) {

@@ -1,9 +1,9 @@
 package nl.hanze.ec.node.modules;
 
 import com.google.inject.AbstractModule;
-import com.google.inject.Provides;
-import com.google.inject.name.Names;
 import net.sourceforge.argparse4j.inf.Namespace;
+import nl.hanze.ec.node.modules.annotations.MaxPeers;
+import nl.hanze.ec.node.modules.annotations.Port;
 
 public class ConfigModule extends AbstractModule  {
     private final int maxPeers;
@@ -15,7 +15,7 @@ public class ConfigModule extends AbstractModule  {
     }
 
     protected void configure() {
-        bind(Integer.class).annotatedWith(Names.named("Port")).toInstance(this.port);
-        bind(Integer.class).annotatedWith(Names.named("MaxPeers")).toInstance(this.maxPeers);
+        bind(Integer.class).annotatedWith(Port.class).toInstance(this.port);
+        bind(Integer.class).annotatedWith(MaxPeers.class).toInstance(this.maxPeers);
     }
 }
