@@ -1,5 +1,6 @@
 package nl.hanze.ec.node.network.peers.peer;
 
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class Peer {
@@ -45,5 +46,18 @@ public class Peer {
                 ", port=" + port +
                 ", state=" + getState() +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Peer peer = (Peer) o;
+        return port == peer.port && Objects.equals(ip, peer.ip);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(ip, port);
     }
 }

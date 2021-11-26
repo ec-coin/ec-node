@@ -1,16 +1,21 @@
 package nl.hanze.ec.node.network.peers;
 
 import com.google.inject.Inject;
+import nl.hanze.ec.node.database.models.Neighbour;
 import nl.hanze.ec.node.database.repositories.NeighboursRepository;
 import nl.hanze.ec.node.modules.annotations.IncomingConnectionsQueue;
 import nl.hanze.ec.node.modules.annotations.MaxPeers;
 import nl.hanze.ec.node.modules.annotations.Port;
 import nl.hanze.ec.node.network.peers.commands.Command;
+import nl.hanze.ec.node.network.peers.commands.CommandFactory;
+import nl.hanze.ec.node.network.peers.commands.requests.NeighborsRequest;
 import nl.hanze.ec.node.network.peers.peer.Peer;
 import nl.hanze.ec.node.network.peers.peer.PeerConnection;
 import nl.hanze.ec.node.network.peers.peer.PeerState;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.joda.time.DateTime;
+import org.joda.time.Seconds;
 
 import java.net.Socket;
 import java.util.*;
@@ -24,9 +29,13 @@ public class PeerPool implements Runnable {
     private final BlockingQueue<Socket> incomingConnectionsQueue;
 
     /**
-     * List containing all unconnected peers
+     * List of all the peers we tried to connect
      */
-    private final Queue<Peer> unconnectedPeers = new LinkedList<>();
+    List<Peer> triedPeers = new LinkedList<>();
+
+    private DateTime lastSearchedForNewPeers = new DateTime(0);
+
+    private int searchDelta = 10;
 
     /**
      * Maps each peer to their command queue
@@ -49,34 +58,47 @@ public class PeerPool implements Runnable {
         this.maxPeers = maxPeers;
         this.incomingConnectionsQueue = incomingConnectionsQueue;
 
-        // populate peers
-        if (this.neighboursRepository.getAllNeighbours().size() == 0) {
-            // from database
-            this.unconnectedPeers.addAll(this.neighboursRepository.getAllNeighbours().stream().map(n -> new Peer(n.getIp(), n.getPort())).collect(Collectors.toList()));
-        } else {
-            // hardcode (seeds)
-            this.unconnectedPeers.addAll(List.of(new Peer[] {
-                    new Peer("seed001.ec.dylaan.nl", 5000),
-                    new Peer("seed002.ec.dylaan.nl", 5000),
-                    new Peer("seed003.ec.dylaan.nl", 5000)
-            }));
+    }
+
+    private Peer getNewPeer() {
+        List<Peer> peers = new ArrayList<>();
+
+        peers.add(new Peer("seed001.ec.dylaan.nl", 5000));
+        peers.add(new Peer("seed002.ec.dylaan.nl", 5000));
+        peers.add(new Peer("seed003.ec.dylaan.nl", 5000));
+
+        List<Peer> previousPeers = this.neighboursRepository.getAllNeighbours().stream()
+                .map(n -> new Peer(n.getIp(), n.getPort()))
+                .collect(Collectors.toList());
+
+        Collections.shuffle(previousPeers);
+
+        peers.addAll(previousPeers);
+        peers.removeAll(connectedPeers.keySet());
+        peers.removeAll(triedPeers);
+
+        if (peers.size() < 1) {
+            return null;
         }
+
+        triedPeers.add(peers.get(0));
+        return peers.get(0);
     }
 
     @Override
     public void run() {
         while (true) {
-            int peersNeeded = Math.max(maxPeers - connectedPeers.size(), 0);
+            boolean needMorePeers = Math.max(maxPeers - connectedPeers.size(), 0) > 0;
 
             Socket socket;
             while ((socket = incomingConnectionsQueue.poll()) != null) {
-                if (peersNeeded == 0) {
+                neighboursRepository.updateNeighbour(socket.getInetAddress().getHostAddress(), socket.getPort());
+
+                if (!needMorePeers) {
                     // TODO: send: not accepting new connections
                 }
 
                 Peer peer = new Peer(socket.getInetAddress().getHostAddress(), socket.getPort());
-                neighboursRepository.updateNeighbour(peer.getIp(), peer.getPort());
-
                 BlockingQueue<Command> commandsQueue = new LinkedBlockingQueue<>();
                 (new Thread(
                         new PeerConnection(peer, commandsQueue, socket)
@@ -84,23 +106,35 @@ public class PeerPool implements Runnable {
                 connectedPeers.put(peer, commandsQueue);
             }
 
-            // TODO: don't know is this is needed al the time,
-            //  otherwise other nodes will never be able to connect to you
-            //  Maybe only on start up? or if number very high
-            if (peersNeeded != 0) {
-                connectToPeers(peersNeeded);
+            DateTime now = new DateTime();
+            if (needMorePeers && Seconds.secondsBetween(now, lastSearchedForNewPeers).getSeconds() >= searchDelta) {
+                searchDelta = 10;
+                lastSearchedForNewPeers = now;
+
+                logger.info("Started searching for another peer...");
+                Peer newPeer = getNewPeer();
+                if (newPeer == null && connectedPeers.isEmpty()) {
+                    logger.fatal("Could not find any other peers and not connected to any other peer.");
+                } else if (newPeer == null && !connectedPeers.isEmpty()) {
+                    logger.fatal("Could not find any other peers and asking connect peers for their neighbours.");
+                    sendBroadcast(new NeighborsRequest());
+                } else {
+                    logger.info("Found known peer. " + newPeer);
+                    BlockingQueue<Command> commandsQueue = new LinkedBlockingQueue<>();
+                    PeerConnection peerConnection = PeerConnection.PeerConnectionFactory(newPeer, commandsQueue);
+                    neighboursRepository.updateNeighbour(newPeer.getIp(), newPeer.getPort());
+
+                    if (peerConnection == null) {
+                        logger.info("Could not connect to known peer");
+                        searchDelta = 0;
+                    } else {
+                        (new Thread(peerConnection)).start();
+                        connectedPeers.put(newPeer, commandsQueue);
+                    }
+                }
             }
 
             removeDeadPeers();
-
-            logger.info("Connected peers: " + connectedPeers.size() + ", unconnected peers: "  + unconnectedPeers.size());
-
-            try {
-                // TODO: figure out if this is ok
-                Thread.sleep(10000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
         }
     }
 
@@ -108,42 +142,8 @@ public class PeerPool implements Runnable {
         for (Peer peer : connectedPeers.keySet()) {
             if (peer.getState() == PeerState.CLOSING) {
                 logger.info(peer + " is dead. Removing.");
-
                 connectedPeers.remove(peer);
-
-                // TODO: totally remove peer if it could not connect x times
-                unconnectedPeers.add(peer);
             }
-        }
-    }
-
-    private void connectToPeers(int peersNeeded) {
-        Peer peerCandidate;
-
-        for (int i = 0; i < peersNeeded; i++) {
-            peerCandidate = unconnectedPeers.poll();
-
-            if (peerCandidate == null) {
-                lookupNewPeers();
-                peerCandidate = unconnectedPeers.poll();
-
-                if(peerCandidate == null) {
-                    logger.warn("Need more peers but none are available.");
-                    break;
-                }
-            }
-
-            BlockingQueue<Command> commandsQueue = new LinkedBlockingQueue<>();
-            PeerConnection peerConnection = PeerConnection.PeerConnectionFactory(peerCandidate, commandsQueue);
-
-            if (peerConnection == null) {
-                unconnectedPeers.add(peerCandidate);
-                break;
-            }
-
-            (new Thread(peerConnection)).start();
-
-            connectedPeers.put(peerCandidate, commandsQueue);
         }
     }
 
@@ -155,10 +155,5 @@ public class PeerPool implements Runnable {
 
     public void sendCommand(Peer peer, Command command) {
         connectedPeers.get(peer).add(command);
-    }
-
-    // TODO: asks connected peers to send their peers
-    private void lookupNewPeers() {
-
     }
 }

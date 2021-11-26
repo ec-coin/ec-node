@@ -13,7 +13,6 @@ public class NeighborRequestWorker extends Worker {
     @Override
     public void run() {
         Command rsp = new NeighborsResponse("127.0.0.1", 5002, receivedCommand.getMessageNumber());
-
         peerCommandQueue.add(rsp);
     }
 }
