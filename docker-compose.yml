@@ -1,5 +1,17 @@
 version: "3.9"
 services:
+  openvpn:
+    cap_add:
+      - NET_ADMIN
+    image: kylemanna/openvpn
+    container_name: openvpn
+    ports:
+      - "1194:1194/udp"
+    networks:
+      -  dev_network
+    volumes:
+      - ./openvpn-data/conf:/etc/openvpn
+
   seed_1:
     container_name: seed001.ec.dylaan.nl
     image: ecnode
