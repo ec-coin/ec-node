@@ -19,12 +19,9 @@ public class Application {
 
     private final Server server;
     private final PeerPool peerPool;
-    private final ConnectionSource databaseConnection;
 
     @Inject
-    public Application(Server server, PeerPool peerPool,
-                       @DatabaseConnection ConnectionSource databaseConnection) {
-        this.databaseConnection = databaseConnection;
+    public Application(Server server, PeerPool peerPool) {
         this.server = server;
         this.peerPool = peerPool;
     }
@@ -36,24 +33,11 @@ public class Application {
         //  Prints welcome message to console
         System.out.println(FileUtils.readFromResources("welcome.txt"));
 
-
         // Sets up server and client communication
         Thread serverThread = new Thread(this.server);
         Thread peersThread = new Thread(this.peerPool);
 
         serverThread.start();
         peersThread.start();
-
-        // Setup database
-        setupDatabase();
     }
-
-    private void setupDatabase() {
-        try {
-            TableUtils.createTableIfNotExists(databaseConnection, Neighbour.class);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
 }

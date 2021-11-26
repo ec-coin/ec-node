@@ -47,8 +47,20 @@ public class PeerPool implements Runnable {
     ) {
         this.neighboursRepository = neighboursRepository;
         this.maxPeers = maxPeers;
-        this.unconnectedPeers.addAll(this.neighboursRepository.getAllNeighbours().stream().map(n -> new Peer(n.getIp(), n.getPort())).collect(Collectors.toList()));
         this.incomingConnectionsQueue = incomingConnectionsQueue;
+
+        // populate peers
+        if (this.neighboursRepository.getAllNeighbours().size() == 0) {
+            // from database
+            this.unconnectedPeers.addAll(this.neighboursRepository.getAllNeighbours().stream().map(n -> new Peer(n.getIp(), n.getPort())).collect(Collectors.toList()));
+        } else {
+            // hardcode (seeds)
+            this.unconnectedPeers.addAll(List.of(new Peer[] {
+                    new Peer("seed001.ec.dylaan.nl", 5000),
+                    new Peer("seed002.ec.dylaan.nl", 5000),
+                    new Peer("seed003.ec.dylaan.nl", 5000)
+            }));
+        }
     }
 
     @Override
