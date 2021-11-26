@@ -1,4 +1,4 @@
-package nl.hanze.ec.node.workers;
+package nl.hanze.ec.node.app.workers;
 
 import nl.hanze.ec.node.network.peers.commands.Command;
 import nl.hanze.ec.node.network.peers.commands.responses.NeighborsResponse;

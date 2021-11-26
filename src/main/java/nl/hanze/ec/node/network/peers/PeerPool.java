@@ -1,8 +1,10 @@
 package nl.hanze.ec.node.network.peers;
 
 import com.google.inject.Inject;
+import nl.hanze.ec.node.app.NodeState;
 import nl.hanze.ec.node.modules.annotations.IncomingConnectionsQueue;
 import nl.hanze.ec.node.modules.annotations.MaxPeers;
+import nl.hanze.ec.node.modules.annotations.NodeStateQueue;
 import nl.hanze.ec.node.modules.annotations.Port;
 import nl.hanze.ec.node.network.peers.commands.Command;
 import nl.hanze.ec.node.network.peers.peer.Peer;
@@ -14,6 +16,8 @@ import org.apache.log4j.Logger;
 import java.net.Socket;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class PeerPool implements Runnable {
@@ -29,17 +33,19 @@ public class PeerPool implements Runnable {
     /**
      * Maps each peer to their command queue
      */
-    Map<Peer, BlockingQueue<Command>> connectedPeers = new HashMap<>();
+    ConcurrentMap<Peer, BlockingQueue<Command>> connectedPeers = new ConcurrentHashMap<>();
 
     @Inject
     public PeerPool(
             @MaxPeers int maxPeers,
             @Port int port,
-            @IncomingConnectionsQueue BlockingQueue<Socket> incomingConnectionsQueue
+            @IncomingConnectionsQueue BlockingQueue<Socket> incomingConnectionsQueue,
+            @NodeStateQueue BlockingQueue<NodeState> nodeStateQueue
     ) {
         this.maxPeers = maxPeers;
         this.unconnectedPeers.addAll(List.of(new Peer[] {new Peer("127.0.0.1", port + 1)}));
         this.incomingConnectionsQueue = incomingConnectionsQueue;
+        this.nodeStateQueue = nodeStateQueue;
     }
 
     @Override
@@ -67,6 +73,11 @@ public class PeerPool implements Runnable {
             //  Maybe only on start up? or if number very high
             if (peersNeeded != 0) {
                 connectToPeers(peersNeeded);
+            }
+
+            // Debugging purposes
+            if (connectedPeers.size() > 0) {
+                nodeStateQueue.add(NodeState.PARTICIPATING);
             }
 
             removeDeadPeers();

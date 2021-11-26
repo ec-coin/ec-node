@@ -1,13 +1,13 @@
 package nl.hanze.ec.node.network.peers.commands;
 
-import nl.hanze.ec.node.workers.Worker;
+import nl.hanze.ec.node.app.workers.Worker;
 import org.json.JSONObject;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-public class WaitForResponse extends Command {
+public class WaitForResponse implements Command {
     protected Command command;
     protected long timeout;
     CountDownLatch latch = new CountDownLatch(1);
@@ -25,11 +25,6 @@ public class WaitForResponse extends Command {
     @Override
     public JSONObject getPayload() {
         return command.getPayload();
-    }
-
-    @Override
-    public String getCommandName() {
-        return command.getCommandName();
     }
 
     @Override

@@ -1,13 +1,14 @@
 package nl.hanze.ec.node.network.peers.commands.handshake;
 
 import nl.hanze.ec.node.Application;
+import nl.hanze.ec.node.network.peers.commands.AbstractCommand;
+import nl.hanze.ec.node.app.workers.Worker;
 import nl.hanze.ec.node.network.peers.commands.Command;
-import nl.hanze.ec.node.workers.Worker;
 import org.json.JSONObject;
 
 import java.util.concurrent.BlockingQueue;
 
-public class VersionCommand extends Command implements Handshake {
+public class VersionCommand extends AbstractCommand implements Handshake {
     double version;
     int start_height;
 

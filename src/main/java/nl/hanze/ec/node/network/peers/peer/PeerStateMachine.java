@@ -1,6 +1,5 @@
 package nl.hanze.ec.node.network.peers.peer;
 
-import com.j256.ormlite.stmt.query.In;
 import nl.hanze.ec.node.network.peers.commands.*;
 import nl.hanze.ec.node.network.peers.commands.handshake.Handshake;
 import nl.hanze.ec.node.network.peers.commands.handshake.VersionCommand;

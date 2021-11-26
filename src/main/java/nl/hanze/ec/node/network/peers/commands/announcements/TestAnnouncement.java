@@ -1,13 +1,14 @@
 package nl.hanze.ec.node.network.peers.commands.announcements;
 
+import nl.hanze.ec.node.network.peers.commands.AbstractCommand;
+import nl.hanze.ec.node.app.workers.TestAnnouncementWorker;
+import nl.hanze.ec.node.app.workers.Worker;
 import nl.hanze.ec.node.network.peers.commands.Command;
-import nl.hanze.ec.node.workers.TestAnnouncementWorker;
-import nl.hanze.ec.node.workers.Worker;
 import org.json.JSONObject;
 
 import java.util.concurrent.BlockingQueue;
 
-public class TestAnnouncement extends Command {
+public class TestAnnouncement extends AbstractCommand {
     String msg;
 
     public TestAnnouncement(String msg) {
