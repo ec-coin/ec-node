@@ -6,6 +6,7 @@ import com.google.inject.Inject;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 import nl.hanze.ec.node.app.NodeState;
+import nl.hanze.ec.node.app.listeners.BlockSyncer;
 import nl.hanze.ec.node.app.listeners.Consensus;
 import nl.hanze.ec.node.app.listeners.Listener;
 import nl.hanze.ec.node.database.models.Neighbour;
