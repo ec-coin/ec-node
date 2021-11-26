@@ -1,7 +1,5 @@
 package nl.hanze.ec.node;
 
-
-
 import com.google.inject.Inject;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
@@ -10,7 +8,6 @@ import nl.hanze.ec.node.app.listeners.BlockSyncer;
 import nl.hanze.ec.node.app.listeners.Consensus;
 import nl.hanze.ec.node.app.listeners.Listener;
 import nl.hanze.ec.node.database.models.Neighbour;
-import nl.hanze.ec.node.database.repositories.NeighboursRepository;
 import nl.hanze.ec.node.modules.annotations.DatabaseConnection;
 import nl.hanze.ec.node.modules.annotations.NodeStateQueue;
 import nl.hanze.ec.node.network.Server;
@@ -30,16 +27,22 @@ public class Application {
 
     private final Server server;
     private final PeerPool peerPool;
+    private final List<Class<? extends Listener>> listeners = new ArrayList<>() {
+        {
+            add(Consensus.class);
+            add(BlockSyncer.class);
+        }
+    };
     private final ConnectionSource databaseConnection;
     private final BlockingQueue<NodeState> nodeStateQueue;
     private static final AtomicReference<NodeState> state = new AtomicReference<>(NodeState.INIT);
 
     @Inject
-    public Application(Server server, PeerPool peerPool,
+    public Application(Server server,
+                       PeerPool peerPool,
                        @DatabaseConnection ConnectionSource databaseConnection,
                        @NodeStateQueue BlockingQueue<NodeState> nodeStateQueue) {
         this.databaseConnection = databaseConnection;
-        this.neighboursRepository = neighboursRepository;
         this.server = server;
         this.peerPool = peerPool;
         this.nodeStateQueue = nodeStateQueue;
@@ -49,7 +52,7 @@ public class Application {
      * Launches the application
      */
     public void run() {
-        //  Prints welcome message to console
+        //  Prints welcome message to console.
         System.out.println(FileUtils.readFromResources("welcome.txt"));
 
         // Initialize and start server / peerPool.
@@ -74,13 +77,13 @@ public class Application {
             }
         }
 
-        while (true) {
-            try {
-                state.set(nodeStateQueue.take());
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
+        //while (true) {
+        //    try {
+        //        state.set(nodeStateQueue.take());
+        //    } catch (InterruptedException e) {
+        //        e.printStackTrace();
+        //    }
+        //}
     }
 
     private void setupDatabase() {

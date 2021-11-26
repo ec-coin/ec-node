@@ -29,7 +29,6 @@ public class Consensus extends StateListener {
 
         if (i == 5) {
             nodeStateQueue.add(NodeState.INIT);
-            System.out.println("---------------");
         }
     }
 

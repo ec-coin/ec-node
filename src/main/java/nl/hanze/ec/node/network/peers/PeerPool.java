@@ -24,6 +24,7 @@ public class PeerPool implements Runnable {
     private static final Logger logger = LogManager.getLogger(PeerPool.class);
     private final int maxPeers;
     private final BlockingQueue<Socket> incomingConnectionsQueue;
+    private final BlockingQueue<NodeState> nodeStateQueue;
 
     /**
      * List containing all unconnected peers
@@ -50,6 +51,7 @@ public class PeerPool implements Runnable {
 
     @Override
     public void run() {
+        boolean testing = true;
         while (true) {
             int peersNeeded = Math.max(maxPeers - connectedPeers.size(), 0);
 
@@ -76,7 +78,8 @@ public class PeerPool implements Runnable {
             }
 
             // Debugging purposes
-            if (connectedPeers.size() > 0) {
+            if (connectedPeers.size() > 0 && testing) {
+                testing = false;
                 nodeStateQueue.add(NodeState.PARTICIPATING);
             }
 
