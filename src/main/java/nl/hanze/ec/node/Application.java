@@ -20,15 +20,11 @@ public class Application {
     private final Server server;
     private final PeerPool peerPool;
     private final ConnectionSource databaseConnection;
-    private final NeighboursRepository neighboursRepository; // FOR EXAMPLE USE
-  
 
     @Inject
     public Application(Server server, PeerPool peerPool,
-                       @DatabaseConnection ConnectionSource databaseConnection,
-                       NeighboursRepository neighboursRepository) {
+                       @DatabaseConnection ConnectionSource databaseConnection) {
         this.databaseConnection = databaseConnection;
-        this.neighboursRepository = neighboursRepository;
         this.server = server;
         this.peerPool = peerPool;
     }
@@ -50,9 +46,6 @@ public class Application {
 
         // Setup database
         setupDatabase();
-
-        // Run example, to show DB is working
-        example();
     }
 
     private void setupDatabase() {
@@ -63,13 +56,4 @@ public class Application {
         }
     }
 
-    private void example() {
-        // Show all neighbours (for example)
-        for (Neighbour neighbour : neighboursRepository.getAllNeighbours()) {
-            System.out.println("NEIGHBOUR IN DATABASE: " + neighbour.getIp() + ":" + neighbour.getPort() + " " + neighbour.getLastConnectedAt());
-        }
-
-        // create or update neighbour
-        neighboursRepository.updateNeighbour("192.168.10.10", 5000);
-    }
 }

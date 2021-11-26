@@ -1,6 +1,7 @@
 package nl.hanze.ec.node.network.peers;
 
 import com.google.inject.Inject;
+import nl.hanze.ec.node.database.repositories.NeighboursRepository;
 import nl.hanze.ec.node.modules.annotations.IncomingConnectionsQueue;
 import nl.hanze.ec.node.modules.annotations.MaxPeers;
 import nl.hanze.ec.node.modules.annotations.Port;
@@ -15,6 +16,7 @@ import java.net.Socket;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.stream.Collectors;
 
 public class PeerPool implements Runnable {
     private static final Logger logger = LogManager.getLogger(PeerPool.class);
@@ -29,16 +31,23 @@ public class PeerPool implements Runnable {
     /**
      * Maps each peer to their command queue
      */
-    Map<Peer, BlockingQueue<Command>> connectedPeers = new HashMap<>();
+    private final Map<Peer, BlockingQueue<Command>> connectedPeers = new HashMap<>();
+
+    /**
+     * Neighbours repo
+     */
+    private final NeighboursRepository neighboursRepository;
 
     @Inject
     public PeerPool(
             @MaxPeers int maxPeers,
             @Port int port,
-            @IncomingConnectionsQueue BlockingQueue<Socket> incomingConnectionsQueue
+            @IncomingConnectionsQueue BlockingQueue<Socket> incomingConnectionsQueue,
+            NeighboursRepository neighboursRepository
     ) {
+        this.neighboursRepository = neighboursRepository;
         this.maxPeers = maxPeers;
-        this.unconnectedPeers.addAll(List.of(new Peer[] {new Peer("127.0.0.1", port + 1)}));
+        this.unconnectedPeers.addAll(this.neighboursRepository.getAllNeighbours().stream().map(n -> new Peer(n.getIp(), n.getPort())).collect(Collectors.toList()));
         this.incomingConnectionsQueue = incomingConnectionsQueue;
     }
 
@@ -54,6 +63,7 @@ public class PeerPool implements Runnable {
                 }
 
                 Peer peer = new Peer(socket.getInetAddress().getHostAddress(), socket.getPort());
+                neighboursRepository.updateNeighbour(peer.getIp(), peer.getPort());
 
                 BlockingQueue<Command> commandsQueue = new LinkedBlockingQueue<>();
                 (new Thread(
