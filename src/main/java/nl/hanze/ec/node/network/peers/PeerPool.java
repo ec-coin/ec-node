@@ -11,13 +11,16 @@ import nl.hanze.ec.node.network.peers.commands.CommandFactory;
 import nl.hanze.ec.node.network.peers.commands.requests.NeighborsRequest;
 import nl.hanze.ec.node.network.peers.peer.Peer;
 import nl.hanze.ec.node.network.peers.peer.PeerConnection;
+import nl.hanze.ec.node.network.peers.peer.PeerConnectionFactory;
 import nl.hanze.ec.node.network.peers.peer.PeerState;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.Seconds;
 
+import java.io.IOException;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -43,6 +46,11 @@ public class PeerPool implements Runnable {
     private final Map<Peer, BlockingQueue<Command>> connectedPeers = new HashMap<>();
 
     /**
+     * Factory to create new PeerConnection objects.
+     */
+    private final PeerConnectionFactory peerConnectionFactory;
+
+    /**
      * Neighbours repo
      */
     private final NeighboursRepository neighboursRepository;
@@ -52,12 +60,13 @@ public class PeerPool implements Runnable {
             @MaxPeers int maxPeers,
             @Port int port,
             @IncomingConnectionsQueue BlockingQueue<Socket> incomingConnectionsQueue,
+            PeerConnectionFactory peerConnectionFactory,
             NeighboursRepository neighboursRepository
     ) {
         this.neighboursRepository = neighboursRepository;
         this.maxPeers = maxPeers;
         this.incomingConnectionsQueue = incomingConnectionsQueue;
-
+        this.peerConnectionFactory = peerConnectionFactory;
     }
 
     private Peer getNewPeer() {
@@ -100,14 +109,13 @@ public class PeerPool implements Runnable {
 
                 Peer peer = new Peer(socket.getInetAddress().getHostAddress(), socket.getPort());
                 BlockingQueue<Command> commandsQueue = new LinkedBlockingQueue<>();
-                (new Thread(
-                        new PeerConnection(peer, commandsQueue, socket)
-                )).start();
+                (new Thread(peerConnectionFactory.create(peer, commandsQueue, socket))).start();
+
                 connectedPeers.put(peer, commandsQueue);
             }
 
             DateTime now = new DateTime();
-            if (needMorePeers && Seconds.secondsBetween(now, lastSearchedForNewPeers).getSeconds() >= searchDelta) {
+            if (needMorePeers && Seconds.secondsBetween(lastSearchedForNewPeers, now).getSeconds() >= searchDelta) {
                 searchDelta = 10;
                 lastSearchedForNewPeers = now;
 
@@ -121,16 +129,24 @@ public class PeerPool implements Runnable {
                 } else {
                     logger.info("Found known peer. " + newPeer);
                     BlockingQueue<Command> commandsQueue = new LinkedBlockingQueue<>();
-                    PeerConnection peerConnection = PeerConnection.PeerConnectionFactory(newPeer, commandsQueue);
-                    neighboursRepository.updateNeighbour(newPeer.getIp(), newPeer.getPort());
 
-                    if (peerConnection == null) {
-                        logger.info("Could not connect to known peer");
-                        searchDelta = 0;
-                    } else {
+                    PeerConnection peerConnection;
+                    try {
+                        peerConnection = peerConnectionFactory.create(newPeer, commandsQueue);
+
                         (new Thread(peerConnection)).start();
                         connectedPeers.put(newPeer, commandsQueue);
+                    } catch (UnknownHostException e) {
+                        logger.warn("Unknown host: " + newPeer);
+                        logger.info("Could not connect to known peer");
+                        searchDelta = 0;
+                    } catch (IOException e) {
+                        logger.warn("I/O error occurred when creating the socket " + newPeer);
+                        logger.info("Could not connect to known peer");
+                        searchDelta = 0;
                     }
+
+                    neighboursRepository.updateNeighbour(newPeer.getIp(), newPeer.getPort());
                 }
             }
 

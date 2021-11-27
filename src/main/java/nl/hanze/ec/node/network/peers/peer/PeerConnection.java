@@ -27,16 +27,19 @@ public class PeerConnection implements Runnable {
     private PrintWriter out;
     private BufferedReader in;
     private final BlockingQueue<Command> commandQueue;
+    private CommandFactory commandFactory;
 
-    public PeerConnection(Peer peer, BlockingQueue<Command> commandQueue, Socket socket) {
-        this(peer, commandQueue, socket, new PeerStateMachine(peer, commandQueue));
-    }
-
-    public PeerConnection(Peer peer, BlockingQueue<Command> commandQueue, Socket socket, PeerStateMachine stateMachine) {
+    public PeerConnection(
+            Peer peer,
+            BlockingQueue<Command> commandQueue,
+            Socket socket,
+            PeerStateMachine stateMachine,
+            CommandFactory commandFactory) {
         this.peer = peer;
         this.commandQueue = commandQueue;
         this.socket = socket;
         this.stateMachine = stateMachine;
+        this.commandFactory = commandFactory;
 
         /*
          * Retrieved input and output streams of socket
@@ -101,7 +104,7 @@ public class PeerConnection implements Runnable {
                     try {
                         JSONObject payload = new JSONObject(response);
 
-                        Command cmd = CommandFactory.create(payload);
+                        Command cmd = commandFactory.create(payload);
 
                         logger.info("Response:" + response);
 
@@ -112,17 +115,5 @@ public class PeerConnection implements Runnable {
                 }
             } catch (IOException e) { e.printStackTrace(); }
         }
-    }
-
-    public static PeerConnection PeerConnectionFactory(Peer peer, BlockingQueue<Command> commandQueue) {
-        try {
-            return new PeerConnection(peer, commandQueue, new Socket(peer.getIp(), peer.getPort()));
-        } catch (UnknownHostException e) {
-            logger.warn("Unknown host: " + peer);
-        } catch (IOException e) {
-            logger.warn("I/O error occurred when creating the socket " + peer);
-        }
-
-        return null;
     }
 }
