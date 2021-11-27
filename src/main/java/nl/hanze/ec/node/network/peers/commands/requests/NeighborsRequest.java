@@ -2,6 +2,7 @@ package nl.hanze.ec.node.network.peers.commands.requests;
 
 import nl.hanze.ec.node.network.peers.commands.Command;
 import nl.hanze.ec.node.workers.NeighborRequestWorker;
+import nl.hanze.ec.node.workers.NeighborResponseWorker;
 import nl.hanze.ec.node.workers.Worker;
 import nl.hanze.ec.node.workers.WorkerFactory;
 import org.json.JSONObject;
@@ -22,6 +23,6 @@ public class NeighborsRequest extends Command implements Request {
 
     @Override
     public Worker getWorker(Command receivedCommand, BlockingQueue<Command> peerCommandQueue) {
-        return workerFactory.create(NeighborRequestWorker.class, receivedCommand, peerCommandQueue);
+        return new NeighborRequestWorker(receivedCommand, peerCommandQueue);
     }
 }

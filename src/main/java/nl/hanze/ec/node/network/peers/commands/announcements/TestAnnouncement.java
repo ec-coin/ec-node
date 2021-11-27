@@ -1,6 +1,7 @@
 package nl.hanze.ec.node.network.peers.commands.announcements;
 
 import nl.hanze.ec.node.network.peers.commands.Command;
+import nl.hanze.ec.node.workers.NeighborRequestWorker;
 import nl.hanze.ec.node.workers.TestAnnouncementWorker;
 import nl.hanze.ec.node.workers.Worker;
 import nl.hanze.ec.node.workers.WorkerFactory;
@@ -34,6 +35,6 @@ public class TestAnnouncement extends Command {
 
     @Override
     public Worker getWorker(Command receivedCommand, BlockingQueue<Command> peerCommandQueue) {
-        return workerFactory.create(TestAnnouncementWorker.class, receivedCommand, peerCommandQueue);
+        return new TestAnnouncementWorker(receivedCommand, peerCommandQueue);
     }
 }

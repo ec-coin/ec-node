@@ -20,11 +20,7 @@ public class WorkerFactory {
             Command receivedCommand,
             BlockingQueue<Command> peerCommandQueue
     ) {
-        if (workerClass == TestAnnouncementWorker.class) {
-            return new TestAnnouncementWorker(receivedCommand, peerCommandQueue);
-        } else if (workerClass == NeighborRequestWorker.class) {
-            return new NeighborRequestWorker(receivedCommand, peerCommandQueue);
-        } else if (workerClass == NeighborResponseWorker.class) {
+        if (workerClass == NeighborResponseWorker.class) {
             return new NeighborResponseWorker(receivedCommand, peerCommandQueue, neighboursRepositoryProvider.get());
         }
 
