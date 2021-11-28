@@ -13,12 +13,12 @@ After selecting `Edit Configurations` a popup window will appear, click on the b
 ![Step 2](.docs/step2.jpg)
 
 **Step 3**
-A form will now appear on the right-hand side of the popup. Fill the form in accordingly, with special emphasis on the CLI argument namely: `--max-peers 1 -p 5000`. (Note: depending on your IDEA version you may see `program arguments` field instead of a `CLI arguments` field).
+A form will now appear on the right-hand side of the popup. Fill the form in accordingly, with special emphasis on the CLI argument namely: `--max-peers 1 -p 5000`. (Note: depending on your IDEA version you may see a `program arguments` field instead of a `CLI arguments` field).
 
 ![Step 3](.docs/step3.jpg)
 
 **Step 4**
-Repeat step 2 & 3 but fill in a different name for the configuration and specify the following CLI argument: `--max-peers 1 -p 4999`. (Note: depending on your IDEA version you may see `program arguments` field instead of a `CLI arguments` field).
+Repeat step 2 & 3 but fill in a different name for the configuration and specify the following CLI argument: `--max-peers 1 -p 4999`. (Note: depending on your IDEA version you may see a `program arguments` field instead of a `CLI arguments` field).
 
 ![Step 4](.docs/step4.jpg)
 
