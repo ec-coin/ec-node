@@ -1,13 +1,11 @@
 package nl.hanze.ec.node.network.peers;
 
 import com.google.inject.Inject;
-import nl.hanze.ec.node.database.models.Neighbour;
 import nl.hanze.ec.node.database.repositories.NeighboursRepository;
 import nl.hanze.ec.node.modules.annotations.IncomingConnectionsQueue;
 import nl.hanze.ec.node.modules.annotations.MaxPeers;
 import nl.hanze.ec.node.modules.annotations.Port;
 import nl.hanze.ec.node.network.peers.commands.Command;
-import nl.hanze.ec.node.network.peers.commands.CommandFactory;
 import nl.hanze.ec.node.network.peers.commands.requests.NeighborsRequest;
 import nl.hanze.ec.node.network.peers.peer.Peer;
 import nl.hanze.ec.node.network.peers.peer.PeerConnection;
@@ -36,9 +34,30 @@ public class PeerPool implements Runnable {
      */
     List<Peer> triedPeers = new LinkedList<>();
 
+    /**
+     * Datetime when last searched for new peers
+     */
     private DateTime lastSearchedForNewPeers = new DateTime(0);
 
+    /**
+     * Datetime when last cleared askingNeigbours and triedPeers
+     */
+    private DateTime lastClear = new DateTime();
+
+    /**
+     * All neighbours we asked for their peers
+     */
+    private final Set<Peer> askedNeighbours = new HashSet<>();
+
+    /**
+     * Time between searching new peers
+     */
     private int searchDelta = 10;
+
+    /**
+     * Port we run the server on
+     */
+    private final int port;
 
     /**
      * Maps each peer to their command queue
@@ -67,14 +86,15 @@ public class PeerPool implements Runnable {
         this.maxPeers = maxPeers;
         this.incomingConnectionsQueue = incomingConnectionsQueue;
         this.peerConnectionFactory = peerConnectionFactory;
+        this.port = port;
     }
 
     private Peer getNewPeer() {
         List<Peer> peers = new ArrayList<>();
 
-        peers.add(new Peer("seed001.ec.dylaan.nl", 5000));
-        peers.add(new Peer("seed002.ec.dylaan.nl", 5000));
-        peers.add(new Peer("seed003.ec.dylaan.nl", 5000));
+        peers.add(new Peer("seed001.ec.dylaan.nl", port));
+        peers.add(new Peer("seed002.ec.dylaan.nl", port));
+        peers.add(new Peer("seed003.ec.dylaan.nl", port));
 
         List<Peer> previousPeers = this.neighboursRepository.getAllNeighbours().stream()
                 .map(n -> new Peer(n.getIp(), n.getPort()))
@@ -90,8 +110,9 @@ public class PeerPool implements Runnable {
             return null;
         }
 
-        triedPeers.add(peers.get(0));
-        return peers.get(0);
+        Peer newPeer = peers.get(peers.size() - 1);
+        triedPeers.add(newPeer);
+        return newPeer;
     }
 
     @Override
@@ -101,7 +122,7 @@ public class PeerPool implements Runnable {
 
             Socket socket;
             while ((socket = incomingConnectionsQueue.poll()) != null) {
-                neighboursRepository.updateNeighbour(socket.getInetAddress().getHostAddress(), socket.getPort());
+                neighboursRepository.updateNeighbour(socket.getInetAddress().getHostAddress(), port);
 
                 if (!needMorePeers) {
                     // TODO: send: not accepting new connections
@@ -122,10 +143,18 @@ public class PeerPool implements Runnable {
                 logger.info("Started searching for another peer...");
                 Peer newPeer = getNewPeer();
                 if (newPeer == null && connectedPeers.isEmpty()) {
-                    logger.fatal("Could not find any other peers and not connected to any other peer.");
+                    logger.info("Could not find any other peers and not connected to any other peer.");
                 } else if (newPeer == null && !connectedPeers.isEmpty()) {
-                    logger.fatal("Could not find any other peers and asking connect peers for their neighbours.");
-                    sendBroadcast(new NeighborsRequest());
+                    logger.info("Could not find any other peers and asking connect peers for their neighbours.");
+
+                    for (Peer connected : connectedPeers.keySet()) {
+                        if (askedNeighbours.contains(connected)) {
+                            continue;
+                        }
+
+                        sendCommand(connected, new NeighborsRequest());
+                        askedNeighbours.add(connected);
+                    }
                 } else {
                     logger.info("Found known peer. " + newPeer);
                     BlockingQueue<Command> commandsQueue = new LinkedBlockingQueue<>();
@@ -138,16 +167,20 @@ public class PeerPool implements Runnable {
                         connectedPeers.put(newPeer, commandsQueue);
                     } catch (UnknownHostException e) {
                         logger.warn("Unknown host: " + newPeer);
-                        logger.info("Could not connect to known peer");
                         searchDelta = 0;
                     } catch (IOException e) {
                         logger.warn("I/O error occurred when creating the socket " + newPeer);
-                        logger.info("Could not connect to known peer");
                         searchDelta = 0;
                     }
 
-                    neighboursRepository.updateNeighbour(newPeer.getIp(), newPeer.getPort());
+                    neighboursRepository.updateNeighbour(newPeer.getIp(), port);
                 }
+            }
+
+            if (Seconds.secondsBetween(lastClear, now).getSeconds() >= 30) {
+                lastClear = now;
+                triedPeers.clear();
+                askedNeighbours.clear();
             }
 
             removeDeadPeers();

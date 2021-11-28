@@ -14,34 +14,34 @@ services:
 
   seed_1:
     container_name: seed001.ec.dylaan.nl
-    image: ecnode
+    build: .
     networks:
       dev_network:
         ipv4_address: 172.16.238.10
 
   seed_2:
     container_name: seed002.ec.dylaan.nl
-    image: ecnode
+    build: .
     networks:
       dev_network:
         ipv4_address: 172.16.238.11
 
   seed_3:
     container_name: seed003.ec.dylaan.nl
-    image: ecnode
+    build: .
     networks:
       dev_network:
         ipv4_address: 172.16.238.12
 
   node_1:
     container_name: node_1
-    image: ecnode
+    build: .
     networks:
       - dev_network
 
   node_2:
     container_name: node_2
-    image: ecnode
+    build: .
     networks:
       - dev_network
 

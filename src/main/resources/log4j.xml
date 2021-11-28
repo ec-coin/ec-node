@@ -7,6 +7,11 @@
         </layout>
     </appender>
 
+    <logger name="com.j256.ormlite">
+        <level value="ERROR"/>
+        <appender-ref ref="stdout"/>
+    </logger>
+
     <root>
         <level value="DEBUG"/>
         <appender-ref ref="stdout"/>

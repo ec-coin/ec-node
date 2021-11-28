@@ -23,6 +23,6 @@ public class NeighborsRequest extends Command implements Request {
 
     @Override
     public Worker getWorker(Command receivedCommand, BlockingQueue<Command> peerCommandQueue) {
-        return new NeighborRequestWorker(receivedCommand, peerCommandQueue);
+        return workerFactory.create(NeighborRequestWorker.class, receivedCommand, peerCommandQueue);
     }
 }
