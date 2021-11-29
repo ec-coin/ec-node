@@ -4,21 +4,18 @@ import nl.hanze.ec.node.Application;
 import nl.hanze.ec.node.app.NodeState;
 import nl.hanze.ec.node.app.listeners.Listener;
 import nl.hanze.ec.node.modules.annotations.NodeStateQueue;
-import nl.hanze.ec.node.network.peers.PeerPool;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 
 public class StateHandler implements Handler {
-    protected static BlockingQueue<NodeState> nodeStateQueue;
-    protected static List<Listener> listeners;
-    protected final PeerPool peerPool;
+    private final BlockingQueue<NodeState> nodeStateQueue;
+    private final List<Listener> listeners;
 
-    public StateHandler(@NodeStateQueue BlockingQueue<NodeState> nodeStateQueue1, PeerPool peerPool) {
-        nodeStateQueue = nodeStateQueue1;
-        listeners = new ArrayList<>();
-        this.peerPool = peerPool;
+    public StateHandler(@NodeStateQueue BlockingQueue<NodeState> nodeStateQueue) {
+        this.nodeStateQueue = nodeStateQueue;
+        this.listeners = new ArrayList<>();
     }
 
     public void addObserver(Listener listener) {

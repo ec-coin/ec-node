@@ -67,7 +67,7 @@ public class Application {
         setupDatabase();
 
         // Initialize handler(s)
-        Handler stateHandler = new StateHandler(nodeStateQueue, peerPool);
+        Handler stateHandler = new StateHandler(nodeStateQueue);
         Thread stateHandlerThread = new Thread(stateHandler);
         stateHandlerThread.start();
 
