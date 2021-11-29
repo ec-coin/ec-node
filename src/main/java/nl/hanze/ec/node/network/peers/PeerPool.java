@@ -30,7 +30,7 @@ public class PeerPool implements Runnable {
     private final BlockingQueue<Socket> incomingConnectionsQueue;
 
     /**
-     * List of all the peers we tried to connect
+     * List of all the peers we have tried to connect
      */
     List<Peer> triedPeers = new LinkedList<>();
 
@@ -95,6 +95,8 @@ public class PeerPool implements Runnable {
         peers.add(new Peer("seed001.ec.dylaan.nl", port));
         peers.add(new Peer("seed002.ec.dylaan.nl", port));
         peers.add(new Peer("seed003.ec.dylaan.nl", port));
+
+        Collections.shuffle(peers);
 
         List<Peer> previousPeers = this.neighboursRepository.getAllNeighbours().stream()
                 .map(n -> new Peer(n.getIp(), n.getPort()))
