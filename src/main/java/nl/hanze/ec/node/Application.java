@@ -4,6 +4,8 @@ import com.google.inject.Inject;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 import nl.hanze.ec.node.app.NodeState;
+import nl.hanze.ec.node.app.handlers.Handler;
+import nl.hanze.ec.node.app.handlers.StateHandler;
 import nl.hanze.ec.node.app.listeners.BlockSyncer;
 import nl.hanze.ec.node.app.listeners.Consensus;
 import nl.hanze.ec.node.app.listeners.Listener;
@@ -64,11 +66,18 @@ public class Application {
         // Setup database
         setupDatabase();
 
+        // Initialize handler(s)
+        Handler stateHandler = new StateHandler(nodeStateQueue, peerPool);
+        Thread stateHandlerThread = new Thread(stateHandler);
+        stateHandlerThread.start();
+
         // Initialize and start all listeners.
         for (Class<? extends Listener> listener : listeners) {
             try {
                 Constructor<?> constructor = listener.getConstructor(BlockingQueue.class, PeerPool.class);
-                new Thread((Runnable) constructor.newInstance(nodeStateQueue, peerPool)).start();
+                Listener concreteListener = (Listener) constructor.newInstance(nodeStateQueue, peerPool);
+                stateHandler.addObserver(concreteListener);
+                new Thread(concreteListener).start();
             } catch (NoSuchMethodException |
                     InstantiationException |
                     IllegalAccessException |
@@ -76,14 +85,6 @@ public class Application {
                 e.printStackTrace();
             }
         }
-
-        //while (true) {
-        //    try {
-        //        state.set(nodeStateQueue.take());
-        //    } catch (InterruptedException e) {
-        //        e.printStackTrace();
-        //    }
-        //}
     }
 
     private void setupDatabase() {
@@ -96,5 +97,9 @@ public class Application {
 
     public static NodeState getState() {
         return state.get();
+    }
+
+    public static void setState(NodeState nodeState) {
+        state.set(nodeState);
     }
 }

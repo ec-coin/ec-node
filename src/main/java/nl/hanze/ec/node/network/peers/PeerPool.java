@@ -2,6 +2,7 @@ package nl.hanze.ec.node.network.peers;
 
 import com.google.inject.Inject;
 import nl.hanze.ec.node.app.NodeState;
+import nl.hanze.ec.node.app.handlers.StateHandler;
 import nl.hanze.ec.node.modules.annotations.IncomingConnectionsQueue;
 import nl.hanze.ec.node.modules.annotations.MaxPeers;
 import nl.hanze.ec.node.modules.annotations.NodeStateQueue;
@@ -77,6 +78,7 @@ public class PeerPool implements Runnable {
                 connectToPeers(peersNeeded);
             }
 
+            System.out.println("debug: " + (connectedPeers.size() > 0 && testing));
             // Debugging purposes
             if (connectedPeers.size() > 0 && testing) {
                 testing = false;

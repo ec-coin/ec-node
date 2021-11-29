@@ -7,5 +7,7 @@ import java.util.List;
 public interface Listener extends Runnable {
     void run();
 
+    void stateChanged();
+
     List<NodeState> listenFor();
 }

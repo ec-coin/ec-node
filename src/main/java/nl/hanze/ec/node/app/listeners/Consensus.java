@@ -29,6 +29,11 @@ public class Consensus extends StateListener {
 
         if (i == 5) {
             nodeStateQueue.add(NodeState.INIT);
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 
