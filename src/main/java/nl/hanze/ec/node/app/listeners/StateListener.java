@@ -1,43 +1,43 @@
 package nl.hanze.ec.node.app.listeners;
 
-import nl.hanze.ec.node.Application;
 import nl.hanze.ec.node.app.NodeState;
 import nl.hanze.ec.node.network.peers.PeerPool;
 
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CountDownLatch;
 
 public abstract class StateListener implements Listener {
     protected final BlockingQueue<NodeState> nodeStateQueue;
     protected final PeerPool peerPool;
-    private boolean stateChange;
+    private CountDownLatch latch;
 
     public StateListener(BlockingQueue<NodeState> nodeStateQueue, PeerPool peerPool) {
         this.nodeStateQueue = nodeStateQueue;
         this.peerPool = peerPool;
-        this.stateChange = true;
+        this.latch = new CountDownLatch(1);
     }
 
     @Override
     public void run() {
         while (true) {
-            NodeState state = Application.getState();
-            NodeState incomingState;
-
-            while (listenFor().contains(state)) {
-                doWork();
-
-                if (stateChange) {
-                    stateChange = false;
-                    if ((incomingState = Application.getState()) != state) {
-                        state = incomingState;
-                    }
-                }
+            try {
+                latch.await();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
+            doWork();
         }
     }
 
-    public void stateChanged() {
-        stateChange = true;
+    public void stateChanged(NodeState state) {
+        if (latch.getCount() == 0) {
+            this.latch = new CountDownLatch(1);
+        }
+
+        if (listenFor().contains(state)) {
+            this.latch.countDown();
+        }
+
     }
 
     protected abstract void doWork();

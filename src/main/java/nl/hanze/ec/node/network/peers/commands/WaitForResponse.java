@@ -9,8 +9,8 @@ import java.util.concurrent.TimeUnit;
 
 public class WaitForResponse implements Command {
     protected Command command;
-    protected long timeout;
-    CountDownLatch latch = new CountDownLatch(1);
+    private long timeout;
+    private CountDownLatch latch = new CountDownLatch(1);
 
     public WaitForResponse(Command command) {
         this.command = command;
