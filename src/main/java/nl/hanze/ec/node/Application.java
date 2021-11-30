@@ -44,7 +44,6 @@ public class Application {
     ) {
         this.server = server;
         this.peerPool = peerPool;
-        this.nodeStateQueue = nodeStateQueue;
         this.delay = delay;
         this.listenerFactory = listenerFactory;
         this.stateHandler = stateHandler;
