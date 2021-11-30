@@ -2,6 +2,7 @@ package nl.hanze.ec.node.network.peers.commands.handshake;
 
 import nl.hanze.ec.node.network.peers.commands.AbstractCommand;
 import nl.hanze.ec.node.app.workers.Worker;
+import nl.hanze.ec.node.app.workers.WorkerFactory;
 import nl.hanze.ec.node.network.peers.commands.Command;
 import org.json.JSONObject;
 
@@ -11,8 +12,8 @@ public class VersionAckCommand extends AbstractCommand implements Handshake {
     public VersionAckCommand() {
     }
 
-    public VersionAckCommand(JSONObject payload) {
-        super(payload);
+    public VersionAckCommand(JSONObject payload, WorkerFactory workerFactory) {
+        super(payload, workerFactory);
     }
 
     @Override

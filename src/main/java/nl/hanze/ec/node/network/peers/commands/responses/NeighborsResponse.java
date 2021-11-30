@@ -19,8 +19,8 @@ public class NeighborsResponse extends AbstractCommand implements Response {
         this.responseTo = responseTo;
     }
 
-    public NeighborsResponse(JSONObject payload) {
-        super(payload);
+    public NeighborsResponse(JSONObject payload, WorkerFactory workerFactory) {
+        super(payload, workerFactory);
         this.ip = payload.getString("ip");
         this.port = payload.getInt("port");
         this.responseTo = payload.getInt("responseTo");
@@ -42,7 +42,7 @@ public class NeighborsResponse extends AbstractCommand implements Response {
 
     @Override
     public Worker getWorker(Command receivedCommand, BlockingQueue<Command> peerCommandQueue) {
-        return new NeighborResponseWorker(receivedCommand, peerCommandQueue);
+        return workerFactory.create(NeighborResponseWorker.class, receivedCommand, peerCommandQueue);
     }
 
     @Override

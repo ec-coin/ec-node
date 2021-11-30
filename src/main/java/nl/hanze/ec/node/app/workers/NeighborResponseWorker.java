@@ -1,17 +1,27 @@
 package nl.hanze.ec.node.app.workers;
 
-import nl.hanze.ec.node.network.peers.commands.AbstractCommand;
+import nl.hanze.ec.node.database.repositories.NeighboursRepository;
 import nl.hanze.ec.node.network.peers.commands.Command;
+import nl.hanze.ec.node.network.peers.commands.responses.NeighborsResponse;
+import org.json.JSONObject;
 
 import java.util.concurrent.BlockingQueue;
 
 public class NeighborResponseWorker extends Worker {
-    public NeighborResponseWorker(Command receivedCommand, BlockingQueue<Command> peerCommandQueue) {
+    private final NeighboursRepository neighboursRepository;
+
+    public NeighborResponseWorker(
+            Command receivedCommand,
+            BlockingQueue<Command> peerCommandQueue,
+            NeighboursRepository neighboursRepositoryProvider
+    ) {
         super(receivedCommand, peerCommandQueue);
+        this.neighboursRepository = neighboursRepositoryProvider;
     }
 
     @Override
     public void run() {
-        // TODO: add to database
+        JSONObject response = receivedCommand.getPayload();
+        neighboursRepository.updateNeighbour(response.getString("ip"), response.getInt("port"));
     }
 }

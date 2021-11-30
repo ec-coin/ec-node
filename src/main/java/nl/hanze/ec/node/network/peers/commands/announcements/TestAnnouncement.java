@@ -3,6 +3,7 @@ package nl.hanze.ec.node.network.peers.commands.announcements;
 import nl.hanze.ec.node.network.peers.commands.AbstractCommand;
 import nl.hanze.ec.node.app.workers.TestAnnouncementWorker;
 import nl.hanze.ec.node.app.workers.Worker;
+import nl.hanze.ec.node.app.workers.WorkerFactory;
 import nl.hanze.ec.node.network.peers.commands.Command;
 import org.json.JSONObject;
 
@@ -15,8 +16,8 @@ public class TestAnnouncement extends AbstractCommand {
         this.msg = msg;
     }
 
-    public TestAnnouncement(JSONObject payload) {
-        super(payload);
+    public TestAnnouncement(JSONObject payload, WorkerFactory workerFactory) {
+        super(payload, workerFactory);
         this.msg = payload.getString("msg");
     }
 

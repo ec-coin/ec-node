@@ -12,6 +12,7 @@ import nl.hanze.ec.node.app.listeners.Listener;
 import nl.hanze.ec.node.database.models.Neighbour;
 import nl.hanze.ec.node.modules.annotations.DatabaseConnection;
 import nl.hanze.ec.node.modules.annotations.NodeStateQueue;
+import nl.hanze.ec.node.modules.annotations.Delay;
 import nl.hanze.ec.node.network.Server;
 import nl.hanze.ec.node.network.peers.PeerPool;
 import nl.hanze.ec.node.utils.FileUtils;
@@ -29,42 +30,48 @@ public class Application {
 
     private final Server server;
     private final PeerPool peerPool;
+    private final int delay;
     private final List<Class<? extends Listener>> listeners = new ArrayList<>() {
         {
             add(Consensus.class);
             add(BlockSyncer.class);
         }
     };
-    private final ConnectionSource databaseConnection;
     private final BlockingQueue<NodeState> nodeStateQueue;
     private static final AtomicReference<NodeState> state = new AtomicReference<>(NodeState.INIT);
 
     @Inject
-    public Application(Server server,
-                       PeerPool peerPool,
-                       @DatabaseConnection ConnectionSource databaseConnection,
+    public Application(Server server, PeerPool peerPool,
+                       @Delay int delay,
                        @NodeStateQueue BlockingQueue<NodeState> nodeStateQueue) {
-        this.databaseConnection = databaseConnection;
         this.server = server;
         this.peerPool = peerPool;
         this.nodeStateQueue = nodeStateQueue;
+        this.delay = delay;
     }
 
     /**
      * Launches the application
      */
     public void run() {
-        //  Prints welcome message to console.
+        if (delay != 99999) {
+            try {
+                Thread.sleep(delay * 1000L);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        //  Prints welcome message to console
         System.out.println(FileUtils.readFromResources("welcome.txt"));
 
-        // Initialize and start server / peerPool.
+
+        // Sets up server and client communication
         Thread serverThread = new Thread(this.server);
         Thread peersThread = new Thread(this.peerPool);
+
         serverThread.start();
         peersThread.start();
-
-        // Setup database
-        setupDatabase();
 
         // Initialize handler(s)
         Handler stateHandler = new StateHandler(nodeStateQueue);
@@ -84,14 +91,6 @@ public class Application {
                     InvocationTargetException e) {
                 e.printStackTrace();
             }
-        }
-    }
-
-    private void setupDatabase() {
-        try {
-            TableUtils.createTableIfNotExists(databaseConnection, Neighbour.class);
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
     }
 

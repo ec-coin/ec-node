@@ -1,19 +1,26 @@
 package nl.hanze.ec.node.app.workers;
 
+import nl.hanze.ec.node.database.models.Neighbour;
+import nl.hanze.ec.node.database.repositories.NeighboursRepository;
 import nl.hanze.ec.node.network.peers.commands.Command;
 import nl.hanze.ec.node.network.peers.commands.responses.NeighborsResponse;
 
 import java.util.concurrent.BlockingQueue;
 
 public class NeighborRequestWorker extends Worker {
-    public NeighborRequestWorker(Command receivedCommand, BlockingQueue<Command> peerCommandQueue) {
+    private final NeighboursRepository neighboursRepository;
+    public NeighborRequestWorker(Command receivedCommand,
+                                 BlockingQueue<Command> peerCommandQueue,
+                                 NeighboursRepository neighboursRepository) {
         super(receivedCommand, peerCommandQueue);
+        this.neighboursRepository = neighboursRepository;
     }
 
     @Override
     public void run() {
-        Command rsp = new NeighborsResponse("127.0.0.1", 5002, receivedCommand.getMessageNumber());
-
-        peerCommandQueue.add(rsp);
+        for(Neighbour n : neighboursRepository.getAllNeighbours()) {
+            Command rsp = new NeighborsResponse(n.getIp(), 5000, receivedCommand.getMessageNumber());
+            peerCommandQueue.add(rsp);
+        }
     }
 }

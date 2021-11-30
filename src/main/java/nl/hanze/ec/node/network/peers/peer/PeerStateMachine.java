@@ -29,7 +29,7 @@ public class PeerStateMachine {
 
     public void start() {
         // Add version command to queue, so it will be sent when the thread is dispatched
-        commandQueue.add(new VersionCommand());
+        commandQueue.add(new VersionCommand(0));
     }
 
     public String output(Command command) {
