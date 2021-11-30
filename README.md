@@ -20,7 +20,6 @@ A form will now appear on the right-hand side of the popup. Fill the form in acc
 Before adding another configuration for Docker. Create a new JAR (from modules with dependencies) artifact in `File > Project Structure > Artifacts` and press Apply:
 ![Step 4](.docs/step4.jpeg)
 
-
 **Step 5**
 Go back to the configurations and add a Docker Compose configuration:
 ![Step 5](.docs/step5.jpeg)
