@@ -1,4 +1,4 @@
-package nl.hanze.ec.node.workers;
+package nl.hanze.ec.node.app.workers;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;

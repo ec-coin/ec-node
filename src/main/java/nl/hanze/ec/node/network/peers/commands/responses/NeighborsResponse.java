@@ -1,5 +1,6 @@
 package nl.hanze.ec.node.network.peers.commands.responses;
 
+import nl.hanze.ec.node.app.workers.WorkerFactory;
 import nl.hanze.ec.node.network.peers.commands.AbstractCommand;
 import nl.hanze.ec.node.app.workers.NeighborResponseWorker;
 import nl.hanze.ec.node.app.workers.Worker;

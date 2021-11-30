@@ -1,17 +1,20 @@
 package nl.hanze.ec.node.network.peers.commands;
 
 import nl.hanze.ec.node.app.workers.Worker;
+import nl.hanze.ec.node.app.workers.WorkerFactory;
 import org.json.JSONObject;
 
 import java.util.concurrent.BlockingQueue;
 
 public abstract class AbstractCommand implements Command {
     protected int messageNumber;
+    protected WorkerFactory workerFactory;
 
     public AbstractCommand() {}
 
-    public AbstractCommand(JSONObject payload) {
+    public AbstractCommand(JSONObject payload, WorkerFactory workerFactory) {
         this.messageNumber = payload.getInt("number");
+        this.workerFactory = workerFactory;
     }
 
     public JSONObject getPayload() {
