@@ -31,7 +31,6 @@ public class Application {
             add(BlockSyncer.class);
         }
     };
-    private final BlockingQueue<NodeState> nodeStateQueue;
     private final Handler stateHandler;
     private final ListenerFactory listenerFactory;
     private static final AtomicReference<NodeState> state = new AtomicReference<>(NodeState.INIT);
