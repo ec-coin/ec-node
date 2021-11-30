@@ -7,6 +7,7 @@ import nl.hanze.ec.node.app.listeners.Listener;
 import nl.hanze.ec.node.modules.annotations.NodeStateQueue;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 
@@ -17,7 +18,7 @@ public class StateHandler implements Handler {
     @Inject
     public StateHandler(@NodeStateQueue BlockingQueue<NodeState> nodeStateQueue) {
         this.nodeStateQueue = nodeStateQueue;
-        this.listeners = new ArrayList<>();
+        this.listeners = Collections.synchronizedList(new ArrayList<>());
     }
 
     public void addObserver(Listener listener) {
