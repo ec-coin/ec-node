@@ -1,16 +1,12 @@
 package nl.hanze.ec.node;
 
 import com.google.inject.Inject;
-import com.j256.ormlite.support.ConnectionSource;
-import com.j256.ormlite.table.TableUtils;
 import nl.hanze.ec.node.app.NodeState;
 import nl.hanze.ec.node.app.handlers.Handler;
 import nl.hanze.ec.node.app.handlers.StateHandler;
 import nl.hanze.ec.node.app.listeners.BlockSyncer;
 import nl.hanze.ec.node.app.listeners.Consensus;
 import nl.hanze.ec.node.app.listeners.Listener;
-import nl.hanze.ec.node.database.models.Neighbour;
-import nl.hanze.ec.node.modules.annotations.DatabaseConnection;
 import nl.hanze.ec.node.modules.annotations.NodeStateQueue;
 import nl.hanze.ec.node.modules.annotations.Delay;
 import nl.hanze.ec.node.network.Server;
@@ -19,7 +15,6 @@ import nl.hanze.ec.node.utils.FileUtils;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
