@@ -7,6 +7,7 @@ import nl.hanze.ec.node.app.handlers.StateHandler;
 import nl.hanze.ec.node.app.listeners.BlockSyncer;
 import nl.hanze.ec.node.app.listeners.Consensus;
 import nl.hanze.ec.node.app.listeners.Listener;
+import nl.hanze.ec.node.app.listeners.ListenerFactory;
 import nl.hanze.ec.node.modules.annotations.NodeStateQueue;
 import nl.hanze.ec.node.modules.annotations.Delay;
 import nl.hanze.ec.node.network.Server;
@@ -33,16 +34,20 @@ public class Application {
         }
     };
     private final BlockingQueue<NodeState> nodeStateQueue;
+    private final ListenerFactory listenerFactory;
     private static final AtomicReference<NodeState> state = new AtomicReference<>(NodeState.INIT);
 
     @Inject
     public Application(Server server, PeerPool peerPool,
                        @Delay int delay,
-                       @NodeStateQueue BlockingQueue<NodeState> nodeStateQueue) {
+                       @NodeStateQueue BlockingQueue<NodeState> nodeStateQueue,
+                       ListenerFactory listenerFactory
+    ) {
         this.server = server;
         this.peerPool = peerPool;
         this.nodeStateQueue = nodeStateQueue;
         this.delay = delay;
+        this.listenerFactory = listenerFactory;
     }
 
     /**
@@ -75,17 +80,9 @@ public class Application {
 
         // Initialize and start all listeners.
         for (Class<? extends Listener> listener : listeners) {
-            try {
-                Constructor<?> constructor = listener.getConstructor(BlockingQueue.class, PeerPool.class);
-                Listener concreteListener = (Listener) constructor.newInstance(nodeStateQueue, peerPool);
-                stateHandler.addObserver(concreteListener);
-                new Thread(concreteListener).start();
-            } catch (NoSuchMethodException |
-                    InstantiationException |
-                    IllegalAccessException |
-                    InvocationTargetException e) {
-                e.printStackTrace();
-            }
+            Listener concreteListener = listenerFactory.create(listener, peerPool, nodeStateQueue);
+            stateHandler.addObserver(concreteListener);
+            new Thread(concreteListener).start();
         }
     }
 
