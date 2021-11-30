@@ -14,8 +14,6 @@ import nl.hanze.ec.node.network.Server;
 import nl.hanze.ec.node.network.peers.PeerPool;
 import nl.hanze.ec.node.utils.FileUtils;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
@@ -34,6 +32,7 @@ public class Application {
         }
     };
     private final BlockingQueue<NodeState> nodeStateQueue;
+    private final Handler stateHandler;
     private final ListenerFactory listenerFactory;
     private static final AtomicReference<NodeState> state = new AtomicReference<>(NodeState.INIT);
 
@@ -41,6 +40,7 @@ public class Application {
     public Application(Server server, PeerPool peerPool,
                        @Delay int delay,
                        @NodeStateQueue BlockingQueue<NodeState> nodeStateQueue,
+                       StateHandler stateHandler,
                        ListenerFactory listenerFactory
     ) {
         this.server = server;
@@ -48,6 +48,7 @@ public class Application {
         this.nodeStateQueue = nodeStateQueue;
         this.delay = delay;
         this.listenerFactory = listenerFactory;
+        this.stateHandler = stateHandler;
     }
 
     /**
@@ -74,13 +75,12 @@ public class Application {
         peersThread.start();
 
         // Initialize handler(s)
-        Handler stateHandler = new StateHandler(nodeStateQueue);
         Thread stateHandlerThread = new Thread(stateHandler);
         stateHandlerThread.start();
 
         // Initialize and start all listeners.
         for (Class<? extends Listener> listener : listeners) {
-            Listener concreteListener = listenerFactory.create(listener, peerPool, nodeStateQueue);
+            Listener concreteListener = listenerFactory.create(listener, peerPool);
             stateHandler.addObserver(concreteListener);
             new Thread(concreteListener).start();
         }

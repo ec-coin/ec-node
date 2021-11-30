@@ -1,19 +1,21 @@
 package nl.hanze.ec.node.app.listeners;
 
 import com.google.inject.Inject;
-import com.google.inject.Provider;
 import nl.hanze.ec.node.app.NodeState;
-import nl.hanze.ec.node.exceptions.InvalidCommand;
+import nl.hanze.ec.node.modules.annotations.NodeStateQueue;
 import nl.hanze.ec.node.network.peers.PeerPool;
 
 import java.util.concurrent.BlockingQueue;
 
 public class ListenerFactory {
+    BlockingQueue<NodeState> nodeStateQueue;
+
     @Inject
-    public ListenerFactory() {
+    public ListenerFactory(@NodeStateQueue BlockingQueue<NodeState> nodeStateQueue) {
+        this.nodeStateQueue = nodeStateQueue;
     }
 
-    public Listener create(Class<? extends Listener> listener, PeerPool peerPool, BlockingQueue<NodeState> nodeStateQueue) {
+    public Listener create(Class<? extends Listener> listener, PeerPool peerPool) {
         if (listener == Consensus.class) {
             return new Consensus(nodeStateQueue, peerPool);
         } else if (listener == BlockSyncer.class) {

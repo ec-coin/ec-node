@@ -1,5 +1,6 @@
 package nl.hanze.ec.node.app.handlers;
 
+import com.google.inject.Inject;
 import nl.hanze.ec.node.Application;
 import nl.hanze.ec.node.app.NodeState;
 import nl.hanze.ec.node.app.listeners.Listener;
@@ -13,6 +14,7 @@ public class StateHandler implements Handler {
     private final BlockingQueue<NodeState> nodeStateQueue;
     private final List<Listener> listeners;
 
+    @Inject
     public StateHandler(@NodeStateQueue BlockingQueue<NodeState> nodeStateQueue) {
         this.nodeStateQueue = nodeStateQueue;
         this.listeners = new ArrayList<>();
