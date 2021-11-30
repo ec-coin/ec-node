@@ -8,7 +8,6 @@ import nl.hanze.ec.node.app.listeners.BlockSyncer;
 import nl.hanze.ec.node.app.listeners.Consensus;
 import nl.hanze.ec.node.app.listeners.Listener;
 import nl.hanze.ec.node.app.listeners.ListenerFactory;
-import nl.hanze.ec.node.modules.annotations.NodeStateQueue;
 import nl.hanze.ec.node.modules.annotations.Delay;
 import nl.hanze.ec.node.network.Server;
 import nl.hanze.ec.node.network.peers.PeerPool;
@@ -16,7 +15,6 @@ import nl.hanze.ec.node.utils.FileUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class Application {
@@ -38,7 +36,6 @@ public class Application {
     @Inject
     public Application(Server server, PeerPool peerPool,
                        @Delay int delay,
-                       @NodeStateQueue BlockingQueue<NodeState> nodeStateQueue,
                        StateHandler stateHandler,
                        ListenerFactory listenerFactory
     ) {
