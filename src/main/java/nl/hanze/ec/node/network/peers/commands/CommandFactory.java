@@ -8,7 +8,7 @@ import nl.hanze.ec.node.network.peers.commands.requests.NeighborsRequest;
 import nl.hanze.ec.node.network.peers.commands.handshake.VersionCommand;
 import nl.hanze.ec.node.network.peers.commands.responses.NeighborsResponse;
 import nl.hanze.ec.node.network.peers.commands.handshake.VersionAckCommand;
-import nl.hanze.ec.node.workers.WorkerFactory;
+import nl.hanze.ec.node.app.workers.WorkerFactory;
 import org.json.JSONObject;
 
 public class CommandFactory {

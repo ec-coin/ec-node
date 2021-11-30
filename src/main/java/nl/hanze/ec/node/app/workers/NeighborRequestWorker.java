@@ -1,4 +1,4 @@
-package nl.hanze.ec.node.workers;
+package nl.hanze.ec.node.app.workers;
 
 import nl.hanze.ec.node.database.models.Neighbour;
 import nl.hanze.ec.node.database.repositories.NeighboursRepository;

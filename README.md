@@ -78,3 +78,17 @@ public class NeighborRequestWorker extends Worker {
     }
 }
 ```
+
+## Database communication
+
+```java
+private void example() {
+    // Show all neighbours (for example)
+    for (Neighbour neighbour : neighboursRepository.getAllNeighbours()) {
+        System.out.println("NEIGHBOUR IN DATABASE: " + neighbour.getIp() + ":" + neighbour.getPort() + " " + neighbour.getLastConnectedAt());
+    }
+    
+    // create or update neighbour
+    neighboursRepository.updateNeighbour("192.168.10.10", 5000);
+}
+```

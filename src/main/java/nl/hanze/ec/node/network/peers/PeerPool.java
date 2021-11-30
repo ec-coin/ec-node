@@ -1,9 +1,12 @@
 package nl.hanze.ec.node.network.peers;
 
 import com.google.inject.Inject;
+import nl.hanze.ec.node.app.NodeState;
+import nl.hanze.ec.node.app.handlers.StateHandler;
 import nl.hanze.ec.node.database.repositories.NeighboursRepository;
 import nl.hanze.ec.node.modules.annotations.IncomingConnectionsQueue;
 import nl.hanze.ec.node.modules.annotations.MaxPeers;
+import nl.hanze.ec.node.modules.annotations.NodeStateQueue;
 import nl.hanze.ec.node.modules.annotations.Port;
 import nl.hanze.ec.node.network.peers.commands.Command;
 import nl.hanze.ec.node.network.peers.commands.requests.NeighborsRequest;
@@ -21,6 +24,8 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
 
@@ -28,6 +33,7 @@ public class PeerPool implements Runnable {
     private static final Logger logger = LogManager.getLogger(PeerPool.class);
     private final int maxPeers;
     private final BlockingQueue<Socket> incomingConnectionsQueue;
+    private final BlockingQueue<NodeState> nodeStateQueue;
 
     /**
      * List of all the peers we have tried to connect
@@ -62,7 +68,7 @@ public class PeerPool implements Runnable {
     /**
      * Maps each peer to their command queue
      */
-    private final Map<Peer, BlockingQueue<Command>> connectedPeers = new HashMap<>();
+    private final ConcurrentMap<Peer, BlockingQueue<Command>> connectedPeers = new ConcurrentHashMap<>();
 
     /**
      * Factory to create new PeerConnection objects.
@@ -80,11 +86,13 @@ public class PeerPool implements Runnable {
             @Port int port,
             @IncomingConnectionsQueue BlockingQueue<Socket> incomingConnectionsQueue,
             PeerConnectionFactory peerConnectionFactory,
-            NeighboursRepository neighboursRepository
+            NeighboursRepository neighboursRepository,
+            @NodeStateQueue BlockingQueue<NodeState> nodeStateQueue
     ) {
         this.neighboursRepository = neighboursRepository;
         this.maxPeers = maxPeers;
         this.incomingConnectionsQueue = incomingConnectionsQueue;
+        this.nodeStateQueue = nodeStateQueue;
         this.peerConnectionFactory = peerConnectionFactory;
         this.port = port;
     }
@@ -119,6 +127,7 @@ public class PeerPool implements Runnable {
 
     @Override
     public void run() {
+        boolean testing = true;
         while (true) {
             boolean needMorePeers = Math.max(maxPeers - connectedPeers.size(), 0) > 0;
 
@@ -183,6 +192,13 @@ public class PeerPool implements Runnable {
                 lastClear = now;
                 triedPeers.clear();
                 askedNeighbours.clear();
+            }
+
+            System.out.println("debug: " + (connectedPeers.size() > 0 && testing));
+            // Debugging purposes
+            if (connectedPeers.size() > 0 && testing) {
+                testing = false;
+                nodeStateQueue.add(NodeState.PARTICIPATING);
             }
 
             removeDeadPeers();
