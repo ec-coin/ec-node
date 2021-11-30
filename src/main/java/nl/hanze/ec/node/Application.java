@@ -34,7 +34,8 @@ public class Application {
     private static final AtomicReference<NodeState> state = new AtomicReference<>(NodeState.INIT);
 
     @Inject
-    public Application(Server server, PeerPool peerPool,
+    public Application(Server server,
+                       PeerPool peerPool,
                        @Delay int delay,
                        StateHandler stateHandler,
                        ListenerFactory listenerFactory
