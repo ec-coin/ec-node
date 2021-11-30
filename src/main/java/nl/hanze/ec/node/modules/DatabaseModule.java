@@ -8,6 +8,7 @@ import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.jdbc.JdbcConnectionSource;
 import com.j256.ormlite.support.ConnectionSource;
+import com.j256.ormlite.table.TableUtils;
 import nl.hanze.ec.node.database.models.Neighbour;
 import nl.hanze.ec.node.modules.annotations.DatabaseConnection;
 import nl.hanze.ec.node.modules.annotations.NeighbourDAO;
@@ -23,6 +24,7 @@ public class DatabaseModule extends AbstractModule {
         try {
             String databaseUrl = "jdbc:sqlite:database.db";
             connectionSource = new JdbcConnectionSource(databaseUrl);
+            TableUtils.createTableIfNotExists(connectionSource, Neighbour.class);
         } catch (SQLException e) {
             e.printStackTrace();
         }

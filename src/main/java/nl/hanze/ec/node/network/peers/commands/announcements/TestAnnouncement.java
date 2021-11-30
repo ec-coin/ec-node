@@ -1,8 +1,10 @@
 package nl.hanze.ec.node.network.peers.commands.announcements;
 
 import nl.hanze.ec.node.network.peers.commands.Command;
+import nl.hanze.ec.node.workers.NeighborRequestWorker;
 import nl.hanze.ec.node.workers.TestAnnouncementWorker;
 import nl.hanze.ec.node.workers.Worker;
+import nl.hanze.ec.node.workers.WorkerFactory;
 import org.json.JSONObject;
 
 import java.util.concurrent.BlockingQueue;
@@ -14,8 +16,8 @@ public class TestAnnouncement extends Command {
         this.msg = msg;
     }
 
-    public TestAnnouncement(JSONObject payload) {
-        super(payload);
+    public TestAnnouncement(JSONObject payload, WorkerFactory workerFactory) {
+        super(payload, workerFactory);
         this.msg = payload.getString("msg");
     }
 

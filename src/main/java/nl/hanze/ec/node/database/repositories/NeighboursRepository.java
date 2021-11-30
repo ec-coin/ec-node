@@ -5,6 +5,8 @@ import com.j256.ormlite.dao.Dao;
 import nl.hanze.ec.node.database.models.Neighbour;
 import nl.hanze.ec.node.modules.annotations.NeighbourDAO;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -28,9 +30,10 @@ public class NeighboursRepository {
 
     public void updateNeighbour(String ip, int port) {
         try {
+            ip = InetAddress.getByName(ip).getHostAddress();
             Neighbour neighbour = new Neighbour(ip, port);
             neighbourDAO.createOrUpdate(neighbour);
-        } catch (SQLException e) {
+        } catch (SQLException | UnknownHostException e) {
             e.printStackTrace();
         }
     }

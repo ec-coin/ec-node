@@ -13,30 +13,29 @@ After selecting `Edit Configurations` a popup window will appear, click on the b
 ![Step 2](.docs/step2.jpg)
 
 **Step 3**
-A form will now appear on the right-hand side of the popup. Fill the form in accordingly, with special emphasis on the CLI argument namely: `--max-peers 1 -p 5000`. (Note: depending on your IDEA version you may see a `program arguments` field instead of a `CLI arguments` field).
-
-![Step 3](.docs/step3.jpg)
+A form will now appear on the right-hand side of the popup. Fill the form in accordingly and press apply:
+![Step 3](.docs/step3.jpeg)
 
 **Step 4**
-Repeat step 2 & 3 but fill in a different name for the configuration and specify the following CLI argument: `--max-peers 1 -p 4999`. (Note: depending on your IDEA version you may see a `program arguments` field instead of a `CLI arguments` field).
-
-![Step 4](.docs/step4.jpg)
+Before adding another configuration for Docker. Create a new JAR (from modules with dependencies) artifact in `File > Project Structure > Artifacts` and press Apply:
+![Step 4](.docs/step4.jpeg)
 
 **Step 5**
-Again click on the blue plus icon from step 2 but select `Compound` instead of Application.
-
-![Step 5](.docs/step5.jpg)
+Go back to the configurations and add a Docker Compose configuration:
+![Step 5](.docs/step5.jpeg)
+**Make sure you add the build the JAR artifact before launch and choose to always BUILD**
 
 **Step 6**
-Specify the previously defined configurations in the `Compound` form and give the compound configuration a name.
+For you convenience add a Compound configuration and Apply:
+![Step 6](.docs/step6.png)
 
-![Step 6](.docs/step6.jpg)
 
-**Step 7**
-Lastly click on `Apply` and `OK`, this will save & close the popup. Now the dropdown from step 1 will have an entry that matches the name given to the compound configuration.
-When the compound configuration is selected and subsequently the `Green Start Icon` is pressed two Nodes will be started on port `4999` and `5000` accordingly.
- 
-![Step 6](.docs/step1.jpg)
+**EXTRA STEP FOR MAC AND WINDOWS**
+
+Install a OpenVPN Client connect using `ENTRY.ovpn`. Without this step you won't be able to connect to the internal 
+Docker network.
+
+
 
 ## Sending commands
 

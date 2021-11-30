@@ -44,6 +44,11 @@ public class ECNetworkNodeRunner {
                 .setDefault(10)
                 .help("Maximum peers to connect to");
 
+        parser.addArgument("-d", "--delay")
+                .type(Integer.class)
+                .setDefault(99999)
+                .help("Delay in seconds");
+
         //################################
         //  Parse command line arguments
         //################################

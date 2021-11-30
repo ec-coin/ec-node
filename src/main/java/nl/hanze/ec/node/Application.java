@@ -8,6 +8,7 @@ import com.j256.ormlite.table.TableUtils;
 import nl.hanze.ec.node.database.models.Neighbour;
 import nl.hanze.ec.node.database.repositories.NeighboursRepository;
 import nl.hanze.ec.node.modules.annotations.DatabaseConnection;
+import nl.hanze.ec.node.modules.annotations.Delay;
 import nl.hanze.ec.node.network.Server;
 import nl.hanze.ec.node.network.peers.PeerPool;
 import nl.hanze.ec.node.utils.FileUtils;
@@ -19,27 +20,29 @@ public class Application {
 
     private final Server server;
     private final PeerPool peerPool;
-    private final ConnectionSource databaseConnection;
-    private final NeighboursRepository neighboursRepository; // FOR EXAMPLE USE
-  
+    private final int delay;
 
     @Inject
-    public Application(Server server, PeerPool peerPool,
-                       @DatabaseConnection ConnectionSource databaseConnection,
-                       NeighboursRepository neighboursRepository) {
-        this.databaseConnection = databaseConnection;
-        this.neighboursRepository = neighboursRepository;
+    public Application(Server server, PeerPool peerPool, @Delay int delay) {
         this.server = server;
         this.peerPool = peerPool;
+        this.delay = delay;
     }
 
     /**
      * Launches the application
      */
     public void run() {
+        if (delay != 99999) {
+            try {
+                Thread.sleep(delay * 1000L);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
         //  Prints welcome message to console
         System.out.println(FileUtils.readFromResources("welcome.txt"));
-
 
         // Sets up server and client communication
         Thread serverThread = new Thread(this.server);
@@ -47,29 +50,5 @@ public class Application {
 
         serverThread.start();
         peersThread.start();
-
-        // Setup database
-        setupDatabase();
-
-        // Run example, to show DB is working
-        example();
-    }
-
-    private void setupDatabase() {
-        try {
-            TableUtils.createTableIfNotExists(databaseConnection, Neighbour.class);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void example() {
-        // Show all neighbours (for example)
-        for (Neighbour neighbour : neighboursRepository.getAllNeighbours()) {
-            System.out.println("NEIGHBOUR IN DATABASE: " + neighbour.getIp() + ":" + neighbour.getPort() + " " + neighbour.getLastConnectedAt());
-        }
-
-        // create or update neighbour
-        neighboursRepository.updateNeighbour("192.168.10.10", 5000);
     }
 }

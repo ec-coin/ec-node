@@ -1,8 +1,10 @@
 package nl.hanze.ec.node.network.peers.commands.responses;
 
 import nl.hanze.ec.node.network.peers.commands.Command;
+import nl.hanze.ec.node.workers.NeighborRequestWorker;
 import nl.hanze.ec.node.workers.NeighborResponseWorker;
 import nl.hanze.ec.node.workers.Worker;
+import nl.hanze.ec.node.workers.WorkerFactory;
 import org.json.JSONObject;
 
 import java.util.concurrent.BlockingQueue;
@@ -18,8 +20,8 @@ public class NeighborsResponse extends Command implements Response {
         this.responseTo = responseTo;
     }
 
-    public NeighborsResponse(JSONObject payload) {
-        super(payload);
+    public NeighborsResponse(JSONObject payload, WorkerFactory workerFactory) {
+        super(payload, workerFactory);
         this.ip = payload.getString("ip");
         this.port = payload.getInt("port");
         this.responseTo = payload.getInt("responseTo");
@@ -41,7 +43,7 @@ public class NeighborsResponse extends Command implements Response {
 
     @Override
     public Worker getWorker(Command receivedCommand, BlockingQueue<Command> peerCommandQueue) {
-        return new NeighborResponseWorker(receivedCommand, peerCommandQueue);
+        return workerFactory.create(NeighborResponseWorker.class, receivedCommand, peerCommandQueue);
     }
 
     @Override
