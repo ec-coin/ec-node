@@ -8,7 +8,6 @@ import nl.hanze.ec.node.app.listeners.BlockSyncer;
 import nl.hanze.ec.node.app.listeners.Consensus;
 import nl.hanze.ec.node.app.listeners.Listener;
 import nl.hanze.ec.node.app.listeners.ListenerFactory;
-import nl.hanze.ec.node.modules.annotations.Delay;
 import nl.hanze.ec.node.network.Server;
 import nl.hanze.ec.node.network.peers.PeerPool;
 import nl.hanze.ec.node.utils.FileUtils;
@@ -22,7 +21,6 @@ public class Application {
 
     private final Server server;
     private final PeerPool peerPool;
-    private final int delay;
     private final List<Class<? extends Listener>> listeners = new ArrayList<>() {
         {
             add(Consensus.class);
@@ -36,13 +34,11 @@ public class Application {
     @Inject
     public Application(Server server,
                        PeerPool peerPool,
-                       @Delay int delay,
                        StateHandler stateHandler,
                        ListenerFactory listenerFactory
     ) {
         this.server = server;
         this.peerPool = peerPool;
-        this.delay = delay;
         this.listenerFactory = listenerFactory;
         this.stateHandler = stateHandler;
     }
@@ -51,17 +47,11 @@ public class Application {
      * Launches the application
      */
     public void run() {
-        if (delay != 99999) {
-            try {
-                Thread.sleep(delay * 1000L);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-
         //  Prints welcome message to console
-        System.out.println(FileUtils.readFromResources("welcome.txt"));
-
+        String motd = FileUtils.readFromResources("welcome.txt");
+        if (!motd.equals("")) {
+            System.out.println(motd);
+        }
 
         // Sets up server and client communication
         Thread serverThread = new Thread(this.server);

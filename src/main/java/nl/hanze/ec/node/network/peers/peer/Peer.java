@@ -1,5 +1,7 @@
 package nl.hanze.ec.node.network.peers.peer;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -10,6 +12,10 @@ public class Peer {
     private double version;
 
     public Peer(String ip, int port) {
+        try {
+            ip = InetAddress.getByName(ip).getHostAddress();
+        } catch (UnknownHostException ignored) {}
+
         this.ip = ip;
         this.port = port;
         this.state = new AtomicReference<>(PeerState.CLOSED);
@@ -41,11 +47,7 @@ public class Peer {
 
     @Override
     public String toString() {
-        return "Peer{" +
-                "ip='" + ip + '\'' +
-                ", port=" + port +
-                ", state=" + getState() +
-                '}';
+        return "Peer{ip='" + ip + '}';
     }
 
     @Override
@@ -53,11 +55,11 @@ public class Peer {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Peer peer = (Peer) o;
-        return port == peer.port && Objects.equals(ip, peer.ip);
+        return Objects.equals(ip, peer.ip);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(ip, port);
+        return Objects.hash(ip);
     }
 }

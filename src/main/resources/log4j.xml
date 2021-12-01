@@ -1,9 +1,9 @@
 <!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
-<log4j:configuration debug="true">
+<log4j:configuration debug="false">
     <!--Console appender -->
     <appender name="stdout" class="org.apache.log4j.ConsoleAppender">
         <layout class="org.apache.log4j.PatternLayout">
-            <param name="ConversionPattern" value="[%p][%C@%M] %m%n"/>
+            <param name="ConversionPattern" value="[%p][%c{1}@%M] %m%n"/>
         </layout>
     </appender>
 

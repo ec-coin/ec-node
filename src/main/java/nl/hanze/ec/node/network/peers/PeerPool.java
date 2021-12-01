@@ -133,17 +133,27 @@ public class PeerPool implements Runnable {
 
             Socket socket;
             while ((socket = incomingConnectionsQueue.poll()) != null) {
-                neighboursRepository.updateNeighbour(socket.getInetAddress().getHostAddress(), port);
-
                 if (!needMorePeers) {
                     // TODO: send: not accepting new connections
+                    try {
+                        socket.close();
+                    } catch (IOException ignored) {}
+                    continue;
                 }
 
                 Peer peer = new Peer(socket.getInetAddress().getHostAddress(), socket.getPort());
+
+                if (connectedPeers.containsKey(peer)) {
+                    continue;
+                }
+
                 BlockingQueue<Command> commandsQueue = new LinkedBlockingQueue<>();
                 (new Thread(peerConnectionFactory.create(peer, commandsQueue, socket))).start();
 
+                neighboursRepository.updateNeighbour(socket.getInetAddress().getHostAddress(), port);
                 connectedPeers.put(peer, commandsQueue);
+
+                needMorePeers = Math.max(maxPeers - connectedPeers.size(), 0) > 0;
             }
 
             DateTime now = new DateTime();
@@ -194,8 +204,8 @@ public class PeerPool implements Runnable {
                 askedNeighbours.clear();
             }
 
-            System.out.println("debug: " + (connectedPeers.size() > 0 && testing));
             // Debugging purposes
+            // TODO: this is for testing purposes
             if (connectedPeers.size() > 0 && testing) {
                 testing = false;
                 nodeStateQueue.add(NodeState.PARTICIPATING);

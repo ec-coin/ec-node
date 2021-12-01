@@ -2,6 +2,11 @@
 
 ## Running (IntelliJ)
 
+**Step 0**
+```cli
+docker build . --tag ecnode
+```
+
 **Step 1**
 After you opened the project in IntelliJ and installed all maven dependencies click on the dropdown in the top right corner and select `Edit Configurations` 
 
@@ -14,6 +19,7 @@ After selecting `Edit Configurations` a popup window will appear, click on the b
 
 **Step 3**
 A form will now appear on the right-hand side of the popup. Fill the form in accordingly and press apply:
+(do not use --deplay this is deprecated)
 ![Step 3](.docs/step3.jpeg)
 
 **Step 4**
@@ -23,7 +29,7 @@ Before adding another configuration for Docker. Create a new JAR (from modules w
 **Step 5**
 Go back to the configurations and add a Docker Compose configuration:
 ![Step 5](.docs/step5.jpeg)
-**Make sure you add the build the JAR artifact before launch and choose to always BUILD**
+**Make sure you add the build the JAR artifact before launch**
 
 **Step 6**
 For you convenience add a Compound configuration and Apply:

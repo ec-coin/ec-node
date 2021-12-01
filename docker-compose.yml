@@ -14,34 +14,44 @@ services:
 
   seed_1:
     container_name: seed001.ec.dylaan.nl
-    build: .
+    image: ecnode
+    volumes:
+      - ./out/artifacts/ec_network_node_jar:/opt/app
     networks:
       dev_network:
         ipv4_address: 172.16.238.10
 
   seed_2:
     container_name: seed002.ec.dylaan.nl
-    build: .
+    image: ecnode
+    volumes:
+      - ./out/artifacts/ec_network_node_jar:/opt/app
     networks:
       dev_network:
         ipv4_address: 172.16.238.11
 
   seed_3:
     container_name: seed003.ec.dylaan.nl
-    build: .
+    image: ecnode
+    volumes:
+      - ./out/artifacts/ec_network_node_jar:/opt/app
     networks:
       dev_network:
         ipv4_address: 172.16.238.12
 
   node_1:
     container_name: node_1
-    build: .
+    image: ecnode
+    volumes:
+      - ./out/artifacts/ec_network_node_jar:/opt/app
     networks:
       - dev_network
 
   node_2:
     container_name: node_2
-    build: .
+    image: ecnode
+    volumes:
+      - ./out/artifacts/ec_network_node_jar:/opt/app
     networks:
       - dev_network
 

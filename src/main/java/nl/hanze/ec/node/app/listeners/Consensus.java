@@ -24,17 +24,18 @@ public class Consensus extends StateListener {
     }
 
     protected void doWork() {
-        System.out.println("Hello, world!");
-        i++;
-
-        if (i == 5) {
-            nodeStateQueue.add(NodeState.INIT);
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
+        nodeStateQueue.add(NodeState.INIT);
+//        System.out.println("Hello, world!");
+//        i++;
+//
+//        if (i == 5) {
+//            nodeStateQueue.add(NodeState.INIT);
+//            try {
+//                Thread.sleep(1000);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+//        }
     }
 
     public List<NodeState> listenFor() {
