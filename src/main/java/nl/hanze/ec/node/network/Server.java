@@ -10,11 +10,13 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Server implements Runnable {
     private static final Logger logger = LogManager.getLogger(Server.class);
     private final int port;
     private final BlockingQueue<Socket> incomingConnectionsQueue;
+    private final AtomicBoolean running = new AtomicBoolean(true);
 
     @Inject
     public Server(@Port int port, @IncomingConnectionsQueue BlockingQueue<Socket> incomingConnectionsQueue) {
@@ -27,7 +29,7 @@ public class Server implements Runnable {
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             logger.info("Server is listening on port " + port);
 
-            while (true) {
+            while (running.get()) {
                 Socket socket = serverSocket.accept();
                 logger.info("New client connected");
 
@@ -37,5 +39,9 @@ public class Server implements Runnable {
             logger.debug("Server exception: " + ex.getMessage());
             ex.printStackTrace();
         }
+    }
+
+    public void close() {
+        running.set(false);
     }
 }

@@ -25,7 +25,6 @@ public class Consensus extends StateListener {
 
     protected void doWork() {
         nodeStateQueue.add(NodeState.INIT);
-//        System.out.println("Hello, world!");
 //        i++;
 //
 //        if (i == 5) {

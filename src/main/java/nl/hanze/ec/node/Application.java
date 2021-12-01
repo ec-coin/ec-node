@@ -80,6 +80,7 @@ public class Application {
             logger.info("Application is closing");
             peerPool.closeAll();
             setState(NodeState.CLOSING);
+            server.close();
         }));
     }
 
