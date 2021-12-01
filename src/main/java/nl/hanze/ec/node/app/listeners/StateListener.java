@@ -29,6 +29,8 @@ public abstract class StateListener implements Listener {
 
             if (this.running) {
                 doWork();
+            } else {
+                break;
             }
         }
     }
