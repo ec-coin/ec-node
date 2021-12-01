@@ -13,7 +13,6 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
-import java.net.UnknownHostException;
 import java.util.concurrent.BlockingQueue;
 
 public class PeerConnection implements Runnable {
@@ -66,21 +65,17 @@ public class PeerConnection implements Runnable {
         // Allocated space for command (output stream) and response (input stream)
         Command command;
         String response;
-        boolean running = true;
 
         /*
          * Continuously poll command queue and read the output buffer
          */
-        while (running) {
+        while (true) {
             // When state closing, close socket and terminate thread
             if (peer.getState() == PeerState.CLOSING) {
-                running = false;
-
-                try {
-                    socket.close();
-                } catch (IOException ignored) {}
-
-                continue;
+                out.println("close");
+                out.flush();
+                peer.setState(PeerState.CLOSED);
+                break;
             }
 
             // Poll command queue for to be outputted commands
@@ -102,6 +97,11 @@ public class PeerConnection implements Runnable {
                 // Read peer responses and notify observers
                 while (in.ready() && (response = in.readLine()) != null) {
                     try {
+                        if (response.equals("close")) {
+                            peer.setState(PeerState.CLOSED);
+                            break;
+                        }
+
                         JSONObject payload = new JSONObject(response);
 
                         Command cmd = commandFactory.create(payload);
@@ -114,6 +114,12 @@ public class PeerConnection implements Runnable {
                     }
                 }
             } catch (IOException e) { e.printStackTrace(); }
+        }
+
+        try {
+            socket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }

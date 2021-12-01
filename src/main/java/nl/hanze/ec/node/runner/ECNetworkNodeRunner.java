@@ -41,7 +41,7 @@ public class ECNetworkNodeRunner {
         parser.addArgument("--max-peers")
                 .type(Integer.class)
                 .dest("max-peers")
-                .setDefault(10)
+                .setDefault(5)
                 .help("Maximum peers to connect to");
 
         //################################
