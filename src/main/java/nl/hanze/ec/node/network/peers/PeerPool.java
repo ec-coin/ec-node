@@ -36,6 +36,7 @@ public class PeerPool implements Runnable {
     private final BlockingQueue<Socket> incomingConnectionsQueue;
     private final BlockingQueue<NodeState> nodeStateQueue;
 
+    // TODO: maybe use other data structure, this list will eventually get really big
     List<Command> receivedAnnouncements = new LinkedList<>();
 
     /**
