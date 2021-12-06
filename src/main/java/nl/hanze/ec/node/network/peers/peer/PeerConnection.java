@@ -2,6 +2,7 @@ package nl.hanze.ec.node.network.peers.peer;
 
 import nl.hanze.ec.node.exceptions.InvalidCommand;
 import nl.hanze.ec.node.network.peers.commands.*;
+import nl.hanze.ec.node.network.peers.commands.announcements.Announcement;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.json.JSONException;
@@ -86,7 +87,7 @@ public class PeerConnection implements Runnable {
                 // Invalid command in current state, ignoring
                 if (cmd == null) continue;
 
-                logger.info("Command:" + cmd);
+                logger.info("Sending:" + cmd);
 
                 // Write to output stream
                 out.println(cmd);
@@ -106,7 +107,7 @@ public class PeerConnection implements Runnable {
 
                         Command cmd = commandFactory.create(payload);
 
-                        logger.info("Response:" + response);
+                        logger.info("Received:" + response);
 
                         stateMachine.input(cmd);
                     } catch (JSONException | InvalidCommand e) {

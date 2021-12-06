@@ -9,6 +9,7 @@ import nl.hanze.ec.node.modules.annotations.MaxPeers;
 import nl.hanze.ec.node.modules.annotations.NodeStateQueue;
 import nl.hanze.ec.node.modules.annotations.Port;
 import nl.hanze.ec.node.network.peers.commands.Command;
+import nl.hanze.ec.node.network.peers.commands.announcements.TestAnnouncement;
 import nl.hanze.ec.node.network.peers.commands.requests.NeighborsRequest;
 import nl.hanze.ec.node.network.peers.peer.Peer;
 import nl.hanze.ec.node.network.peers.peer.PeerConnection;
@@ -36,6 +37,9 @@ public class PeerPool implements Runnable {
     private final int maxPeers;
     private final BlockingQueue<Socket> incomingConnectionsQueue;
     private final BlockingQueue<NodeState> nodeStateQueue;
+
+    // TODO: maybe use other data structure, this list will eventually get really big
+    List<Command> receivedAnnouncements = new LinkedList<>();
 
     /**
      * List of all the peers we have tried to connect
@@ -81,7 +85,6 @@ public class PeerPool implements Runnable {
      * Is the PeerPool running?
      */
     private final AtomicBoolean running = new AtomicBoolean(true);
-
 
     /**
      * Neighbours repo
@@ -136,6 +139,8 @@ public class PeerPool implements Runnable {
     @Override
     public void run() {
         boolean testing = true;
+        boolean testing1 = true;
+
         while (running.get()) {
             boolean needMorePeers = Math.max(maxPeers - connectedPeers.size(), 0) > 0;
 
@@ -157,7 +162,7 @@ public class PeerPool implements Runnable {
                 }
 
                 BlockingQueue<Command> commandsQueue = new LinkedBlockingQueue<>();
-                (new Thread(peerConnectionFactory.create(peer, commandsQueue, socket))).start();
+                (new Thread(peerConnectionFactory.create(peer, commandsQueue, socket, this))).start();
 
                 neighboursRepository.updateNeighbour(socket.getInetAddress().getHostAddress(), port);
                 connectedPeers.put(peer, commandsQueue);
@@ -191,7 +196,7 @@ public class PeerPool implements Runnable {
 
                     PeerConnection peerConnection;
                     try {
-                        peerConnection = peerConnectionFactory.create(newPeer, commandsQueue);
+                        peerConnection = peerConnectionFactory.create(newPeer, commandsQueue, this);
                         (new Thread(peerConnection)).start();
                         connectedPeers.put(newPeer, commandsQueue);
                         newPeer.setState(PeerState.CONNECTING);
@@ -220,6 +225,12 @@ public class PeerPool implements Runnable {
                 nodeStateQueue.add(NodeState.PARTICIPATING);
             }
 
+            // TODO: this is for testing purposes
+//            if (connectedPeers.size() >= 3 && testing1) {
+//                testing1 = false;
+//                sendBroadcast(new TestAnnouncement("Hello world"));
+//            }
+
             removeDeadPeers();
         }
     }
@@ -234,12 +245,30 @@ public class PeerPool implements Runnable {
         }
     }
 
-    public void sendBroadcast(Command command) {
+    /**
+     * Sends a command to all neighboring nodes.
+     *
+     * @param command command to be broadcast
+     */
+    public synchronized void sendBroadcast(Command command) {
+        if (receivedAnnouncements.contains(command)) {
+            logger.fatal("Announcement not propagated further: " + command);
+            return;
+        }
+
+        receivedAnnouncements.add(command);
+
         for (BlockingQueue<Command> queue : connectedPeers.values()) {
             queue.add(command);
         }
     }
 
+    /**
+     * Sends a command to a specific peer
+     *
+     * @param peer the peer to send a command to
+     * @param command the command to be sent
+     */
     public void sendCommand(Peer peer, Command command) {
         connectedPeers.get(peer).add(command);
     }

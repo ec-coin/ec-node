@@ -9,7 +9,7 @@ import org.json.JSONObject;
 
 import java.util.concurrent.BlockingQueue;
 
-public class TestAnnouncement extends AbstractCommand {
+public class TestAnnouncement extends AbstractCommand implements Announcement {
     String msg;
 
     public TestAnnouncement(String msg) {
