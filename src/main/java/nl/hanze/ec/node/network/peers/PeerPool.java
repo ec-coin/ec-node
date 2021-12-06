@@ -103,11 +103,6 @@ public class PeerPool implements Runnable {
      */
     private final TransactionRepository transactionRepository;
 
-    /**
-     * PendingTransaction repo
-     */
-    private final PendingTransactionRepository pendingTransactionRepository;
-
     @Inject
     public PeerPool(
             @MaxPeers int maxPeers,
@@ -118,14 +113,12 @@ public class PeerPool implements Runnable {
             BalancesCacheRepository balancesCacheRepository,
             BlockRepository blockRepository,
             TransactionRepository transactionRepository,
-            PendingTransactionRepository pendingTransactionRepository,
             @NodeStateQueue BlockingQueue<NodeState> nodeStateQueue
     ) {
         this.neighboursRepository = neighboursRepository;
         this.balancesCacheRepository = balancesCacheRepository;
         this.blockRepository = blockRepository;
         this.transactionRepository = transactionRepository;
-        this.pendingTransactionRepository = pendingTransactionRepository;
         this.maxPeers = maxPeers;
         this.incomingConnectionsQueue = incomingConnectionsQueue;
         this.nodeStateQueue = nodeStateQueue;
@@ -315,25 +308,26 @@ public class PeerPool implements Runnable {
         List<Block> blocks = blockRepository.getAllBlocks();
 
         // Create some mock transactions;
+        String status = "validated";
         int size = 5;
 
         String transactionHash1 = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF";
         String fromHash1 = "22222222222222222222222222222222";
         String toHash1 = "33333333333333333333333333333333";
         String signature1 = "11111111111111111111111111111111";
-        transactionRepository.createTransaction(transactionHash1, blocks.get(0), fromHash1, toHash1, size, signature1);
+        transactionRepository.createTransaction(transactionHash1, blocks.get(0), fromHash1, toHash1, size, signature1, status);
 
         String transactionHash2 = "FFFFFFFFFFFFFFFFFFFFFFFFFFFAAAAA";
         String fromHash2 = "222222222222222222222222222AAAAA";
         String toHash2 = "333333333333333333333333333AAAAA";
         String signature2 = "111111111111111111111111111AAAAA";
-        transactionRepository.createTransaction(transactionHash2, blocks.get(0), fromHash1, toHash1, size, signature2);
+        transactionRepository.createTransaction(transactionHash2, blocks.get(0), fromHash1, toHash1, size, signature2, status);
 
         String transactionHash3 = "FFFFFFFFFFFFFFFFFFFFFFFFFFFBBBBB";
         String fromHash3 = "222222222222222222222222222BBBBB";
         String toHash3 = "333333333333333333333333333BBBBB";
         String signature3 = "111111111111111111111111111BBBBB";
-        transactionRepository.createTransaction(transactionHash3, blocks.get(0), fromHash1, toHash2, size, signature3);
+        transactionRepository.createTransaction(transactionHash3, blocks.get(0), fromHash1, toHash2, size, signature3, status);
 
         // Create an iterator to iterate over all transactions within a block.
         Iterator<Transaction> iterator = blocks.get(0).getTransactions().iterator();

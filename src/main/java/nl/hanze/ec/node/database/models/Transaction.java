@@ -24,19 +24,23 @@ public class Transaction {
     @DatabaseField(canBeNull = false, columnName = "signature")
     private String signature;
 
+    @DatabaseField(canBeNull = false, columnName = "status")
+    private String status;
+
     @DatabaseField(canBeNull = false, columnName = "timestamp")
     private DateTime timestamp;
 
     // ORMLite requires a no-arg constructor.
     public Transaction() {}
 
-    public Transaction(String hash, Block block, String from, String to, int size, String signature) {
+    public Transaction(String hash, Block block, String from, String to, int size, String signature, String status) {
         this.hash = hash;
         this.block = block;
         this.from = from;
         this.to = to;
         this.size = size;
         this.signature = signature;
+        this.status = status;
         this.timestamp = new DateTime();
     }
 
@@ -62,6 +66,10 @@ public class Transaction {
 
     public String getSignature() {
         return signature;
+    }
+
+    public String getStatus() {
+        return status;
     }
 
     public DateTime getTimestamp() {

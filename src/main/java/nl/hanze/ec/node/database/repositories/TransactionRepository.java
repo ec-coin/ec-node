@@ -27,9 +27,9 @@ public class TransactionRepository {
         return null;
     }
 
-    public void createTransaction(String hash, Block block, String from, String to, int size, String signature) {
+    public void createTransaction(String hash, Block block, String from, String to, int size, String signature, String status) {
         try {
-            Transaction transaction = new Transaction(hash, block, from, to, size, signature);
+            Transaction transaction = new Transaction(hash, block, from, to, size, signature, status);
             transactionDAO.createOrUpdate(transaction);
         } catch (SQLException e) {
             e.printStackTrace();
