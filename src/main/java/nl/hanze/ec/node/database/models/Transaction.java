@@ -2,6 +2,7 @@ package nl.hanze.ec.node.database.models;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
+import org.joda.time.DateTime;
 
 @DatabaseTable(tableName = "transactions")
 public class Transaction {
@@ -23,6 +24,9 @@ public class Transaction {
     @DatabaseField(canBeNull = false, columnName = "signature")
     private String signature;
 
+    @DatabaseField(canBeNull = false, columnName = "timestamp")
+    private DateTime timestamp;
+
     // ORMLite requires a no-arg constructor.
     public Transaction() {}
 
@@ -33,6 +37,7 @@ public class Transaction {
         this.to = to;
         this.size = size;
         this.signature = signature;
+        this.timestamp = new DateTime();
     }
 
     public String getHash() {
@@ -57,5 +62,9 @@ public class Transaction {
 
     public String getSignature() {
         return signature;
+    }
+
+    public DateTime getTimestamp() {
+        return timestamp;
     }
 }
