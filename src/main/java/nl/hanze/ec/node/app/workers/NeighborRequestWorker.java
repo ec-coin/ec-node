@@ -5,6 +5,8 @@ import nl.hanze.ec.node.database.repositories.NeighboursRepository;
 import nl.hanze.ec.node.network.peers.commands.Command;
 import nl.hanze.ec.node.network.peers.commands.responses.NeighborsResponse;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 
 public class NeighborRequestWorker extends Worker {
@@ -18,9 +20,13 @@ public class NeighborRequestWorker extends Worker {
 
     @Override
     public void run() {
+        List<Object> ips = new ArrayList<>();
+
         for(Neighbour n : neighboursRepository.getAllNeighbours()) {
-            Command rsp = new NeighborsResponse(n.getIp(), 5000, receivedCommand.getMessageNumber());
-            peerCommandQueue.add(rsp);
+            ips.add(n.getIp());
         }
+
+        Command rsp = new NeighborsResponse(ips, receivedCommand.getMessageNumber());
+        peerCommandQueue.add(rsp);
     }
 }

@@ -2,6 +2,7 @@ package nl.hanze.ec.node.app.workers;
 
 import nl.hanze.ec.node.database.repositories.NeighboursRepository;
 import nl.hanze.ec.node.network.peers.commands.Command;
+import nl.hanze.ec.node.network.peers.commands.requests.NeighborsRequest;
 import nl.hanze.ec.node.network.peers.commands.responses.NeighborsResponse;
 import org.json.JSONObject;
 
@@ -21,7 +22,12 @@ public class NeighborResponseWorker extends Worker {
 
     @Override
     public void run() {
-        JSONObject response = receivedCommand.getPayload();
-        neighboursRepository.updateNeighbour(response.getString("ip"), response.getInt("port"));
+        if (receivedCommand instanceof NeighborsResponse) {
+            for (Object ip : ((NeighborsResponse) receivedCommand).getIps()) {
+                try {
+                    neighboursRepository.updateNeighbour((String) ip, 5000);
+                } catch (ClassCastException ignore) {}
+            }
+        }
     }
 }

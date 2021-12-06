@@ -7,33 +7,34 @@ import nl.hanze.ec.node.app.workers.Worker;
 import nl.hanze.ec.node.network.peers.commands.Command;
 import org.json.JSONObject;
 
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 
 public class NeighborsResponse extends AbstractCommand implements Response {
-    String ip;
-    int port;
+    List<Object> ips;
     int responseTo;
 
-    public NeighborsResponse(String ip, int port, int responseTo) {
-        this.ip = ip;
-        this.port = port;
+    public NeighborsResponse(List<Object> ips, int responseTo) {
+        this.ips = ips;
         this.responseTo = responseTo;
     }
 
     public NeighborsResponse(JSONObject payload, WorkerFactory workerFactory) {
         super(payload, workerFactory);
-        this.ip = payload.getString("ip");
-        this.port = payload.getInt("port");
+        this.ips = payload.getJSONArray("ips").toList();
         this.responseTo = payload.getInt("responseTo");
     }
 
     @Override
     protected JSONObject getData(JSONObject payload) {
-        payload.put("ip", this.ip);
-        payload.put("port", this.port);
+        payload.put("ips", this.ips);
         payload.put("responseTo", this.responseTo);
 
         return payload;
+    }
+
+    public List<Object> getIps() {
+        return ips;
     }
 
     @Override
