@@ -63,7 +63,7 @@ public class PeerStateMachine {
 
         // Define the message number in the command (used when responding to a request)
         command.setMessageNumber(commandCounter);
-        this.commandCounter++; // increase the message number for the nex command
+        this.commandCounter++; // increase the message number for the next command
 
         // Save this command when it is wrapped inside a WaitForResponse decorator
         // s.t. when a response arrives it can wake up the thread that is waiting for the response.
