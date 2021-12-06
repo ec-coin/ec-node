@@ -18,8 +18,8 @@ public class Transaction {
     @DatabaseField(canBeNull = false, columnName = "to")
     private String to;
 
-    @DatabaseField(canBeNull = false, columnName = "size")
-    private int size;
+    @DatabaseField(canBeNull = false, columnName = "amount")
+    private float amount;
 
     @DatabaseField(canBeNull = false, columnName = "signature")
     private String signature;
@@ -33,12 +33,12 @@ public class Transaction {
     // ORMLite requires a no-arg constructor.
     public Transaction() {}
 
-    public Transaction(String hash, Block block, String from, String to, int size, String signature, String status) {
+    public Transaction(String hash, Block block, String from, String to, float amount, String signature, String status) {
         this.hash = hash;
         this.block = block;
         this.from = from;
         this.to = to;
-        this.size = size;
+        this.amount = amount;
         this.signature = signature;
         this.status = status;
         this.timestamp = new DateTime();
@@ -60,8 +60,8 @@ public class Transaction {
         return to;
     }
 
-    public int getSize() {
-        return size;
+    public float getAmount() {
+        return amount;
     }
 
     public String getSignature() {
