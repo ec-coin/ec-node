@@ -6,19 +6,20 @@ import org.joda.time.DateTime;
 
 @DatabaseTable(tableName = "neighbours")
 public class Neighbour {
-    @DatabaseField(canBeNull = false, id = true)
+    @DatabaseField(canBeNull = false, id = true, columnName = "ip")
     private String ip;
 
-    @DatabaseField(canBeNull = false)
+    @DatabaseField(canBeNull = false, columnName = "port")
     private int port;
 
-    @DatabaseField(canBeNull = false)
+    @DatabaseField(canBeNull = false, columnName = "last_connected_at")
     private DateTime lastConnectedAt;
 
-    @DatabaseField(defaultValue = "true")
+    @DatabaseField(defaultValue = "true", columnName = "trustable")
     private boolean trustable;
 
-    public Neighbour() {} // is needed
+    // ORMLite requires a no-arg constructor.
+    public Neighbour() {}
 
     public Neighbour(String ip, int port) {
         this.ip = ip;

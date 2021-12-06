@@ -3,7 +3,13 @@ package nl.hanze.ec.node.network.peers;
 import com.google.inject.Inject;
 import nl.hanze.ec.node.app.NodeState;
 import nl.hanze.ec.node.app.handlers.StateHandler;
+import nl.hanze.ec.node.database.models.BalancesCache;
+import nl.hanze.ec.node.database.models.Block;
+import nl.hanze.ec.node.database.models.Transaction;
+import nl.hanze.ec.node.database.repositories.BalancesCacheRepository;
+import nl.hanze.ec.node.database.repositories.BlockRepository;
 import nl.hanze.ec.node.database.repositories.NeighboursRepository;
+import nl.hanze.ec.node.database.repositories.TransactionRepository;
 import nl.hanze.ec.node.modules.annotations.IncomingConnectionsQueue;
 import nl.hanze.ec.node.modules.annotations.MaxPeers;
 import nl.hanze.ec.node.modules.annotations.NodeStateQueue;
@@ -23,6 +29,7 @@ import org.joda.time.Seconds;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -84,6 +91,21 @@ public class PeerPool implements Runnable {
      */
     private final NeighboursRepository neighboursRepository;
 
+    /**
+     * BalancesCache repo
+     */
+    private final BalancesCacheRepository balancesCacheRepository;
+
+    /**
+     * Block repo
+     */
+    private final BlockRepository blockRepository;
+
+    /**
+     * Transaction repo
+     */
+    private final TransactionRepository transactionRepository;
+
     @Inject
     public PeerPool(
             @MaxPeers int maxPeers,
@@ -91,9 +113,15 @@ public class PeerPool implements Runnable {
             @IncomingConnectionsQueue BlockingQueue<Socket> incomingConnectionsQueue,
             PeerConnectionFactory peerConnectionFactory,
             NeighboursRepository neighboursRepository,
+            BalancesCacheRepository balancesCacheRepository,
+            BlockRepository blockRepository,
+            TransactionRepository transactionRepository,
             @NodeStateQueue BlockingQueue<NodeState> nodeStateQueue
     ) {
         this.neighboursRepository = neighboursRepository;
+        this.balancesCacheRepository = balancesCacheRepository;
+        this.blockRepository = blockRepository;
+        this.transactionRepository = transactionRepository;
         this.maxPeers = maxPeers;
         this.incomingConnectionsQueue = incomingConnectionsQueue;
         this.nodeStateQueue = nodeStateQueue;
@@ -133,6 +161,8 @@ public class PeerPool implements Runnable {
     public void run() {
         boolean testing = true;
         boolean testing1 = true;
+        fillDatabaseWithMockData();
+
         while (true) {
             boolean needMorePeers = Math.max(maxPeers - connectedPeers.size(), 0) > 0;
 
@@ -262,5 +292,48 @@ public class PeerPool implements Runnable {
      */
     public void sendCommand(Peer peer, Command command) {
         connectedPeers.get(peer).add(command);
+    }
+
+    private void fillDatabaseWithMockData() {
+        // Create some mock blocks;
+        String blockHash1 = "39523F928AF4839398BDCE3800000001";
+        String previousBlockHash1 = "39523F928AF4839398BDCE3800000000";
+        String merkleRootHash1 = "00000000000000000000000000000000";
+        int blockheight = 0;
+        blockRepository.createBlock(blockHash1, previousBlockHash1, merkleRootHash1, blockheight);
+
+        String blockHash2 = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+        String previousBlockHash2 = "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB";
+        String merkleRootHash2 = "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC";
+        blockRepository.createBlock(blockHash2, previousBlockHash2, merkleRootHash2, ++blockheight);
+
+        balancesCacheRepository.getAllBalancesInCache();
+        List<Block> blocks = blockRepository.getAllBlocks();
+
+        // Create some mock transactions;
+        int size = 5;
+
+        String transactionHash1 = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF";
+        String fromHash1 = "22222222222222222222222222222222";
+        String toHash1 = "33333333333333333333333333333333";
+        String signature1 = "11111111111111111111111111111111";
+        transactionRepository.createTransaction(transactionHash1, blocks.get(0), fromHash1, toHash1, size, signature1);
+
+        String transactionHash2 = "FFFFFFFFFFFFFFFFFFFFFFFFFFFAAAAA";
+        String fromHash2 = "222222222222222222222222222AAAAA";
+        String toHash2 = "333333333333333333333333333AAAAA";
+        String signature2 = "111111111111111111111111111AAAAA";
+        transactionRepository.createTransaction(transactionHash2, blocks.get(0), fromHash1, toHash1, size, signature2);
+
+        String transactionHash3 = "FFFFFFFFFFFFFFFFFFFFFFFFFFFBBBBB";
+        String fromHash3 = "222222222222222222222222222BBBBB";
+        String toHash3 = "333333333333333333333333333BBBBB";
+        String signature3 = "111111111111111111111111111BBBBB";
+        transactionRepository.createTransaction(transactionHash3, blocks.get(0), fromHash1, toHash2, size, signature3);
+
+        // Create an iterator to iterate over all transactions within a block.
+        Iterator<Transaction> iterator = blocks.get(0).getTransactions().iterator();
+        System.out.println("Debug: there are currently " + blocks.get(0).getTransactions().size() + " transactions in a block with block hash: " + blocks.get(0).getHash());
+        System.out.println("Debug: block hash of the first transaction: " + iterator.next().getBlockHash());
     }
 }
