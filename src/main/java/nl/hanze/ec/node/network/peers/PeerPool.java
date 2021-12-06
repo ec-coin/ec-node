@@ -6,10 +6,7 @@ import nl.hanze.ec.node.app.handlers.StateHandler;
 import nl.hanze.ec.node.database.models.BalancesCache;
 import nl.hanze.ec.node.database.models.Block;
 import nl.hanze.ec.node.database.models.Transaction;
-import nl.hanze.ec.node.database.repositories.BalancesCacheRepository;
-import nl.hanze.ec.node.database.repositories.BlockRepository;
-import nl.hanze.ec.node.database.repositories.NeighboursRepository;
-import nl.hanze.ec.node.database.repositories.TransactionRepository;
+import nl.hanze.ec.node.database.repositories.*;
 import nl.hanze.ec.node.modules.annotations.IncomingConnectionsQueue;
 import nl.hanze.ec.node.modules.annotations.MaxPeers;
 import nl.hanze.ec.node.modules.annotations.NodeStateQueue;
@@ -106,6 +103,11 @@ public class PeerPool implements Runnable {
      */
     private final TransactionRepository transactionRepository;
 
+    /**
+     * PendingTransaction repo
+     */
+    private final PendingTransactionRepository pendingTransactionRepository;
+
     @Inject
     public PeerPool(
             @MaxPeers int maxPeers,
@@ -116,12 +118,14 @@ public class PeerPool implements Runnable {
             BalancesCacheRepository balancesCacheRepository,
             BlockRepository blockRepository,
             TransactionRepository transactionRepository,
+            PendingTransactionRepository pendingTransactionRepository,
             @NodeStateQueue BlockingQueue<NodeState> nodeStateQueue
     ) {
         this.neighboursRepository = neighboursRepository;
         this.balancesCacheRepository = balancesCacheRepository;
         this.blockRepository = blockRepository;
         this.transactionRepository = transactionRepository;
+        this.pendingTransactionRepository = pendingTransactionRepository;
         this.maxPeers = maxPeers;
         this.incomingConnectionsQueue = incomingConnectionsQueue;
         this.nodeStateQueue = nodeStateQueue;
