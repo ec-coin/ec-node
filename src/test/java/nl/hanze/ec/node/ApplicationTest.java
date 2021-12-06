@@ -1,9 +1,10 @@
 package nl.hanze.ec.node;
 
-import junit.framework.TestCase;
-import org.junit.Test;
+import org.junit.jupiter.api.*;
 
-public class ApplicationTest extends TestCase {
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+public class ApplicationTest {
     @Test
     public void testRun() {
         assertTrue(true);
