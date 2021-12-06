@@ -12,7 +12,7 @@ public class TestAnnouncementWorker extends Worker {
 
     @Override
     public void run() {
-        System.out.println("TestWorker RECEIVED: " + receivedCommand.getPayload());
+        // System.out.println("TestWorker RECEIVED: " + receivedCommand.getPayload());
 
         // If this was a request a response could be sent like this.
         // peerCommandQueue.add(new TestResponse());
