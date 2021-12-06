@@ -10,6 +10,7 @@ public abstract class StateListener implements Listener {
     protected final BlockingQueue<NodeState> nodeStateQueue;
     protected final PeerPool peerPool;
     private CountDownLatch latch;
+    private boolean running = true;
 
     public StateListener(BlockingQueue<NodeState> nodeStateQueue, PeerPool peerPool) {
         this.nodeStateQueue = nodeStateQueue;
@@ -25,11 +26,20 @@ public abstract class StateListener implements Listener {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            doWork();
+
+            if (this.running) {
+                doWork();
+            } else {
+                break;
+            }
         }
     }
 
     public void stateChanged(NodeState state) {
+        if (state == NodeState.CLOSING) {
+            running = false;
+        }
+
         if (latch.getCount() == 0) {
             this.latch = new CountDownLatch(1);
         }

@@ -5,5 +5,6 @@ public enum NodeState {
     COM_SETUP,
     SYNCING,
     PARTICIPATING,
-    VALIDATING
+    VALIDATING,
+    CLOSING
 }

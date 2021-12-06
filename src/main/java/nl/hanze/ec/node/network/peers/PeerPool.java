@@ -28,6 +28,8 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 public class PeerPool implements Runnable {
@@ -78,6 +80,11 @@ public class PeerPool implements Runnable {
      * Factory to create new PeerConnection objects.
      */
     private final PeerConnectionFactory peerConnectionFactory;
+
+    /**
+     * Is the PeerPool running?
+     */
+    private final AtomicBoolean running = new AtomicBoolean(true);
 
     /**
      * Neighbours repo
@@ -133,7 +140,8 @@ public class PeerPool implements Runnable {
     public void run() {
         boolean testing = true;
         boolean testing1 = true;
-        while (true) {
+
+        while (running.get()) {
             boolean needMorePeers = Math.max(maxPeers - connectedPeers.size(), 0) > 0;
 
             Socket socket;
@@ -147,6 +155,7 @@ public class PeerPool implements Runnable {
                 }
 
                 Peer peer = new Peer(socket.getInetAddress().getHostAddress(), socket.getPort());
+                peer.setState(PeerState.CONNECTING);
 
                 if (connectedPeers.containsKey(peer)) {
                     continue;
@@ -170,7 +179,7 @@ public class PeerPool implements Runnable {
                 Peer newPeer = getNewPeer();
                 if (newPeer == null && connectedPeers.isEmpty()) {
                     logger.info("Could not find any other peers and not connected to any other peer.");
-                } else if (newPeer == null && !connectedPeers.isEmpty()) {
+                } else if (newPeer == null) {
                     logger.info("Could not find any other peers and asking connect peers for their neighbours.");
 
                     for (Peer connected : connectedPeers.keySet()) {
@@ -188,9 +197,9 @@ public class PeerPool implements Runnable {
                     PeerConnection peerConnection;
                     try {
                         peerConnection = peerConnectionFactory.create(newPeer, commandsQueue, this);
-
                         (new Thread(peerConnection)).start();
                         connectedPeers.put(newPeer, commandsQueue);
+                        newPeer.setState(PeerState.CONNECTING);
                     } catch (UnknownHostException e) {
                         logger.warn("Unknown host: " + newPeer);
                         searchDelta = 0;
@@ -228,8 +237,9 @@ public class PeerPool implements Runnable {
 
     private void removeDeadPeers() {
         for (Peer peer : connectedPeers.keySet()) {
-            if (peer.getState() == PeerState.CLOSING) {
+            if (peer.getState() == PeerState.CLOSED) {
                 logger.info(peer + " is dead. Removing.");
+                triedPeers.add(peer);
                 connectedPeers.remove(peer);
             }
         }
@@ -249,7 +259,6 @@ public class PeerPool implements Runnable {
         receivedAnnouncements.add(command);
 
         for (BlockingQueue<Command> queue : connectedPeers.values()) {
-            logger.fatal("Sending announcement");
             queue.add(command);
         }
     }
@@ -262,5 +271,13 @@ public class PeerPool implements Runnable {
      */
     public void sendCommand(Peer peer, Command command) {
         connectedPeers.get(peer).add(command);
+    }
+
+    public void closeAll() {
+        running.set(false);
+
+        for (Peer peer : connectedPeers.keySet()) {
+            peer.setState(PeerState.CLOSING);
+        }
     }
 }
