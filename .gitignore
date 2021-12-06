@@ -4,3 +4,4 @@
 *.class
 *.iml
 /out
+*.db
