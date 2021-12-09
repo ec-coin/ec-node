@@ -9,7 +9,7 @@ public class Transaction {
     @DatabaseField(canBeNull = false, id = true, columnName = "hash")
     private String hash;
 
-    @DatabaseField(canBeNull = false, columnName = "block_hash", foreign = true)
+    @DatabaseField(canBeNull = true, columnName = "block_hash", foreign = true)
     private Block block;
 
     @DatabaseField(canBeNull = false, columnName = "from")
