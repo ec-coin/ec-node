@@ -175,7 +175,9 @@ public class PeerPool implements Runnable {
         fillDatabaseWithMockData();
 
         float balance = transactionRepository.getBalance("333333333333333333333333333333333333333333333333333333333333");
+        float stake = transactionRepository.getStake("333333333333333333333333333333333333333333333333333333333333");
         System.out.println("balance before: " + balance);
+        System.out.println("stake before: " + stake);
         balancesCacheRepository.updateBalanceCache("333333333333333333333333333333333333333333333333333333333333", balance);
 
         if (connectedPeers.size() == 0 && testing) {
@@ -191,8 +193,20 @@ public class PeerPool implements Runnable {
         }
 
         balance = transactionRepository.getBalance("333333333333333333333333333333333333333333333333333333333333");
-        System.out.println("balance after: " + balance);
+        stake = transactionRepository.getStake("333333333333333333333333333333333333333333333333333333333333");
+        System.out.println("\nbalance after: " + balance);
+        System.out.println("stake before: " + stake);
         balancesCacheRepository.updateBalanceCache("333333333333333333333333333333333333333333333333333333333333", balance);
+
+        Block block = blockRepository.getCurrentBlock();
+        Iterator<Transaction> iterator = block.getTransactions().iterator();
+        Transaction transaction = iterator.next();
+        System.out.println("\nIn block with hash " + block.getHash() + " there are " + block.getTransactions().size() + " transactions");
+        System.out.println("hash of transaction 1: " + transaction.getHash() + " with status: " + transaction.getStatus());
+        transaction = iterator.next();
+        System.out.println("hash of transaction 2: " + transaction.getHash() + " with status: " + transaction.getStatus());
+        transaction = iterator.next();
+        System.out.println("hash of transaction 3: " + transaction.getHash() + " with status: " + transaction.getStatus());
 
         /*while (true) {
             boolean needMorePeers = Math.max(maxPeers - connectedPeers.size(), 0) > 0;
@@ -358,24 +372,25 @@ public class PeerPool implements Runnable {
         String fromHash1 = "222222222222222222222222222222222222222222222222222222222222";
         String toHash1 = "333333333333333333333333333333333333333333333333333333333333";
         String signature1 = "111111111111111111111111111111111111111111111111111111111111";
-        transactionRepository.createTransaction(transactionHash1, blocks.get(0), fromHash1, toHash1, amount, signature1);
+        transactionRepository.createTransaction(transactionHash1, null, fromHash1, toHash1, amount, signature1, "node");
 
         String transactionHash2 = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFAAAAA";
         String fromHash2 = "333333333333333333333333333333333333333333333333333333333333";
         String toHash2 = "3333333333333333333333333333333333333333333333333333333AAAAA";
         String signature2 = "1111111111111111111111111111111111111111111111111111111AAAAA";
-        transactionRepository.createTransaction(transactionHash2, blocks.get(0), fromHash1, toHash1, 10, signature2);
+        transactionRepository.createTransaction(transactionHash2, null, fromHash1, toHash1, 10, signature2, "node");
 
         String transactionHash3 = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFBBBBB";
         String fromHash3 = "2222222222222222222222222222222222222222222222222222222BBBBB";
         String toHash3 = "3333333333333333333333333333333333333333333333333333333BBBBB";
         String signature3 = "1111111111111111111111111111111111111111111111111111111BBBBB";
-        transactionRepository.createTransaction(transactionHash3, blocks.get(0), fromHash1, toHash2, amount, signature3);
+        transactionRepository.createTransaction(transactionHash3, null, fromHash1, toHash2, amount, signature3, "node");
 
-        // Create an iterator to iterate over all transactions within a block.
-        Iterator<Transaction> iterator = blocks.get(0).getTransactions().iterator();
-        System.out.println("Debug: there are currently " + blocks.get(0).getTransactions().size() + " transactions in a block with block hash: " + blocks.get(0).getHash());
-        System.out.println("Debug: block hash of the first transaction: " + iterator.next().getBlockHash());
+        String transactionHash4 = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFCCCCC";
+        String fromHash4 = "2222222222222222222222222222222222222222222222222222222CCCCC";
+        String toHash4 = "3333333333333333333333333333333333333333333333333333333CCCCC";
+        String signature4 = "1111111111111111111111111111111111111111111111111111111CCCCC";
+        transactionRepository.createTransaction(transactionHash4, null, fromHash4, toHash4, amount, signature4, "wallet");
     }
 
     public static int getTransactionThreshold() {

@@ -1,10 +1,8 @@
 package nl.hanze.ec.node.app.listeners;
 
 import com.google.inject.Inject;
-import com.google.inject.Provider;
 import nl.hanze.ec.node.app.NodeState;
 import nl.hanze.ec.node.database.models.Block;
-import nl.hanze.ec.node.database.models.Neighbour;
 import nl.hanze.ec.node.database.models.Transaction;
 import nl.hanze.ec.node.database.repositories.BlockRepository;
 import nl.hanze.ec.node.database.repositories.NeighboursRepository;
@@ -45,7 +43,7 @@ public class Consensus extends StateListener {
         nodeStateQueue.add(NodeState.INIT);
 
         // 1. Get all node addresses from DB
-        List<String> nodes = transactionRepository.getAllAddresses();
+        List<String> nodes = transactionRepository.getAllNodeAddresses();
 
         // 2. Set nodes as validating nodes by paying a transaction fee.
         for (String node : nodes) {
@@ -71,10 +69,10 @@ public class Consensus extends StateListener {
 
     private String getLeader(List<String> participatingNodes) {
         String currentLeader = "";
-        float highestBalance = 0;
+        float highestStake = 0;
         for (String node : participatingNodes) {
-            if (transactionRepository.getBalance(node) > highestBalance) {
-                highestBalance = transactionRepository.getBalance(node);
+            if (transactionRepository.getStake(node) > highestStake) {
+                highestStake = transactionRepository.getStake(node);
                 currentLeader = node;
             }
         }

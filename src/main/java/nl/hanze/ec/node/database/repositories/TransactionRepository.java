@@ -2,6 +2,7 @@ package nl.hanze.ec.node.database.repositories;
 
 import com.google.inject.Inject;
 import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.stmt.Where;
 import nl.hanze.ec.node.database.models.Block;
 import nl.hanze.ec.node.database.models.Transaction;
 import nl.hanze.ec.node.modules.annotations.TransactionDAO;
@@ -32,45 +33,56 @@ public class TransactionRepository {
         return null;
     }
 
-    public void createTransaction(String hash, Block block, String from, String to, float amount, String signature) {
+    public void createTransaction(String hash, Block block, String from, String to, float amount, String signature, String addressType) {
         try {
-            Transaction transaction = new Transaction(hash, block, from, to, amount, signature, "pending");
+            Transaction transaction = new Transaction(hash, block, from, to, amount, signature, "pending", addressType);
             transactionDAO.createOrUpdate(transaction);
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
+    public int getStake(String address) {
+        return getAmount(address, "node");
+    }
+
     public int getBalance(String address) {
-        int balance = 0;
+        return getAmount(address, "wallet");
+    }
+
+    public int getAmount(String address, String address_type) {
+        int amount = 0;
         try {
-            List<Transaction> query = transactionDAO.queryBuilder()
+            Where<Transaction, String> where = transactionDAO.queryBuilder()
                 .where().eq("status", "validated")
                 .and().eq("from", address)
-                .or().eq("to", address).query();
+                .or().eq("to", address);
 
-            for(Transaction transaction : query) {
+            List<Transaction> transactions = where.and().eq("address_type", address_type).query();
+
+            for(Transaction transaction : transactions) {
                 if (transaction.getFrom().equals(transaction.getTo())) {
                     continue;
                 }
 
                 if (transaction.getFrom().equals(address)) {
-                    balance -= transaction.getAmount();
+                    amount -= transaction.getAmount();
                 } else {
-                    balance += transaction.getAmount();
+                    amount += transaction.getAmount();
                 }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
-        return balance;
+        return amount;
     }
 
-    public List<String> getAllAddresses() {
+    public List<String> getAllNodeAddresses() {
         Set<String> addresses = new HashSet<>();
         try {
-            List<Transaction> query = transactionDAO.queryBuilder().query();
+            List<Transaction> query = transactionDAO.queryBuilder()
+                    .where().eq("address_type", "node").query();
 
             for (Transaction transaction : query) {
                 addresses.add(transaction.getFrom());
@@ -118,7 +130,7 @@ public class TransactionRepository {
     public void setTransactionAsValidated(Transaction t, Block block) {
         try {
             transactionDAO.createOrUpdate(
-                    new Transaction(t.getHash(), block, t.getFrom(), t.getTo(), t.getAmount(), t.getSignature(), "validated")
+                    new Transaction(t.getHash(), block, t.getFrom(), t.getTo(), t.getAmount(), t.getSignature(), "validated", t.getAddressType())
             );
         } catch (SQLException e) {
             e.printStackTrace();
@@ -143,7 +155,7 @@ public class TransactionRepository {
 
     public void addNodeAsValidatingNode(String hash, Block block, String from, String signature) {
         try {
-            Transaction transactionWithFee = new Transaction(hash, block, from, "-1", transactionFee, signature, "validated");
+            Transaction transactionWithFee = new Transaction(hash, block, from, "-1", transactionFee, signature, "validated", "node");
             transactionDAO.createOrUpdate(transactionWithFee);
         } catch (SQLException e) {
             e.printStackTrace();
