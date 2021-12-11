@@ -22,7 +22,7 @@ public class BlockSyncer extends StateListener {
     }
 
     protected void doWork() {
-
+        nodeStateQueue.add(NodeState.PARTICIPATING);
     }
 
     public List<NodeState> listenFor() {

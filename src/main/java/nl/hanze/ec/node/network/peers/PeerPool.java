@@ -2,14 +2,12 @@ package nl.hanze.ec.node.network.peers;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import nl.hanze.ec.node.Application;
 import nl.hanze.ec.node.app.NodeState;
 import nl.hanze.ec.node.database.models.Block;
 import nl.hanze.ec.node.database.models.Transaction;
 import nl.hanze.ec.node.database.repositories.*;
-import nl.hanze.ec.node.modules.annotations.IncomingConnectionsQueue;
-import nl.hanze.ec.node.modules.annotations.MaxPeers;
-import nl.hanze.ec.node.modules.annotations.NodeStateQueue;
-import nl.hanze.ec.node.modules.annotations.Port;
+import nl.hanze.ec.node.modules.annotations.*;
 import nl.hanze.ec.node.network.peers.commands.Command;
 import nl.hanze.ec.node.network.peers.commands.requests.NeighborsRequest;
 import nl.hanze.ec.node.network.peers.peer.Peer;
@@ -35,6 +33,8 @@ import java.util.stream.Collectors;
 public class PeerPool implements Runnable {
     private static final Logger logger = LogManager.getLogger(PeerPool.class);
     private final int maxPeers;
+    private final int minPeers;
+    private final int blockStartHeight;
     private final BlockingQueue<Socket> incomingConnectionsQueue;
     private final BlockingQueue<NodeState> nodeStateQueue;
     private final static int transactionThreshold = 3;
@@ -115,6 +115,7 @@ public class PeerPool implements Runnable {
     @Inject
     public PeerPool(
             @MaxPeers int maxPeers,
+            @MinPeers int minPeers,
             @Port int port,
             @IncomingConnectionsQueue BlockingQueue<Socket> incomingConnectionsQueue,
             PeerConnectionFactory peerConnectionFactory,
@@ -129,11 +130,14 @@ public class PeerPool implements Runnable {
         this.blockRepository = blockRepository;
         this.transactionRepository = transactionRepository;
         this.maxPeers = maxPeers;
+        this.minPeers = minPeers;
         this.incomingConnectionsQueue = incomingConnectionsQueue;
         this.nodeStateQueue = nodeStateQueue;
         this.peerConnectionFactory = peerConnectionFactory;
         this.port = port;
 
+        // TODO: retrieve block height from DB
+        this.blockStartHeight = 0;
 
         try {
             Enumeration<NetworkInterface> e = NetworkInterface.getNetworkInterfaces();
@@ -182,59 +186,45 @@ public class PeerPool implements Runnable {
 
     @Override
     public void run() {
-        String password = "hello this is a hashhhhhhhhhhhhhhhhh";
-        String hash = HashingService.hash(password);
-        System.out.println("hash: " + hash);
+//        String password = "hello this is a hashhhhhhhhhhhhhhhhh";
+//        String hash = HashingService.hash(password);
+//        System.out.println("hash: " + hash);
+//
+//        fillDatabaseWithMockData();
+//
+//        float balance = transactionRepository.getBalance("333333333333333333333333333333333333333333333333333333333333");
+//        float stake = transactionRepository.getStake("333333333333333333333333333333333333333333333333333333333333");
+//        System.out.println("balance before: " + balance);
+//        System.out.println("stake before: " + stake);
+//        balancesCacheRepository.updateBalanceCache("333333333333333333333333333333333333333333333333333333333333", balance);
+//
+//        balance = transactionRepository.getBalance("333333333333333333333333333333333333333333333333333333333333");
+//        stake = transactionRepository.getStake("333333333333333333333333333333333333333333333333333333333333");
+//        System.out.println("\nbalance after: " + balance);
+//        System.out.println("stake before: " + stake);
+//        balancesCacheRepository.updateBalanceCache("333333333333333333333333333333333333333333333333333333333333", balance);
+//
+//        Block block = blockRepository.getCurrentBlock();
+//        Iterator<Transaction> iterator = block.getTransactions().iterator();
+//        Transaction transaction = iterator.next();
+//        System.out.println("\nIn block with hash " + block.getHash() + " there are " + block.getTransactions().size() + " transactions");
+//        System.out.println("hash of transaction 1: " + transaction.getHash() + " with status: " + transaction.getStatus());
+//        transaction = iterator.next();
+//        System.out.println("hash of transaction 2: " + transaction.getHash() + " with status: " + transaction.getStatus());
+//        transaction = iterator.next();
+//        System.out.println("hash of transaction 3: " + transaction.getHash() + " with status: " + transaction.getStatus());
 
-        boolean testing = true;
-        boolean testing1 = true;
-        fillDatabaseWithMockData();
-
-        float balance = transactionRepository.getBalance("333333333333333333333333333333333333333333333333333333333333");
-        float stake = transactionRepository.getStake("333333333333333333333333333333333333333333333333333333333333");
-        System.out.println("balance before: " + balance);
-        System.out.println("stake before: " + stake);
-        balancesCacheRepository.updateBalanceCache("333333333333333333333333333333333333333333333333333333333333", balance);
-
-        if (connectedPeers.size() == 0 && testing) {
-            testing = false;
-            nodeStateQueue.add(NodeState.PARTICIPATING);
-        }
-
-        try {
-            Thread.sleep(1000);
-        }
-        catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        balance = transactionRepository.getBalance("333333333333333333333333333333333333333333333333333333333333");
-        stake = transactionRepository.getStake("333333333333333333333333333333333333333333333333333333333333");
-        System.out.println("\nbalance after: " + balance);
-        System.out.println("stake before: " + stake);
-        balancesCacheRepository.updateBalanceCache("333333333333333333333333333333333333333333333333333333333333", balance);
-
-        Block block = blockRepository.getCurrentBlock();
-        Iterator<Transaction> iterator = block.getTransactions().iterator();
-        Transaction transaction = iterator.next();
-        System.out.println("\nIn block with hash " + block.getHash() + " there are " + block.getTransactions().size() + " transactions");
-        System.out.println("hash of transaction 1: " + transaction.getHash() + " with status: " + transaction.getStatus());
-        transaction = iterator.next();
-        System.out.println("hash of transaction 2: " + transaction.getHash() + " with status: " + transaction.getStatus());
-        transaction = iterator.next();
-        System.out.println("hash of transaction 3: " + transaction.getHash() + " with status: " + transaction.getStatus());
-
-        /*while (true) {
-            boolean needMorePeers = Math.max(maxPeers - connectedPeers.size(), 0) > 0;
-
+        while (true) {
+            //################################
+            //  Handle incoming socket connections
+            //################################
             Socket socket;
             while ((socket = incomingConnectionsQueue.poll()) != null) {
                 if (ownIPs.contains(socket.getInetAddress().toString())) {
                     continue;
                 }
 
-                if (!needMorePeers) {
-                    // TODO: send: not accepting new connections
+                if (Math.max(maxPeers - connectedPeers.size(), 0) == 0) {
                     try {
                         socket.close();
                     } catch (IOException ignored) {}
@@ -253,12 +243,14 @@ public class PeerPool implements Runnable {
 
                 neighboursRepository.updateNeighbour(socket.getInetAddress().getHostAddress(), port);
                 connectedPeers.put(peer, commandsQueue);
-
-                needMorePeers = Math.max(maxPeers - connectedPeers.size(), 0) > 0;
             }
 
+            //################################
+            //  Discover more peers if connected peers size < min peers
+            //################################
             DateTime now = new DateTime();
-            if (needMorePeers && Seconds.secondsBetween(lastSearchedForNewPeers, now).getSeconds() >= searchDelta) {
+            if (Math.max(minPeers - connectedPeers.size(), 0) > 0 &&
+                Seconds.secondsBetween(lastSearchedForNewPeers, now).getSeconds() >= searchDelta) {
                 searchDelta = 10;
                 lastSearchedForNewPeers = now;
 
@@ -278,7 +270,7 @@ public class PeerPool implements Runnable {
                         askedNeighbours.add(connected);
                     }
                 } else if (ownIPs.contains(newPeer.getIp())) {
-                    logger.info("New peer is myself. Skipping");
+                    logger.debug("New peer is myself. Skipping");
                     searchDelta = 0;
                 } else {
                     logger.info("Trying to connect to known peer: " + newPeer);
@@ -302,27 +294,38 @@ public class PeerPool implements Runnable {
                 }
             }
 
+            //################################
+            //  Change state according to connected peers size
+            //################################
+            if (connectedPeers.size() >= minPeers && Application.getState() == NodeState.COM_SETUP) {
+                NodeState newState = NodeState.PARTICIPATING;
+
+                // If start height differs by more than 5 blocks: Initiate a Blockchain Sync
+                for (Peer peer : connectedPeers.keySet()) {
+                    if (peer.getStartHeight() - this.blockStartHeight >= 5) {
+                        newState = NodeState.SYNCING;
+                    }
+                }
+
+                nodeStateQueue.add(newState);
+            }
+
+            // Revert state to COM_SETUP when number of peers is less than minPeers
+            if (Application.getState() != NodeState.COM_SETUP && connectedPeers.size() < minPeers) {
+                nodeStateQueue.add(NodeState.COM_SETUP);
+            }
+
+            //################################
+            //  Reset internal cache
+            //################################
             if (Seconds.secondsBetween(lastClear, now).getSeconds() >= 30) {
                 lastClear = now;
                 triedPeers.clear();
                 askedNeighbours.clear();
             }
 
-            // Debugging purposes
-            // TODO: this is for testing purposes
-            if (connectedPeers.size() == 0 && testing) {
-                testing = false;
-                nodeStateQueue.add(NodeState.PARTICIPATING);
-            }
-
-            // TODO: this is for testing purposes
-//            if (connectedPeers.size() >= 3 && testing1) {
-//                testing1 = false;
-//                sendBroadcast(new TestAnnouncement("Hello world"));
-//            }
-
             removeDeadPeers();
-        }*/
+        }
     }
 
     private void removeDeadPeers() {
@@ -342,7 +345,7 @@ public class PeerPool implements Runnable {
      */
     public synchronized void sendBroadcast(Command command) {
         if (receivedAnnouncements.contains(command)) {
-            logger.fatal("Announcement not propagated further: " + command);
+            logger.debug("Announcement not propagated further: " + command);
             return;
         }
 

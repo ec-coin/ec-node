@@ -45,6 +45,12 @@ public class ECNetworkNodeRunner {
                 .setDefault(5000)
                 .help("Server port");
 
+        parser.addArgument("--min-peers")
+                .type(Integer.class)
+                .dest("min-peers")
+                .setDefault(4)
+                .help("Minimum peers to connect to");
+
         parser.addArgument("--max-peers")
                 .type(Integer.class)
                 .dest("max-peers")
