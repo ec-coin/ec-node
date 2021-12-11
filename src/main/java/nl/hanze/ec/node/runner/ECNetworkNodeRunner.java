@@ -9,7 +9,14 @@ import nl.hanze.ec.node.Application;
 import nl.hanze.ec.node.modules.ConfigModule;
 import nl.hanze.ec.node.modules.ThreadCommunicationModule;
 import nl.hanze.ec.node.modules.DatabaseModule;
+import nl.hanze.ec.node.services.HashingService;
 import nl.hanze.ec.node.utils.FileUtils;
+
+import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Random;
 
 
 /**

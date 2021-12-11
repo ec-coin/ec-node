@@ -9,7 +9,7 @@ public class Transaction {
     @DatabaseField(canBeNull = false, id = true, columnName = "hash")
     private String hash;
 
-    @DatabaseField(canBeNull = false, columnName = "block_hash", foreign = true)
+    @DatabaseField(canBeNull = true, columnName = "block_hash", foreign = true)
     private Block block;
 
     @DatabaseField(canBeNull = false, columnName = "from")
@@ -30,10 +30,13 @@ public class Transaction {
     @DatabaseField(canBeNull = false, columnName = "timestamp")
     private DateTime timestamp;
 
+    @DatabaseField(canBeNull = false, columnName = "address_type")
+    private String addressType;
+
     // ORMLite requires a no-arg constructor.
     public Transaction() {}
 
-    public Transaction(String hash, Block block, String from, String to, float amount, String signature, String status) {
+    public Transaction(String hash, Block block, String from, String to, float amount, String signature, String status, String addressType) {
         this.hash = hash;
         this.block = block;
         this.from = from;
@@ -41,11 +44,12 @@ public class Transaction {
         this.amount = amount;
         this.signature = signature;
         this.status = status;
+        this.addressType = addressType;
         this.timestamp = new DateTime();
     }
 
     public String getHash() {
-        return hash;
+        return this.hash;
     }
 
     public String getBlockHash() {
@@ -53,26 +57,28 @@ public class Transaction {
     }
 
     public String getFrom() {
-        return from;
+        return this.from;
     }
 
     public String getTo() {
-        return to;
+        return this.to;
     }
 
     public float getAmount() {
-        return amount;
+        return this.amount;
     }
 
     public String getSignature() {
-        return signature;
+        return this.signature;
     }
 
     public String getStatus() {
-        return status;
+        return this.status;
     }
 
     public DateTime getTimestamp() {
-        return timestamp;
+        return this.timestamp;
     }
+
+    public String getAddressType() { return this.addressType; }
 }
