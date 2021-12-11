@@ -2,8 +2,6 @@ package nl.hanze.ec.node.network.peers;
 
 import com.google.inject.Inject;
 import nl.hanze.ec.node.app.NodeState;
-import nl.hanze.ec.node.app.handlers.StateHandler;
-import nl.hanze.ec.node.database.models.BalancesCache;
 import nl.hanze.ec.node.database.models.Block;
 import nl.hanze.ec.node.database.models.Transaction;
 import nl.hanze.ec.node.database.repositories.*;
@@ -12,7 +10,6 @@ import nl.hanze.ec.node.modules.annotations.MaxPeers;
 import nl.hanze.ec.node.modules.annotations.NodeStateQueue;
 import nl.hanze.ec.node.modules.annotations.Port;
 import nl.hanze.ec.node.network.peers.commands.Command;
-import nl.hanze.ec.node.network.peers.commands.announcements.TestAnnouncement;
 import nl.hanze.ec.node.network.peers.commands.requests.NeighborsRequest;
 import nl.hanze.ec.node.network.peers.peer.Peer;
 import nl.hanze.ec.node.network.peers.peer.PeerConnection;
@@ -24,16 +21,13 @@ import org.joda.time.DateTime;
 import org.joda.time.Seconds;
 
 import java.io.IOException;
-import java.net.Socket;
-import java.net.UnknownHostException;
-import java.sql.SQLException;
+import java.net.*;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 public class PeerPool implements Runnable {
@@ -110,6 +104,11 @@ public class PeerPool implements Runnable {
      */
     private final TransactionRepository transactionRepository;
 
+    /**
+     * Own IPS. Do not connect to.
+     */
+    private final Set<String> ownIPs = new HashSet<>();
+
     @Inject
     public PeerPool(
             @MaxPeers int maxPeers,
@@ -131,6 +130,23 @@ public class PeerPool implements Runnable {
         this.nodeStateQueue = nodeStateQueue;
         this.peerConnectionFactory = peerConnectionFactory;
         this.port = port;
+
+
+        try {
+            Enumeration<NetworkInterface> e = NetworkInterface.getNetworkInterfaces();
+            while(e.hasMoreElements())
+            {
+                NetworkInterface n = e.nextElement();
+                Enumeration<InetAddress> ee = n.getInetAddresses();
+                while (ee.hasMoreElements())
+                {
+                    InetAddress i = ee.nextElement();
+                    ownIPs.add(i.getHostAddress());
+                }
+            }
+        } catch (SocketException ex) {
+            ex.printStackTrace();
+        }
     }
 
     private Peer getNewPeer() {
@@ -172,6 +188,10 @@ public class PeerPool implements Runnable {
 
             Socket socket;
             while ((socket = incomingConnectionsQueue.poll()) != null) {
+                if (ownIPs.contains(socket.getInetAddress().toString())) {
+                    continue;
+                }
+
                 if (!needMorePeers) {
                     // TODO: send: not accepting new connections
                     try {
@@ -216,8 +236,11 @@ public class PeerPool implements Runnable {
                         sendCommand(connected, new NeighborsRequest());
                         askedNeighbours.add(connected);
                     }
+                } else if (ownIPs.contains(newPeer.getIp())) {
+                    logger.info("New peer is myself. Skipping");
+                    searchDelta = 0;
                 } else {
-                    logger.info("Found known peer. " + newPeer);
+                    logger.info("Trying to connect to known peer: " + newPeer);
                     BlockingQueue<Command> commandsQueue = new LinkedBlockingQueue<>();
 
                     PeerConnection peerConnection;
