@@ -23,7 +23,7 @@ public class TransactionRepository {
         this.transactionDAO = blockDAO;
     }
 
-    public List<Transaction> getAllTransactions() {
+    public synchronized List<Transaction> getAllTransactions() {
         try {
             return transactionDAO.queryForAll();
         } catch (SQLException e) {
@@ -33,7 +33,7 @@ public class TransactionRepository {
         return null;
     }
 
-    public void createTransaction(String hash, Block block, String from, String to, float amount, String signature, String addressType) {
+    public synchronized void createTransaction(String hash, Block block, String from, String to, float amount, String signature, String addressType) {
         try {
             Transaction transaction = new Transaction(hash, block, from, to, amount, signature, "pending", addressType);
             transactionDAO.createOrUpdate(transaction);
@@ -42,15 +42,23 @@ public class TransactionRepository {
         }
     }
 
-    public int getStake(String address) {
+    public synchronized void createTransaction(Transaction transaction) {
+        try {
+            transactionDAO.createOrUpdate(transaction);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public synchronized int getStake(String address) {
         return getAmount(address, "node");
     }
 
-    public int getBalance(String address) {
+    public synchronized int getBalance(String address) {
         return getAmount(address, "wallet");
     }
 
-    public int getAmount(String address, String address_type) {
+    public synchronized int getAmount(String address, String address_type) {
         int amount = 0;
         try {
             Where<Transaction, String> where = transactionDAO.queryBuilder()
@@ -78,7 +86,7 @@ public class TransactionRepository {
         return amount;
     }
 
-    public List<String> getAllNodeAddresses() {
+    public synchronized List<String> getAllNodeAddresses() {
         Set<String> addresses = new HashSet<>();
         try {
             List<Transaction> query = transactionDAO.queryBuilder()
@@ -95,7 +103,7 @@ public class TransactionRepository {
         return new ArrayList<>(addresses);
     }
 
-    public boolean transactionThresholdReached() {
+    public synchronized boolean transactionThresholdReached() {
         try {
             int numberOfPendingTransactions = transactionDAO.queryBuilder()
                     .where().eq("status", "pending").query().size();
@@ -110,7 +118,7 @@ public class TransactionRepository {
         return false;
     }
 
-    public List<Transaction> getFiniteNumberOfPendingTransactions() {
+    public synchronized List<Transaction> getFiniteNumberOfPendingTransactions() {
         List<Transaction> transactionsToBeValidated = new ArrayList<>();
         try {
             List<Transaction> pendingTransactions = transactionDAO.queryBuilder()
@@ -127,7 +135,7 @@ public class TransactionRepository {
         return transactionsToBeValidated;
     }
 
-    public void setTransactionAsValidated(Transaction t, Block block) {
+    public synchronized void setTransactionAsValidated(Transaction t, Block block) {
         try {
             transactionDAO.createOrUpdate(
                     new Transaction(t.getHash(), block, t.getFrom(), t.getTo(), t.getAmount(), t.getSignature(), "validated", t.getAddressType())
@@ -137,7 +145,7 @@ public class TransactionRepository {
         }
     }
 
-    public List<String> getAllValidatingNodes() {
+    public synchronized List<String> getAllValidatingNodes() {
         Set<String> addresses = new HashSet<>();
         try {
             List<Transaction> transactions = transactionDAO.queryBuilder()
@@ -153,12 +161,41 @@ public class TransactionRepository {
         return new ArrayList<>(addresses);
     }
 
-    public void addNodeAsValidatingNode(String hash, Block block, String from, String signature) {
+    public synchronized void addNodeAsValidatingNode(String hash, Block block, String from, String signature) {
         try {
             Transaction transactionWithFee = new Transaction(hash, block, from, "-1", transactionFee, signature, "validated", "node");
             transactionDAO.createOrUpdate(transactionWithFee);
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    public synchronized Transaction getTransaction(String hash) {
+        Transaction transaction = null;
+        try {
+            List<Transaction> query = transactionDAO.queryBuilder()
+                    .where().eq("hash", hash).query();
+
+            if (query != null && query.size() > 0) {
+                transaction = query.get(0);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return transaction;
+    }
+
+    public synchronized List<Transaction> getTransactionsByAddress(String address) {
+        List<Transaction> transactions = new ArrayList<>();
+        try {
+            transactions = transactionDAO.queryBuilder()
+                    .where().eq("from", address)
+                    .or().eq("to", address).query();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return transactions;
     }
 }

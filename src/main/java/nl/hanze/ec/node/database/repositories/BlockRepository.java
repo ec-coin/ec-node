@@ -19,7 +19,7 @@ public class BlockRepository {
         this.blockDAO = blockDAO;
     }
 
-    public List<Block> getAllBlocks() {
+    public synchronized List<Block> getAllBlocks() {
         try {
             return blockDAO.queryForAll();
         } catch (SQLException e) {
@@ -29,7 +29,7 @@ public class BlockRepository {
         return null;
     }
 
-    public Block createBlock(String hash, String previousBlockHash, String merkleRootHash, int blockHeight) {
+    public synchronized Block createBlock(String hash, String previousBlockHash, String merkleRootHash, int blockHeight) {
         Block block = null;
         try {
             block = new Block(hash, previousBlockHash, merkleRootHash, blockHeight);
@@ -40,7 +40,15 @@ public class BlockRepository {
         return block;
     }
 
-    public String getCurrentBlockHash(int blockHeight) {
+    public synchronized void createBlock(Block block) {
+        try {
+            blockDAO.createOrUpdate(block);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public synchronized String getCurrentBlockHash(int blockHeight) {
         String hash = "";
         try {
             List<Block> block = blockDAO.queryBuilder()
@@ -53,7 +61,7 @@ public class BlockRepository {
         return hash;
     }
 
-    public String getRootMerkleHash() {
+    public synchronized String getRootMerkleHash() {
         if (rootMerkleHash == null) {
             try {
                 List<Block> block = blockDAO.queryBuilder()
@@ -67,7 +75,7 @@ public class BlockRepository {
         return rootMerkleHash;
     }
 
-    public int getCurrentBlockHeight() {
+    public synchronized int getCurrentBlockHeight() {
         int height = 0;
         try {
             height = (int) blockDAO.queryRawValue("select MAX(block_height) from Blocks");
@@ -78,7 +86,7 @@ public class BlockRepository {
         return height;
     }
 
-    public Block getCurrentBlock() {
+    public synchronized Block getCurrentBlock() {
         Block block = null;
         try {
             block = blockDAO.queryBuilder()
@@ -86,6 +94,22 @@ public class BlockRepository {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        return block;
+    }
+
+    public synchronized Block getBlock(String hash) {
+        Block block = null;
+        try {
+            List<Block> query = blockDAO.queryBuilder()
+                    .where().eq("hash", hash).query();
+
+            if (query != null && query.size() > 0) {
+                block = query.get(0);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
         return block;
     }
 }

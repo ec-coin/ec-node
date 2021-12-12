@@ -13,7 +13,6 @@ import nl.hanze.ec.node.network.peers.PeerPool;
 import nl.hanze.ec.node.utils.FileUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
-import sun.misc.Signal;
 
 import java.util.ArrayList;
 import java.util.List;

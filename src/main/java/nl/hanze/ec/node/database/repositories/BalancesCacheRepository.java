@@ -15,7 +15,7 @@ public class BalancesCacheRepository {
         this.balancesCacheDAO = balancesCacheDAO;
     }
 
-    public List<BalancesCache> getAllBalancesInCache() {
+    public synchronized List<BalancesCache> getAllBalancesInCache() {
         try {
             return balancesCacheDAO.queryForAll();
         } catch (SQLException e) {
@@ -25,7 +25,7 @@ public class BalancesCacheRepository {
         return null;
     }
 
-    public void updateBalanceCache(String address, float balance) {
+    public synchronized void updateBalanceCache(String address, float balance) {
         try {
             BalancesCache balancesCache = new BalancesCache(address, balance);
             balancesCacheDAO.createOrUpdate(balancesCache);
