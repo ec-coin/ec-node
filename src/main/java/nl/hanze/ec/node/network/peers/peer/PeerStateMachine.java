@@ -118,9 +118,12 @@ public class PeerStateMachine {
                 // When the command is a response, try to resolve the associated request
                 // and wake up the thread that is waiting for this response.
                 if (command instanceof Response) {
-                    Integer responseTo = ((Response) command).inResponseTo();
+                    Response response = (Response) command;
+                    Integer responseTo = response.inResponseTo();
                     WaitForResponse request = requestsWaitingForResponse.get(responseTo);
+
                     if (request != null) {
+                        request.setResponse(response);
                         request.resolve();
                         requestsWaitingForResponse.remove(responseTo);
                     }

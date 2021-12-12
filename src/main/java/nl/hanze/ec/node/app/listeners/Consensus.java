@@ -28,7 +28,6 @@ public class Consensus extends StateListener {
         }
     };
 
-    @Inject
     public Consensus(@NodeStateQueue BlockingQueue<NodeState> nodeStateQueue, PeerPool peerPool,
                      TransactionRepository transactionRepository,
                      NeighboursRepository neighboursRepository,

@@ -11,6 +11,7 @@ import java.util.concurrent.BlockingQueue;
 
 public class NeighborRequestWorker extends Worker {
     private final NeighboursRepository neighboursRepository;
+
     public NeighborRequestWorker(Command receivedCommand,
                                  BlockingQueue<Command> peerCommandQueue,
                                  NeighboursRepository neighboursRepository) {

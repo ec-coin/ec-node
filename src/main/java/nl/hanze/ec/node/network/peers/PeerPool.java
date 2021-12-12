@@ -304,6 +304,7 @@ public class PeerPool implements Runnable {
                 for (Peer peer : connectedPeers.keySet()) {
                     if (peer.getStartHeight() - this.blockStartHeight >= 5) {
                         newState = NodeState.SYNCING;
+                        break;
                     }
                 }
 
@@ -336,6 +337,15 @@ public class PeerPool implements Runnable {
                 connectedPeers.remove(peer);
             }
         }
+    }
+
+    /**
+     * Retrieves all the data objects for the currently connected peers
+     *
+     * @return Set of peers
+     */
+    public Set<Peer> getConnectedPeers() {
+        return connectedPeers.keySet();
     }
 
     /**

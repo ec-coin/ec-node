@@ -154,9 +154,6 @@ public class PeerConnection implements Runnable {
                     break;
                 }
             }
-
-
-
         }
 
         try {
