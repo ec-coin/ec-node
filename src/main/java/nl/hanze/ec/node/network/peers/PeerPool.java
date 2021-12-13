@@ -430,7 +430,7 @@ public class PeerPool implements Runnable {
         balance = transactionRepository.getBalance("3333333333333333333333333333333333333333333333333333333333333333");
         stake = transactionRepository.getStake("3333333333333333333333333333333333333333333333333333333333333333");
         System.out.println("\nbalance after: " + balance);
-        System.out.println("stake before: " + stake);
+        System.out.println("stake after: " + stake);
         balancesCacheRepository.updateBalanceCache("3333333333333333333333333333333333333333333333333333333333333333", balance);
 
         Block block = blockRepository.getCurrentBlock();

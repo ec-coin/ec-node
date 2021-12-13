@@ -12,11 +12,6 @@ import nl.hanze.ec.node.modules.APIModule;
 import nl.hanze.ec.node.modules.ConfigModule;
 import nl.hanze.ec.node.modules.ThreadCommunicationModule;
 import nl.hanze.ec.node.modules.DatabaseModule;
-import nl.hanze.ec.node.services.SignatureService;
-
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.StandardCharsets;
-import java.security.*;
 
 /**
  * Hanzehogeschool Groningen University of Applied Sciences HBO-ICT

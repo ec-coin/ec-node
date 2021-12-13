@@ -12,8 +12,6 @@ import nl.hanze.ec.node.database.repositories.BlockRepository;
 import nl.hanze.ec.node.database.repositories.NeighboursRepository;
 import nl.hanze.ec.node.database.repositories.TransactionRepository;
 
-import java.util.List;
-
 import static spark.Spark.*;
 
 public class API implements Runnable {

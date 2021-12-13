@@ -21,7 +21,7 @@ public class NeighborRequestWorker extends Worker {
 
     @Override
     public void run() {
-        List<Object> ips = new ArrayList<>();
+        List<String> ips = new ArrayList<>();
 
         for(Neighbour n : neighboursRepository.getAllNeighbours()) {
             ips.add(n.getIp());

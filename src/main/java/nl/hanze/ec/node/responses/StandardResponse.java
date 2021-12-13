@@ -14,7 +14,6 @@ public class StandardResponse {
     public StandardResponse(StatusResponse status, JsonElement data) {
         if (data.isJsonNull()) {
             this.status = StatusResponse.NO_CONTENT;
-            System.out.println("REACCHED ------------------------------------------------------------------------------------------------");
         }
         else {
             this.status = status;

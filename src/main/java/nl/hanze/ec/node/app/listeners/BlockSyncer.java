@@ -65,13 +65,7 @@ public class BlockSyncer extends StateListener {
 
             InventoryResponse response = ((InventoryResponse) command.getResponse());
 
-            List<Object> hashes = response.getBlockHashes();
-
-            for(Object hashObj : hashes) {
-                try {
-                    blockHashesToBeFetched.add((String) hashObj);
-                } catch (ClassCastException ignore) {}
-            }
+            blockHashesToBeFetched = response.getBlockHashes();
         }
 
         canContinue();

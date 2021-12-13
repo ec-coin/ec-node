@@ -26,7 +26,7 @@ public class InventoryRequestWorker extends Worker {
     public void run() {
         InventoryRequest command = (InventoryRequest) receivedCommand;
 
-        List<Object> hashes = command.getBlockHashes();
+        List<String> hashes = command.getBlockHashes();
 
         hashes.get(0);
         

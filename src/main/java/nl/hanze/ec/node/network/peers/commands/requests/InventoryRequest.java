@@ -1,26 +1,26 @@
 package nl.hanze.ec.node.network.peers.commands.requests;
 
 import nl.hanze.ec.node.app.workers.InventoryRequestWorker;
-import nl.hanze.ec.node.app.workers.NeighborRequestWorker;
 import nl.hanze.ec.node.app.workers.Worker;
 import nl.hanze.ec.node.app.workers.WorkerFactory;
 import nl.hanze.ec.node.network.peers.commands.AbstractCommand;
 import nl.hanze.ec.node.network.peers.commands.Command;
+import nl.hanze.ec.node.services.CollectionMappingService;
 import org.json.JSONObject;
 
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 
 public class InventoryRequest extends AbstractCommand implements Request {
-    List<Object> blockHashes;
+    private List<String> blockHashes;
 
-    public InventoryRequest(List<Object> blockHashes) {
+    public InventoryRequest(List<String> blockHashes) {
         this.blockHashes = blockHashes;
     }
 
     public InventoryRequest(JSONObject payload, WorkerFactory workerFactory) {
         super(payload, workerFactory);
-        this.blockHashes = payload.getJSONArray("blockHashes").toList();
+        this.blockHashes = CollectionMappingService.mapToStringList(payload.getJSONArray("blockHashes").toList());
     }
 
     @Override
@@ -30,7 +30,7 @@ public class InventoryRequest extends AbstractCommand implements Request {
         return payload;
     }
 
-    public List<Object> getBlockHashes() {
+    public List<String> getBlockHashes() {
         return blockHashes;
     }
 
