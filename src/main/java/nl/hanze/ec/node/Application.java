@@ -8,6 +8,7 @@ import nl.hanze.ec.node.app.listeners.BlockSyncer;
 import nl.hanze.ec.node.app.listeners.Consensus;
 import nl.hanze.ec.node.app.listeners.Listener;
 import nl.hanze.ec.node.app.listeners.ListenerFactory;
+import nl.hanze.ec.node.modules.annotations.NodeStateQueue;
 import nl.hanze.ec.node.network.Server;
 import nl.hanze.ec.node.network.peers.PeerPool;
 import nl.hanze.ec.node.utils.FileUtils;
@@ -16,6 +17,7 @@ import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class Application {
@@ -32,18 +34,21 @@ public class Application {
     };
     private final Handler stateHandler;
     private final ListenerFactory listenerFactory;
+    private final BlockingQueue<NodeState> nodeStateQueue;
     private static final AtomicReference<NodeState> state = new AtomicReference<>(NodeState.INIT);
 
     @Inject
     public Application(Server server,
                        PeerPool peerPool,
                        StateHandler stateHandler,
-                       ListenerFactory listenerFactory
+                       ListenerFactory listenerFactory,
+                       @NodeStateQueue BlockingQueue<NodeState> nodeStateQueue
     ) {
         this.server = server;
         this.peerPool = peerPool;
         this.listenerFactory = listenerFactory;
         this.stateHandler = stateHandler;
+        this.nodeStateQueue = nodeStateQueue;
     }
 
     /**
@@ -81,6 +86,9 @@ public class Application {
             setState(NodeState.CLOSING);
             server.close();
         }));
+
+        // All threads have been started.
+        nodeStateQueue.add(NodeState.COM_SETUP);
     }
 
     public static NodeState getState() {

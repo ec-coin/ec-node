@@ -1,14 +1,13 @@
 package nl.hanze.ec.node.network.peers;
 
 import com.google.inject.Inject;
+import com.google.inject.Provider;
+import nl.hanze.ec.node.Application;
 import nl.hanze.ec.node.app.NodeState;
 import nl.hanze.ec.node.database.models.Block;
 import nl.hanze.ec.node.database.models.Transaction;
 import nl.hanze.ec.node.database.repositories.*;
-import nl.hanze.ec.node.modules.annotations.IncomingConnectionsQueue;
-import nl.hanze.ec.node.modules.annotations.MaxPeers;
-import nl.hanze.ec.node.modules.annotations.NodeStateQueue;
-import nl.hanze.ec.node.modules.annotations.Port;
+import nl.hanze.ec.node.modules.annotations.*;
 import nl.hanze.ec.node.network.peers.commands.Command;
 import nl.hanze.ec.node.network.peers.commands.requests.NeighborsRequest;
 import nl.hanze.ec.node.network.peers.peer.Peer;
@@ -22,6 +21,7 @@ import org.joda.time.DateTime;
 import org.joda.time.Seconds;
 
 import java.io.IOException;
+import java.net.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.security.KeyPair;
@@ -37,6 +37,8 @@ import java.util.stream.Collectors;
 public class PeerPool implements Runnable {
     private static final Logger logger = LogManager.getLogger(PeerPool.class);
     private final int maxPeers;
+    private final int minPeers;
+    private final int blockStartHeight;
     private final BlockingQueue<Socket> incomingConnectionsQueue;
     private final BlockingQueue<NodeState> nodeStateQueue;
     private final static int transactionThreshold = 3;
@@ -109,9 +111,15 @@ public class PeerPool implements Runnable {
      */
     private final TransactionRepository transactionRepository;
 
+    /**
+     * Own IPS. Do not connect to.
+     */
+    private final Set<String> ownIPs = new HashSet<>();
+
     @Inject
     public PeerPool(
             @MaxPeers int maxPeers,
+            @MinPeers int minPeers,
             @Port int port,
             @IncomingConnectionsQueue BlockingQueue<Socket> incomingConnectionsQueue,
             PeerConnectionFactory peerConnectionFactory,
@@ -126,10 +134,30 @@ public class PeerPool implements Runnable {
         this.blockRepository = blockRepository;
         this.transactionRepository = transactionRepository;
         this.maxPeers = maxPeers;
+        this.minPeers = minPeers;
         this.incomingConnectionsQueue = incomingConnectionsQueue;
         this.nodeStateQueue = nodeStateQueue;
         this.peerConnectionFactory = peerConnectionFactory;
         this.port = port;
+
+        // TODO: retrieve block height from DB
+        this.blockStartHeight = 0;
+
+        try {
+            Enumeration<NetworkInterface> e = NetworkInterface.getNetworkInterfaces();
+            while(e.hasMoreElements())
+            {
+                NetworkInterface n = e.nextElement();
+                Enumeration<InetAddress> ee = n.getInetAddresses();
+                while (ee.hasMoreElements())
+                {
+                    InetAddress i = ee.nextElement();
+                    ownIPs.add(i.getHostAddress());
+                }
+            }
+        } catch (SocketException ex) {
+            ex.printStackTrace();
+        }
     }
 
     private Peer getNewPeer() {
@@ -162,18 +190,17 @@ public class PeerPool implements Runnable {
 
     @Override
     public void run() {
-        boolean testing = true;
-        boolean testing1 = true;
         fillDatabaseWithMockData();
         logDatabaseInteraction();
 
         while (true) {
-            boolean needMorePeers = Math.max(maxPeers - connectedPeers.size(), 0) > 0;
-
             Socket socket;
             while ((socket = incomingConnectionsQueue.poll()) != null) {
-                if (!needMorePeers) {
-                    // TODO: send: not accepting new connections
+                if (ownIPs.contains(socket.getInetAddress().toString())) {
+                    continue;
+                }
+
+                if (Math.max(maxPeers - connectedPeers.size(), 0) == 0) {
                     try {
                         socket.close();
                     } catch (IOException ignored) {}
@@ -192,12 +219,14 @@ public class PeerPool implements Runnable {
 
                 neighboursRepository.updateNeighbour(socket.getInetAddress().getHostAddress(), port);
                 connectedPeers.put(peer, commandsQueue);
-
-                needMorePeers = Math.max(maxPeers - connectedPeers.size(), 0) > 0;
             }
 
+            //################################
+            //  Discover more peers if connected peers size < min peers
+            //################################
             DateTime now = new DateTime();
-            if (needMorePeers && Seconds.secondsBetween(lastSearchedForNewPeers, now).getSeconds() >= searchDelta) {
+            if (Math.max(minPeers - connectedPeers.size(), 0) > 0 &&
+                Seconds.secondsBetween(lastSearchedForNewPeers, now).getSeconds() >= searchDelta) {
                 searchDelta = 10;
                 lastSearchedForNewPeers = now;
 
@@ -216,8 +245,11 @@ public class PeerPool implements Runnable {
                         sendCommand(connected, new NeighborsRequest());
                         askedNeighbours.add(connected);
                     }
+                } else if (ownIPs.contains(newPeer.getIp())) {
+                    logger.debug("New peer is myself. Skipping");
+                    searchDelta = 0;
                 } else {
-                    logger.info("Found known peer. " + newPeer);
+                    logger.info("Trying to connect to known peer: " + newPeer);
                     BlockingQueue<Command> commandsQueue = new LinkedBlockingQueue<>();
 
                     PeerConnection peerConnection;
@@ -238,24 +270,36 @@ public class PeerPool implements Runnable {
                 }
             }
 
+            //################################
+            //  Change state according to connected peers size
+            //################################
+            if (connectedPeers.size() >= minPeers && Application.getState() == NodeState.COM_SETUP) {
+                NodeState newState = NodeState.PARTICIPATING;
+
+                // If start height differs by more than 5 blocks: Initiate a Blockchain Sync
+                for (Peer peer : connectedPeers.keySet()) {
+                    if (peer.getStartHeight() - this.blockStartHeight >= 5) {
+                        newState = NodeState.SYNCING;
+                        break;
+                    }
+                }
+
+                nodeStateQueue.add(newState);
+            }
+
+            // Revert state to COM_SETUP when number of peers is less than minPeers
+            if (Application.getState() != NodeState.COM_SETUP && connectedPeers.size() < minPeers) {
+                nodeStateQueue.add(NodeState.COM_SETUP);
+            }
+
+            //################################
+            //  Reset internal cache
+            //################################
             if (Seconds.secondsBetween(lastClear, now).getSeconds() >= 30) {
                 lastClear = now;
                 triedPeers.clear();
                 askedNeighbours.clear();
             }
-
-            // Debugging purposes
-            // TODO: this is for testing purposes
-            if (connectedPeers.size() == 0 && testing) {
-                testing = false;
-                nodeStateQueue.add(NodeState.PARTICIPATING);
-            }
-
-            // TODO: this is for testing purposes
-//            if (connectedPeers.size() >= 3 && testing1) {
-//                testing1 = false;
-//                sendBroadcast(new TestAnnouncement("Hello world"));
-//            }
 
             removeDeadPeers();
         }
@@ -272,13 +316,22 @@ public class PeerPool implements Runnable {
     }
 
     /**
+     * Retrieves all the data objects for the currently connected peers
+     *
+     * @return Set of peers
+     */
+    public Set<Peer> getConnectedPeers() {
+        return connectedPeers.keySet();
+    }
+
+    /**
      * Sends a command to all neighboring nodes.
      *
      * @param command command to be broadcast
      */
     public synchronized void sendBroadcast(Command command) {
         if (receivedAnnouncements.contains(command)) {
-            logger.fatal("Announcement not propagated further: " + command);
+            logger.debug("Announcement not propagated further: " + command);
             return;
         }
 
