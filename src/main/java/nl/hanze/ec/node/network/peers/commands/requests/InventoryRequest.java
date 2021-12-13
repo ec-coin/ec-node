@@ -1,5 +1,6 @@
 package nl.hanze.ec.node.network.peers.commands.requests;
 
+import nl.hanze.ec.node.app.workers.InventoryRequestWorker;
 import nl.hanze.ec.node.app.workers.NeighborRequestWorker;
 import nl.hanze.ec.node.app.workers.Worker;
 import nl.hanze.ec.node.app.workers.WorkerFactory;
@@ -40,6 +41,6 @@ public class InventoryRequest extends AbstractCommand implements Request {
 
     @Override
     public Worker getWorker(Command receivedCommand, BlockingQueue<Command> peerCommandQueue) {
-        return workerFactory.create(NeighborRequestWorker.class, receivedCommand, peerCommandQueue);
+        return workerFactory.create(InventoryRequestWorker.class, receivedCommand, peerCommandQueue);
     }
 }

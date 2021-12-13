@@ -4,6 +4,8 @@ import nl.hanze.ec.node.database.models.Neighbour;
 import nl.hanze.ec.node.database.repositories.BlockRepository;
 import nl.hanze.ec.node.database.repositories.NeighboursRepository;
 import nl.hanze.ec.node.network.peers.commands.Command;
+import nl.hanze.ec.node.network.peers.commands.requests.InventoryRequest;
+import nl.hanze.ec.node.network.peers.commands.responses.InventoryResponse;
 import nl.hanze.ec.node.network.peers.commands.responses.NeighborsResponse;
 
 import java.util.ArrayList;
@@ -22,6 +24,12 @@ public class InventoryRequestWorker extends Worker {
 
     @Override
     public void run() {
+        InventoryRequest command = (InventoryRequest) receivedCommand;
 
+        List<Object> hashes = command.getBlockHashes();
+
+        hashes.get(0);
+        
+        //peerCommandQueue.add(new InventoryResponse(toBeSentHashes, receivedCommand.getMessageNumber()));
     }
 }
