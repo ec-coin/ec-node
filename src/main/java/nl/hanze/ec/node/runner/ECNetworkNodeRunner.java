@@ -12,15 +12,11 @@ import nl.hanze.ec.node.modules.APIModule;
 import nl.hanze.ec.node.modules.ConfigModule;
 import nl.hanze.ec.node.modules.ThreadCommunicationModule;
 import nl.hanze.ec.node.modules.DatabaseModule;
-import nl.hanze.ec.node.services.HashingService;
-import nl.hanze.ec.node.utils.FileUtils;
+import nl.hanze.ec.node.services.SignatureService;
 
 import java.io.UnsupportedEncodingException;
-import java.math.BigInteger;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-
-import static spark.Spark.*;
+import java.nio.charset.StandardCharsets;
+import java.security.*;
 
 /**
  * Hanzehogeschool Groningen University of Applied Sciences HBO-ICT

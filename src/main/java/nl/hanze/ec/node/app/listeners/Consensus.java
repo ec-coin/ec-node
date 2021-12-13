@@ -20,7 +20,7 @@ public class Consensus extends StateListener {
     private final TransactionRepository transactionRepository;
     private final NeighboursRepository neighboursRepository;
     private final BlockRepository blockRepository;
-    private final String ownAddress = "333333333333333333333333333333333333333333333333333333333333";
+    private final String ownAddress = "3333333333333333333333333333333333333333333333333333333333333333";
 
     private final List<NodeState> listenFor = new ArrayList<>() {
         {

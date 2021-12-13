@@ -2,6 +2,7 @@ package nl.hanze.ec.node;
 
 import com.google.gson.Gson;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import nl.hanze.ec.node.responses.StandardResponse;
 import nl.hanze.ec.node.responses.StatusResponse;
 import nl.hanze.ec.node.database.models.Block;
@@ -10,6 +11,8 @@ import nl.hanze.ec.node.database.repositories.BalancesCacheRepository;
 import nl.hanze.ec.node.database.repositories.BlockRepository;
 import nl.hanze.ec.node.database.repositories.NeighboursRepository;
 import nl.hanze.ec.node.database.repositories.TransactionRepository;
+
+import java.util.List;
 
 import static spark.Spark.*;
 
@@ -20,17 +23,18 @@ public class API implements Runnable {
     private final TransactionRepository transactionRepository;
 
     @Inject
-    public API (NeighboursRepository neighboursRepository,
-                BalancesCacheRepository balancesCacheRepository,
-                BlockRepository blockRepository,
-                TransactionRepository transactionRepository) {
-        this.neighboursRepository = neighboursRepository;
-        this.balancesCacheRepository = balancesCacheRepository;
-        this.blockRepository = blockRepository;
-        this.transactionRepository = transactionRepository;
+    public API (Provider<NeighboursRepository> neighboursRepositoryProvider,
+                Provider<BalancesCacheRepository> balancesCacheRepositoryProvider,
+                Provider<BlockRepository> blockRepositoryProvider,
+                Provider<TransactionRepository> transactionRepositoryProvider) {
+        this.neighboursRepository = neighboursRepositoryProvider.get();
+        this.balancesCacheRepository = balancesCacheRepositoryProvider.get();
+        this.blockRepository = blockRepositoryProvider.get();
+        this.transactionRepository = transactionRepositoryProvider.get();
     }
 
     public void run() {
+        //blockRepository.getAllBlocks();
         setupTransactionEndPoints();
         setupBlockEndPoints();
         setupNeighbourEndPoints();
