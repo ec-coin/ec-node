@@ -6,8 +6,15 @@ import java.util.stream.Collectors;
 
 public class CollectionMappingUtils {
     public synchronized static List<String> mapToStringList(List<Object> objects) {
-        return objects.stream()
-                .map(string -> Objects.toString(string, null))
-                .collect(Collectors.toList());
+        List<String> strings = null;
+        try {
+            strings = objects.stream()
+                    .map(string -> Objects.toString(string, null))
+                    .collect(Collectors.toList());
+        } catch (ClassCastException e) {
+            e.printStackTrace();
+        }
+
+        return strings;
     }
 }
