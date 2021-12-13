@@ -1,7 +1,6 @@
 package nl.hanze.ec.node.network.peers;
 
 import com.google.inject.Inject;
-import com.google.inject.Provider;
 import nl.hanze.ec.node.Application;
 import nl.hanze.ec.node.app.NodeState;
 import nl.hanze.ec.node.database.models.Block;
@@ -14,7 +13,7 @@ import nl.hanze.ec.node.network.peers.peer.Peer;
 import nl.hanze.ec.node.network.peers.peer.PeerConnection;
 import nl.hanze.ec.node.network.peers.peer.PeerConnectionFactory;
 import nl.hanze.ec.node.network.peers.peer.PeerState;
-import nl.hanze.ec.node.services.SignatureService;
+import nl.hanze.ec.node.utils.SignatureUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
@@ -440,11 +439,11 @@ public class PeerPool implements Runnable {
             System.out.println("hash of transaction: " + transaction.getHash() + " with status: " + transaction.getStatus());
         }
 
-        KeyPair keyPair = SignatureService.generateKeyPair();
+        KeyPair keyPair = SignatureUtils.generateKeyPair();
         String value = "hello";
-        byte[] signature = SignatureService.sign(keyPair, value);
+        byte[] signature = SignatureUtils.sign(keyPair, value);
         PublicKey publicKey = keyPair.getPublic();
-        boolean verified = SignatureService.verify(publicKey, signature, value);
+        boolean verified = SignatureUtils.verify(publicKey, signature, value);
         System.out.println("signature verified: " + verified);
     }
 }

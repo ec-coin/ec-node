@@ -1,6 +1,5 @@
 package nl.hanze.ec.node.app.listeners;
 
-import com.google.inject.Inject;
 import nl.hanze.ec.node.app.NodeState;
 import nl.hanze.ec.node.database.models.Block;
 import nl.hanze.ec.node.database.models.Transaction;
@@ -9,7 +8,7 @@ import nl.hanze.ec.node.database.repositories.NeighboursRepository;
 import nl.hanze.ec.node.database.repositories.TransactionRepository;
 import nl.hanze.ec.node.modules.annotations.NodeStateQueue;
 import nl.hanze.ec.node.network.peers.PeerPool;
-import nl.hanze.ec.node.services.HashingService;
+import nl.hanze.ec.node.utils.HashingUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -99,7 +98,7 @@ public class Consensus extends StateListener {
         for(Transaction transaction : pendingTransactions) {
             hashInput.append(transaction.getHash());
         }
-        String blockHash = HashingService.hash(hashInput + prevHash);
+        String blockHash = HashingUtils.hash(hashInput + prevHash);
 
         Block block = blockRepository.createBlock(blockHash, prevHash, merkleRootHash, blockHeight + 1);
 

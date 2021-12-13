@@ -1,8 +1,8 @@
-package nl.hanze.ec.node.services;
+package nl.hanze.ec.node.utils;
 
 import java.security.*;
 
-public class SignatureService {
+public class SignatureUtils {
 
     public synchronized static KeyPair generateKeyPair() {
         KeyPair pair = null;

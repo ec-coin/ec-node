@@ -5,7 +5,7 @@ import nl.hanze.ec.node.app.workers.Worker;
 import nl.hanze.ec.node.app.workers.WorkerFactory;
 import nl.hanze.ec.node.network.peers.commands.AbstractCommand;
 import nl.hanze.ec.node.network.peers.commands.Command;
-import nl.hanze.ec.node.services.CollectionMappingService;
+import nl.hanze.ec.node.utils.CollectionMappingUtils;
 import org.json.JSONObject;
 
 import java.util.List;
@@ -20,7 +20,7 @@ public class InventoryRequest extends AbstractCommand implements Request {
 
     public InventoryRequest(JSONObject payload, WorkerFactory workerFactory) {
         super(payload, workerFactory);
-        this.blockHashes = CollectionMappingService.mapToStringList(payload.getJSONArray("blockHashes").toList());
+        this.blockHashes = CollectionMappingUtils.mapToStringList(payload.getJSONArray("blockHashes").toList());
     }
 
     @Override
