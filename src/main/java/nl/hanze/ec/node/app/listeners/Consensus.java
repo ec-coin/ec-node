@@ -38,7 +38,7 @@ public class Consensus extends StateListener {
         this.blockRepository = blockRepository;
     }
 
-    protected void doWork() {
+    protected void iteration() {
         System.out.println("Hello");
 //        nodeStateQueue.add(NodeState.INIT);
 //

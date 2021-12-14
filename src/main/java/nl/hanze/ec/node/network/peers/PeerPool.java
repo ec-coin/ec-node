@@ -214,7 +214,7 @@ public class PeerPool implements Runnable {
 //        transaction = iterator.next();
 //        System.out.println("hash of transaction 3: " + transaction.getHash() + " with status: " + transaction.getStatus());
 
-        while (true) {
+        while (running.get()) {
             //################################
             //  Handle incoming socket connections
             //################################

@@ -1,5 +1,6 @@
 package nl.hanze.ec.node.network.peers.peer;
 
+import nl.hanze.ec.node.app.workers.Worker;
 import nl.hanze.ec.node.network.peers.PeerPool;
 import nl.hanze.ec.node.network.peers.commands.*;
 import nl.hanze.ec.node.network.peers.commands.announcements.Announcement;
@@ -113,7 +114,10 @@ public class PeerStateMachine {
             // When command is not a handshake command, only allow them when the state with this peer is ESTABLISHED.
             if (peer.getState() == PeerState.ESTABLISHED) {
                 // Execute the associated worker for this command.
-                command.getWorker(command, commandQueue).run();
+                Worker worker = command.getWorker(command, commandQueue);
+                if (worker != null) {
+                    worker.run();
+                }
 
                 // When the command is a response, try to resolve the associated request
                 // and wake up the thread that is waiting for this response.

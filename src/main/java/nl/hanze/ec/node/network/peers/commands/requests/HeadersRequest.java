@@ -1,7 +1,6 @@
 package nl.hanze.ec.node.network.peers.commands.requests;
 
-import nl.hanze.ec.node.app.workers.InventoryRequestWorker;
-import nl.hanze.ec.node.app.workers.NeighborRequestWorker;
+import nl.hanze.ec.node.app.workers.HeadersRequestWorker;
 import nl.hanze.ec.node.app.workers.Worker;
 import nl.hanze.ec.node.app.workers.WorkerFactory;
 import nl.hanze.ec.node.network.peers.commands.AbstractCommand;
@@ -11,14 +10,14 @@ import org.json.JSONObject;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 
-public class InventoryRequest extends AbstractCommand implements Request {
+public class HeadersRequest extends AbstractCommand implements Request {
     List<Object> blockHashes;
 
-    public InventoryRequest(List<Object> blockHashes) {
+    public HeadersRequest(List<Object> blockHashes) {
         this.blockHashes = blockHashes;
     }
 
-    public InventoryRequest(JSONObject payload, WorkerFactory workerFactory) {
+    public HeadersRequest(JSONObject payload, WorkerFactory workerFactory) {
         super(payload, workerFactory);
         this.blockHashes = payload.getJSONArray("blockHashes").toList();
     }
@@ -36,11 +35,11 @@ public class InventoryRequest extends AbstractCommand implements Request {
 
     @Override
     public String getCommandName() {
-        return "inventory-request";
+        return "headers-request";
     }
 
     @Override
     public Worker getWorker(Command receivedCommand, BlockingQueue<Command> peerCommandQueue) {
-        return workerFactory.create(InventoryRequestWorker.class, receivedCommand, peerCommandQueue);
+        return workerFactory.create(HeadersRequestWorker.class, receivedCommand, peerCommandQueue);
     }
 }

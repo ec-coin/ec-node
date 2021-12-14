@@ -1,19 +1,18 @@
 package nl.hanze.ec.node.app.listeners;
 
-import com.google.inject.Inject;
 import nl.hanze.ec.node.app.NodeState;
 import nl.hanze.ec.node.database.repositories.BlockRepository;
 import nl.hanze.ec.node.modules.annotations.NodeStateQueue;
 import nl.hanze.ec.node.network.peers.PeerPool;
 import nl.hanze.ec.node.network.peers.commands.WaitForResponse;
-import nl.hanze.ec.node.network.peers.commands.requests.InventoryRequest;
-import nl.hanze.ec.node.network.peers.commands.requests.Request;
-import nl.hanze.ec.node.network.peers.commands.responses.InventoryResponse;
-import nl.hanze.ec.node.network.peers.commands.responses.Response;
+import nl.hanze.ec.node.network.peers.commands.requests.BlocksRequest;
+import nl.hanze.ec.node.network.peers.commands.requests.HeadersRequest;
+import nl.hanze.ec.node.network.peers.commands.responses.HeadersResponse;
 import nl.hanze.ec.node.network.peers.peer.Peer;
 import nl.hanze.ec.node.network.peers.peer.PeerState;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
@@ -26,8 +25,8 @@ public class BlockSyncer extends StateListener {
     };
 
     private Peer syncingPeer = null;
-    private List<String> blockHashesToBeFetched;
-    private int blockHeight = -1;
+    private List<String> hashChain;
+    private int localBlockHeight = -1;
 
     private final BlockRepository blockRepository;
 
@@ -38,53 +37,80 @@ public class BlockSyncer extends StateListener {
     ) {
         super(nodeStateQueue, peerPool);
         this.blockRepository = blockRepository;
-        this.blockHashesToBeFetched = new ArrayList<>();
+        this.hashChain = new ArrayList<>();
     }
 
-    protected void doWork() {
-        // todo: determine if syncing peer went offline
-        if (syncingPeer == null) { //|| syncingPeer.getState() == PeerState.CLOSED) {
-            blockHashesToBeFetched = new ArrayList<>();
+    protected void iteration() {
+        // Determine a sync node
+        if (syncingPeer == null || syncingPeer.getState() == PeerState.CLOSED) {
+            // hashChain = new ArrayList<>();
             determineSyncingPeer();
         }
 
-        canContinue();
+        waitIfStateIncorrect();
 
-        if (blockHeight == -1) {
-            blockHeight = blockRepository.getCurrentBlockHeight();
+        // Determine the starting block height
+        if (localBlockHeight == -1) {
+            localBlockHeight = blockRepository.getCurrentBlockHeight();
         }
 
-        canContinue();
+        waitIfStateIncorrect();
 
-        if (blockHashesToBeFetched.isEmpty()) {
-            String hash = blockRepository.getCurrentBlockHash(blockHeight);
+        // TODO: get header chain (not in memory, takes to much mem)
+        while (hashChain.size() < syncingPeer.getStartHeight() ) {
+            String hash = blockRepository.getCurrentBlockHash(localBlockHeight);
 
-            WaitForResponse command = new WaitForResponse(new InventoryRequest(new ArrayList<>() {{ add(hash); }}));
-
+            WaitForResponse command = new WaitForResponse(new HeadersRequest(new ArrayList<>() {{ add(hash); }}));
             command.await();
 
-            InventoryResponse response = ((InventoryResponse) command.getResponse());
+            if (command.getResponse() != null) {
+                HeadersResponse response = ((HeadersResponse) command.getResponse());
 
-            List<Object> hashes = response.getBlockHashes();
+                List<Object> hashes = response.getBlockHashes();
 
-            for(Object hashObj : hashes) {
-                try {
-                    blockHashesToBeFetched.add((String) hashObj);
-                } catch (ClassCastException ignore) {}
+                // Update syncing peer start height.
+
+                // Validate hashes.
+
+                for(Object hashObj : hashes) {
+                    try {
+                        hashChain.add((String) hashObj);
+                    } catch (ClassCastException ignore) {}
+                }
             }
         }
 
-        canContinue();
+        waitIfStateIncorrect();
 
-        for (String hash : blockHashesToBeFetched) {
+        // TODO: retrieve all block data from header chain
+        Iterator<String> it = hashChain.iterator();
+        while (it.hasNext()) {
+            String hash = it.next();
 
+            WaitForResponse command = new WaitForResponse(new BlocksRequest(new ArrayList<>() {{ add(hash); }}));
+            command.await();
+
+            if (command.getResponse() != null) {
+                // BlockResponse response = ((BlockResponse) command.getResponse());
+
+                // Validate transactions in a block
+
+                // Save in database
+
+                localBlockHeight++;
+                it.remove();
+            }
+
+            waitIfStateIncorrect();
         }
 
-        // nodeStateQueue.add(NodeState.PARTICIPATING);
+        if (syncingPeer.getStartHeight() == localBlockHeight) {
+            nodeStateQueue.add(NodeState.PARTICIPATING);
+        }
     }
 
     protected void beforeSleep() {
-        this.blockHashesToBeFetched = new ArrayList<>();
+        // this.blockHashesToBeFetched = new ArrayList<>();
     }
 
     /**
