@@ -67,6 +67,17 @@ public class BlockRepository {
         return rootMerkleHash;
     }
 
+    public int getNumberOfBlocks() {
+        int count = 0;
+        try {
+            count = (int) blockDAO.queryRawValue("select COUNT(block_height) from Blocks");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return count;
+    }
+
     public int getCurrentBlockHeight() {
         int height = 0;
         try {

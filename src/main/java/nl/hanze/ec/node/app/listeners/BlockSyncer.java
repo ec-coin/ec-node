@@ -24,7 +24,7 @@ public class BlockSyncer extends StateListener {
     }};
 
     private Peer syncingPeer = null;
-    private int localBlockHeight = -1;
+    private int localBlockHeight;
 
     private final BlockRepository blockRepository;
 
@@ -35,6 +35,7 @@ public class BlockSyncer extends StateListener {
     ) {
         super(nodeStateQueue, peerPool);
         this.blockRepository = blockRepository;
+        localBlockHeight = blockRepository.getCurrentBlockHeight();
     }
 
     protected void iteration() {
@@ -45,78 +46,79 @@ public class BlockSyncer extends StateListener {
 
         waitIfStateIncorrect();
 
-        // Determine the starting block height
-        if (localBlockHeight == -1) {
-            localBlockHeight = blockRepository.getCurrentBlockHeight();
-        }
-
-        waitIfStateIncorrect();
-
-        while (localBlockHeight < syncingPeer.getStartHeight() ) {
+        while (localBlockHeight < syncingPeer.getStartHeight()) {
             String hash = blockRepository.getCurrentBlockHash(localBlockHeight);
             Block block = blockRepository.getBlock(localBlockHeight);
 
             WaitForResponse command = new WaitForResponse(new HeadersRequest(hash));
+            peerPool.sendCommand(syncingPeer, command);
             command.await();
 
-            if (command.getResponse() != null) {
-                HeadersResponse response = ((HeadersResponse) command.getResponse());
+            if (command.getResponse() == null) {
+                // TODO: fix new syncingPeer
+                continue;
+            }
 
-                List<HeadersResponse.Header> headers = response.getHeaders();
+            HeadersResponse response = ((HeadersResponse) command.getResponse());
 
-                // TODO: Update syncing peer start height.
+            List<HeadersResponse.Header> headers = response.getHeaders();
 
-                HeadersResponse.Header prevHeader = new HeadersResponse.Header(
-                        block.getHash(),
-                        block.getPreviousBlockHash(),
-                        block.getMerkleRootHash(),
-                        block.getBlockHeight()
+            // TODO: Update syncing peer start height.
+
+            HeadersResponse.Header prevHeader = new HeadersResponse.Header(
+                    block.getHash(),
+                    block.getPreviousBlockHash(),
+                    block.getMerkleRootHash(),
+                    block.getBlockHeight()
+            );
+
+            for(HeadersResponse.Header header : headers) {
+                // Validate header.
+                if (!prevHeader.hash.equals(header.previousBlockHash) ||
+                        prevHeader.blockHeight+1 != header.blockHeight) {
+                    // TODO: INVALID BLOCK choose other node to sync with
+                    System.out.println("INVALID BLOCK FOUND");
+                    break;
+                };
+
+                blockRepository.createBlock(
+                        header.hash,
+                        header.previousBlockHash,
+                        header.merkleRootHash,
+                        header.blockHeight
                 );
 
-                for(HeadersResponse.Header header : headers) {
-                    // Validate header.
-                    if (!prevHeader.hash.equals(header.previousBlockHash) ||
-                            prevHeader.blockHeight+1 != header.blockHeight) continue;
-
-                    blockRepository.createBlock(
-                            header.hash,
-                            header.previousBlockHash,
-                            header.merkleRootHash,
-                            header.blockHeight
-                    );
-
-                    localBlockHeight++;
-                    prevHeader = header;
-                }
+                localBlockHeight++;
+                prevHeader = header;
             }
 
             waitIfStateIncorrect();
         }
-
-        waitIfStateIncorrect();
-
-        // TODO: retrieve all block data from header chain
-//        Iterator<String> it = hashChain.iterator();
-//        while (it.hasNext()) {
-//            String hash = it.next();
 //
-//            WaitForResponse command = new WaitForResponse(new BlocksRequest(new ArrayList<>() {{ add(hash); }}));
-//            command.await();
+//        waitIfStateIncorrect();
 //
-//            if (command.getResponse() != null) {
-//                // BlockResponse response = ((BlockResponse) command.getResponse());
+//        // TODO: retrieve all block data from header chain
+////        Iterator<String> it = hashChain.iterator();
+////        while (it.hasNext()) {
+////            String hash = it.next();
+////
+////            WaitForResponse command = new WaitForResponse(new BlocksRequest(new ArrayList<>() {{ add(hash); }}));
+////            command.await();
+////
+////            if (command.getResponse() != null) {
+////                // BlockResponse response = ((BlockResponse) command.getResponse());
+////
+////                // Validate transactions in a block
+////
+////                // Save in database
+////
+////                localBlockHeight++;
+////                it.remove();
+////            }
+////
+////            waitIfStateIncorrect();
+////        }
 //
-//                // Validate transactions in a block
-//
-//                // Save in database
-//
-//                localBlockHeight++;
-//                it.remove();
-//            }
-//
-//            waitIfStateIncorrect();
-//        }
-
         if (syncingPeer.getStartHeight() == localBlockHeight) {
             nodeStateQueue.add(NodeState.PARTICIPATING);
         }

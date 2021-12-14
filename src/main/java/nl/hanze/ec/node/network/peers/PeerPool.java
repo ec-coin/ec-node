@@ -135,9 +135,7 @@ public class PeerPool implements Runnable {
         this.nodeStateQueue = nodeStateQueue;
         this.peerConnectionFactory = peerConnectionFactory;
         this.port = port;
-
-        // TODO: retrieve block height from DB
-        this.blockStartHeight = 0;
+        this.blockStartHeight = blockRepository.getCurrentBlockHeight();
 
         try {
             Enumeration<NetworkInterface> e = NetworkInterface.getNetworkInterfaces();
@@ -186,6 +184,20 @@ public class PeerPool implements Runnable {
 
     @Override
     public void run() {
+//        // Mock data when not present
+//        if (blockRepository.getCurrentBlockHeight() != 20) {
+//            Block prevBlock = blockRepository.getCurrentBlock();
+//
+//            for (int i = 0; i < 20; i++) {
+//                String previousBlockHash = prevBlock.getHash();
+//                String merkleRootHash = HashingService.hash("" + i);
+//                String hash = HashingService.hash(previousBlockHash + merkleRootHash);
+//                int blockheight = prevBlock.getBlockHeight() + 1;
+//
+//                prevBlock = blockRepository.createBlock(hash, previousBlockHash, merkleRootHash, blockheight);
+//            }
+//        }
+
 //        String password = "hello this is a hashhhhhhhhhhhhhhhhh";
 //        String hash = HashingService.hash(password);
 //        System.out.println("hash: " + hash);

@@ -30,17 +30,24 @@ public class HeadersRequestWorker extends Worker {
 
         // Requested block not present in database
         if (blockHeight == null) {
+            // TODO
             blockHeight = 0;
         }
 
-        // TODO: return more blocks
-        Block nextBlock = blockRepository.getBlock(blockHeight + 1);
+        List<Block> blocks = new ArrayList<>();
 
-        // No next block present
-        if (nextBlock == null) {
-            return;
+        for (int i = 0; i < 7; i++) {
+            Block block = blockRepository.getBlock(blockHeight + 1);
+
+            if (block == null) {
+                break;
+            }
+
+            blocks.add(block);
         }
-        
-        peerCommandQueue.add(new HeadersResponse(new ArrayList<>() {{ add(nextBlock); }}, receivedCommand.getMessageNumber()));
+
+        if (blocks.size() > 0) {
+            peerCommandQueue.add(new HeadersResponse(blocks, receivedCommand.getMessageNumber()));
+        }
     }
 }

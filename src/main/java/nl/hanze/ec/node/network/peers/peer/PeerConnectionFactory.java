@@ -2,6 +2,7 @@ package nl.hanze.ec.node.network.peers.peer;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import nl.hanze.ec.node.database.repositories.BlockRepository;
 import nl.hanze.ec.node.network.peers.PeerPool;
 import nl.hanze.ec.node.network.peers.commands.Command;
 import nl.hanze.ec.node.network.peers.commands.CommandFactory;
@@ -12,10 +13,15 @@ import java.util.concurrent.BlockingQueue;
 
 public class PeerConnectionFactory {
     private final Provider<CommandFactory> commandFactoryProvider;
+    private final Provider<BlockRepository> blockRepositoryProvider;
 
     @Inject
-    public PeerConnectionFactory(Provider<CommandFactory> commandFactoryProvider) {
+    public PeerConnectionFactory(
+            Provider<CommandFactory> commandFactoryProvider,
+            Provider<BlockRepository> blockRepositoryProvider
+    ) {
         this.commandFactoryProvider = commandFactoryProvider;
+        this.blockRepositoryProvider = blockRepositoryProvider;
     }
 
     /**
@@ -32,7 +38,7 @@ public class PeerConnectionFactory {
                 peer,
                 commandQueue,
                 socket,
-                new PeerStateMachine(peer, commandQueue, peerPool),
+                new PeerStateMachine(peer, commandQueue, peerPool, blockRepositoryProvider.get()),
                 commandFactoryProvider.get()
         );
     }
@@ -50,7 +56,7 @@ public class PeerConnectionFactory {
                 peer,
                 commandQueue,
                 new Socket(peer.getIp(), peer.getPort()),
-                new PeerStateMachine(peer, commandQueue, peerPool),
+                new PeerStateMachine(peer, commandQueue, peerPool, blockRepositoryProvider.get()),
                 commandFactoryProvider.get()
         );
     }

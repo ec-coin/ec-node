@@ -39,7 +39,6 @@ public class Consensus extends StateListener {
     }
 
     protected void iteration() {
-        System.out.println("Hello");
 //        nodeStateQueue.add(NodeState.INIT);
 //
 //        // 1. Get all node addresses from DB
