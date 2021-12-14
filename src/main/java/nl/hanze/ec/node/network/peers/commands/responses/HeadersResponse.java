@@ -65,6 +65,8 @@ public class HeadersResponse extends AbstractCommand implements Response {
     public HeadersResponse(JSONObject payload, WorkerFactory workerFactory) {
         super(payload, workerFactory);
 
+        this.responseTo = payload.getInt("responseTo");
+
         List<Object> jArray = payload.getJSONArray("headers").toList();
         headers = new ArrayList<>();
         for (Object obj : jArray) {
@@ -91,6 +93,7 @@ public class HeadersResponse extends AbstractCommand implements Response {
     @Override
     protected JSONObject getData(JSONObject payload) {
         payload.put("headers", this.headers.stream().map(Header::toMap).collect(Collectors.toList()));
+        payload.put("responseTo", this.responseTo);
 
         return payload;
     }

@@ -36,8 +36,8 @@ public class HeadersRequestWorker extends Worker {
 
         List<Block> blocks = new ArrayList<>();
 
-        for (int i = 0; i < 7; i++) {
-            Block block = blockRepository.getBlock(blockHeight + 1);
+        for (int i = 1; i <= 7; i++) {
+            Block block = blockRepository.getBlock(blockHeight + i);
 
             if (block == null) {
                 break;

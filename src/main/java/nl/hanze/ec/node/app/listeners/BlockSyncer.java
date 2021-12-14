@@ -77,10 +77,13 @@ public class BlockSyncer extends StateListener {
                 if (!prevHeader.hash.equals(header.previousBlockHash) ||
                         prevHeader.blockHeight+1 != header.blockHeight) {
                     // TODO: INVALID BLOCK choose other node to sync with
-                    System.out.println("INVALID BLOCK FOUND");
+                    System.out.println("INVALID HEADER FOUND");
+                    System.out.println("prev" + prevHeader);
+                    System.out.println("curr" + header);
                     break;
-                };
+                }
 
+                // TODO: use timestamp from syncing node?
                 blockRepository.createBlock(
                         header.hash,
                         header.previousBlockHash,

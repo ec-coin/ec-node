@@ -107,6 +107,7 @@ public class BlockRepository {
     public Block getBlock(int block_height) {
         try {
             List<Block> blocks = blockDAO.queryBuilder()
+                    .orderBy("block_height", true)
                     .where().eq("block_height", block_height).query();
 
             if (blocks.size() == 1) {
