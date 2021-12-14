@@ -37,6 +37,7 @@ public class BlockRepository {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
         return block;
     }
 

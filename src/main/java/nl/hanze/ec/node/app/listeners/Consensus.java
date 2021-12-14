@@ -1,5 +1,6 @@
 package nl.hanze.ec.node.app.listeners;
 
+import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import nl.hanze.ec.node.app.NodeState;
@@ -11,7 +12,10 @@ import nl.hanze.ec.node.database.repositories.NeighboursRepository;
 import nl.hanze.ec.node.database.repositories.TransactionRepository;
 import nl.hanze.ec.node.modules.annotations.NodeStateQueue;
 import nl.hanze.ec.node.network.peers.PeerPool;
+import nl.hanze.ec.node.network.peers.commands.announcements.NewBlockAnnouncement;
 import nl.hanze.ec.node.services.HashingService;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,10 +35,13 @@ public class Consensus extends StateListener {
     };
 
     @Inject
-    public Consensus(@NodeStateQueue BlockingQueue<NodeState> nodeStateQueue, PeerPool peerPool,
-                     TransactionRepository transactionRepository,
-                     NeighboursRepository neighboursRepository,
-                     BlockRepository blockRepository) {
+    public Consensus(
+        @NodeStateQueue BlockingQueue<NodeState> nodeStateQueue,
+        PeerPool peerPool,
+        TransactionRepository transactionRepository,
+        NeighboursRepository neighboursRepository,
+        BlockRepository blockRepository
+    ) {
         super(nodeStateQueue, peerPool);
         this.transactionRepository = transactionRepository;
         this.neighboursRepository = neighboursRepository;
@@ -96,9 +103,13 @@ public class Consensus extends StateListener {
         for(Transaction transaction : pendingTransactions) {
             hashInput.append(transaction.getHash());
         }
-        String blockHash = HashingService.hash(hashInput + prevHash);
 
+        String blockHash = HashingService.hash(hashInput + prevHash);
         Block block = blockRepository.createBlock(blockHash, prevHash, merkleRootHash, blockHeight + 1);
+
+        if (block != null) {
+            new NewBlockAnnouncement(block.toJSONObject());
+        }
 
         for(Transaction transaction : pendingTransactions) {
             transactionRepository.setTransactionAsValidated(transaction, block);
