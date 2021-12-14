@@ -1,8 +1,6 @@
 package nl.hanze.ec.node.app.listeners;
 
-import com.google.gson.Gson;
 import com.google.inject.Inject;
-import com.google.inject.Provider;
 import nl.hanze.ec.node.app.NodeState;
 import nl.hanze.ec.node.database.models.Block;
 import nl.hanze.ec.node.database.models.Transaction;
@@ -12,10 +10,7 @@ import nl.hanze.ec.node.database.repositories.TransactionRepository;
 import nl.hanze.ec.node.modules.annotations.NodeStateQueue;
 import nl.hanze.ec.node.network.peers.PeerPool;
 import nl.hanze.ec.node.network.peers.commands.announcements.NewBlockAnnouncement;
-import nl.hanze.ec.node.services.HashingService;
 import nl.hanze.ec.node.utils.HashingUtils;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
