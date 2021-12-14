@@ -35,6 +35,8 @@ public class VersionCommand extends AbstractCommand implements Handshake {
 
     public double getVersion() { return version; }
 
+    public int getStartHeight() { return start_height; }
+
     @Override
     public String getCommandName() {
         return "version";

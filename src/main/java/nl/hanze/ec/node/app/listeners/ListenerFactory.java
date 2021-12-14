@@ -30,12 +30,19 @@ public class ListenerFactory {
 
     public Listener create(Class<? extends Listener> listener, PeerPool peerPool) {
         if (listener == Consensus.class) {
-            return new Consensus(nodeStateQueue, peerPool,
+            return new Consensus(
+                    nodeStateQueue,
+                    peerPool,
                     transactionRepositoryProvider.get(),
                     neighboursRepositoryProvider.get(),
-                    blockRepositoryProvider.get());
+                    blockRepositoryProvider.get()
+            );
         } else if (listener == BlockSyncer.class) {
-            return new BlockSyncer(nodeStateQueue, peerPool);
+            return new BlockSyncer(
+                    nodeStateQueue,
+                    peerPool,
+                    blockRepositoryProvider.get()
+            );
         }
 
         throw new UnsupportedOperationException("Factory has not defined how the given class has to be created");

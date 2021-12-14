@@ -2,9 +2,11 @@ package nl.hanze.ec.node.network.peers.peer;
 
 import nl.hanze.ec.node.exceptions.InvalidCommand;
 import nl.hanze.ec.node.network.peers.commands.*;
-import nl.hanze.ec.node.network.peers.commands.announcements.Announcement;
+import nl.hanze.ec.node.network.peers.commands.handshake.Handshake;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.joda.time.DateTime;
+import org.joda.time.Seconds;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -27,7 +29,10 @@ public class PeerConnection implements Runnable {
     private PrintWriter out;
     private BufferedReader in;
     private final BlockingQueue<Command> commandQueue;
-    private CommandFactory commandFactory;
+    private final CommandFactory commandFactory;
+
+    private DateTime lastPingSent = new DateTime();
+    private boolean waitingForPong = false;
 
     public PeerConnection(
             Peer peer,
@@ -87,7 +92,11 @@ public class PeerConnection implements Runnable {
                 // Invalid command in current state, ignoring
                 if (cmd == null) continue;
 
-                logger.info("Sending:" + cmd);
+                if (command instanceof Handshake) {
+                    logger.debug("Sending:" + cmd);
+                } else {
+                    logger.info("Sending:" + cmd);
+                }
 
                 // Write to output stream
                 out.println(cmd);
@@ -103,11 +112,26 @@ public class PeerConnection implements Runnable {
                             break;
                         }
 
+                        if (response.equals("ping")) {
+                            out.println("pong");
+                            out.flush();
+                            continue;
+                        }
+
+                        if (response.equals("pong")) {
+                            waitingForPong = false;
+                            continue;
+                        }
+
                         JSONObject payload = new JSONObject(response);
 
                         Command cmd = commandFactory.create(payload);
 
-                        logger.info("Received:" + response);
+                        if (cmd instanceof Handshake) {
+                            logger.debug("Received:" + response);
+                        } else {
+                            logger.info("Received:" + response);
+                        }
 
                         stateMachine.input(cmd);
                     } catch (JSONException | InvalidCommand e) {
@@ -115,6 +139,21 @@ public class PeerConnection implements Runnable {
                     }
                 }
             } catch (IOException e) { e.printStackTrace(); }
+
+            // check if socket is still active using ping/pong
+            DateTime now = DateTime.now();
+            if (Seconds.secondsBetween(lastPingSent, now).getSeconds() >= 30) {
+                if (!waitingForPong) {
+                    out.println("ping");
+                    out.flush();
+                    waitingForPong = true;
+                    lastPingSent = now;
+                } else {
+                    logger.info("No pong received after 30 seconds. Assuming socket " + peer  +" is dead.");
+                    peer.setState(PeerState.CLOSED);
+                    break;
+                }
+            }
         }
 
         try {

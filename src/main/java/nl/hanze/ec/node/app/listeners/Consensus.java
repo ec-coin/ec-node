@@ -5,7 +5,6 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import nl.hanze.ec.node.app.NodeState;
 import nl.hanze.ec.node.database.models.Block;
-import nl.hanze.ec.node.database.models.Neighbour;
 import nl.hanze.ec.node.database.models.Transaction;
 import nl.hanze.ec.node.database.repositories.BlockRepository;
 import nl.hanze.ec.node.database.repositories.NeighboursRepository;
@@ -14,6 +13,7 @@ import nl.hanze.ec.node.modules.annotations.NodeStateQueue;
 import nl.hanze.ec.node.network.peers.PeerPool;
 import nl.hanze.ec.node.network.peers.commands.announcements.NewBlockAnnouncement;
 import nl.hanze.ec.node.services.HashingService;
+import nl.hanze.ec.node.utils.HashingUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -26,7 +26,7 @@ public class Consensus extends StateListener {
     private final TransactionRepository transactionRepository;
     private final NeighboursRepository neighboursRepository;
     private final BlockRepository blockRepository;
-    private final String ownAddress = "333333333333333333333333333333333333333333333333333333333333";
+    private final String ownAddress = "3333333333333333333333333333333333333333333333333333333333333333";
 
     private final List<NodeState> listenFor = new ArrayList<>() {
         {
@@ -49,39 +49,45 @@ public class Consensus extends StateListener {
     }
 
     protected void doWork() {
-        nodeStateQueue.add(NodeState.INIT);
-
-        // 1. Get all node addresses from DB
-        List<String> nodes = transactionRepository.getAllAddresses();
-
-        // 2. Set nodes as validating nodes by paying a transaction fee.
-        for (String node : nodes) {
-            String signature = "temporary signature";
-            transactionRepository.addNodeAsValidatingNode(HashingService.hash(node), null, node, signature);
-        }
-
-        // 3. Check which node's nodeState == validating.
-        List<String> validatingNodes = transactionRepository.getAllValidatingNodes();
-
-        // 4. Determine if transaction threshold has been reached
-        if (transactionRepository.transactionThresholdReached()) {
-            // 5. Determine leader
-            String leader = getLeader(validatingNodes);
-
-            // 6. Check whether you are the leader
-            if (leader.equals(this.ownAddress)) {
-                // 7. Validate block
-                createBlock();
-            }
-        }
+//        nodeStateQueue.add(NodeState.INIT);
+//
+//        // 1. Get all node addresses from DB
+//        List<String> nodes = transactionRepository.getAllNodeAddresses();
+//
+//        canContinue();
+//
+//        // 2. Set nodes as validating nodes by paying a transaction fee.
+//        for (String node : nodes) {
+//            String signature = "temporary signature";
+//            transactionRepository.addNodeAsValidatingNode(HashingService.hash(node), null, node, signature);
+//        }
+//
+//        canContinue();
+//
+//        // 3. Check which node's nodeState == validating.
+//        List<String> validatingNodes = transactionRepository.getAllValidatingNodes();
+//
+//        canContinue();
+//
+//        // 4. Determine if transaction threshold has been reached
+//        if (transactionRepository.transactionThresholdReached()) {
+//            // 5. Determine leader
+//            String leader = getLeader(validatingNodes);
+//
+//            // 6. Check whether you are the leader
+//            if (leader.equals(this.ownAddress)) {
+//                // 7. Validate block
+//                createBlock();
+//            }
+//        }
     }
 
     private String getLeader(List<String> participatingNodes) {
         String currentLeader = "";
-        float highestBalance = 0;
+        float highestStake = 0;
         for (String node : participatingNodes) {
-            if (transactionRepository.getBalance(node) > highestBalance) {
-                highestBalance = transactionRepository.getBalance(node);
+            if (transactionRepository.getStake(node) > highestStake) {
+                highestStake = transactionRepository.getStake(node);
                 currentLeader = node;
             }
         }
@@ -104,7 +110,7 @@ public class Consensus extends StateListener {
             hashInput.append(transaction.getHash());
         }
 
-        String blockHash = HashingService.hash(hashInput + prevHash);
+        String blockHash = HashingUtils.hash(hashInput + prevHash);
         Block block = blockRepository.createBlock(blockHash, prevHash, merkleRootHash, blockHeight + 1);
 
         if (block != null) {

@@ -27,7 +27,7 @@ public class Block {
     private DateTime timestamp;
 
     @ForeignCollectionField(eager = false)
-    private ForeignCollection<Transaction> transactions;
+    private transient ForeignCollection<Transaction> transactions;
 
     // ORMLite requires a no-arg constructor.
     public Block() {}

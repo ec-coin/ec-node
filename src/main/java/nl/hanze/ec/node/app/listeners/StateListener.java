@@ -9,7 +9,7 @@ import java.util.concurrent.CountDownLatch;
 public abstract class StateListener implements Listener {
     protected final BlockingQueue<NodeState> nodeStateQueue;
     protected final PeerPool peerPool;
-    private CountDownLatch latch;
+    protected CountDownLatch latch;
     private boolean running = true;
 
     public StateListener(BlockingQueue<NodeState> nodeStateQueue, PeerPool peerPool) {
@@ -49,6 +49,18 @@ public abstract class StateListener implements Listener {
         }
 
     }
+
+    protected void canContinue() {
+        try {
+            if (this.latch.getCount() == 0) {
+                beforeSleep();
+            }
+
+            this.latch.await();
+        } catch (InterruptedException ignore) {}
+    }
+
+    protected void beforeSleep() {}
 
     protected abstract void doWork();
 }

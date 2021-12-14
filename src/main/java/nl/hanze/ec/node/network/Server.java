@@ -31,12 +31,11 @@ public class Server implements Runnable {
 
             while (running.get()) {
                 Socket socket = serverSocket.accept();
-                logger.info("New client connected");
-
+                logger.debug("New client connected");
                 incomingConnectionsQueue.add(socket);
             }
         } catch (IOException ex) {
-            logger.debug("Server exception: " + ex.getMessage());
+            logger.error("Server exception: " + ex.getMessage());
             ex.printStackTrace();
         }
     }
