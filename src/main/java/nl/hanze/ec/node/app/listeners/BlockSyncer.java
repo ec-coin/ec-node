@@ -18,11 +18,9 @@ import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 
 public class BlockSyncer extends StateListener {
-    private final List<NodeState> listenFor = new ArrayList<>() {
-        {
-            add(NodeState.SYNCING);
-        }
-    };
+    private final List<NodeState> listenFor = new ArrayList<>() {{
+        add(NodeState.SYNCING);
+    }};
 
     private Peer syncingPeer = null;
     private List<String> hashChain;
@@ -66,17 +64,17 @@ public class BlockSyncer extends StateListener {
             if (command.getResponse() != null) {
                 HeadersResponse response = ((HeadersResponse) command.getResponse());
 
-                List<Object> hashes = response.getBlockHashes();
+                List<HeadersResponse.Header> headers = response.getHeaders();
 
                 // Update syncing peer start height.
 
                 // Validate hashes.
 
-                for(Object hashObj : hashes) {
-                    try {
-                        hashChain.add((String) hashObj);
-                    } catch (ClassCastException ignore) {}
-                }
+//                for(Object hashObj : hashes) {
+//                    try {
+//                        hashChain.add((String) hashObj);
+//                    } catch (ClassCastException ignore) {}
+//                }
             }
         }
 
