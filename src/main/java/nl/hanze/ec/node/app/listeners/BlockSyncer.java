@@ -1,6 +1,7 @@
 package nl.hanze.ec.node.app.listeners;
 
 import nl.hanze.ec.node.app.NodeState;
+import nl.hanze.ec.node.database.models.Block;
 import nl.hanze.ec.node.database.repositories.BlockRepository;
 import nl.hanze.ec.node.modules.annotations.NodeStateQueue;
 import nl.hanze.ec.node.network.peers.PeerPool;
@@ -23,7 +24,6 @@ public class BlockSyncer extends StateListener {
     }};
 
     private Peer syncingPeer = null;
-    private List<String> hashChain;
     private int localBlockHeight = -1;
 
     private final BlockRepository blockRepository;
@@ -35,13 +35,11 @@ public class BlockSyncer extends StateListener {
     ) {
         super(nodeStateQueue, peerPool);
         this.blockRepository = blockRepository;
-        this.hashChain = new ArrayList<>();
     }
 
     protected void iteration() {
         // Determine a sync node
         if (syncingPeer == null || syncingPeer.getState() == PeerState.CLOSED) {
-            // hashChain = new ArrayList<>();
             determineSyncingPeer();
         }
 
@@ -54,11 +52,11 @@ public class BlockSyncer extends StateListener {
 
         waitIfStateIncorrect();
 
-        // TODO: get header chain (not in memory, takes to much mem)
-        while (hashChain.size() < syncingPeer.getStartHeight() ) {
+        while (localBlockHeight < syncingPeer.getStartHeight() ) {
             String hash = blockRepository.getCurrentBlockHash(localBlockHeight);
+            Block block = blockRepository.getBlock(localBlockHeight);
 
-            WaitForResponse command = new WaitForResponse(new HeadersRequest(new ArrayList<>() {{ add(hash); }}));
+            WaitForResponse command = new WaitForResponse(new HeadersRequest(hash));
             command.await();
 
             if (command.getResponse() != null) {
@@ -66,41 +64,58 @@ public class BlockSyncer extends StateListener {
 
                 List<HeadersResponse.Header> headers = response.getHeaders();
 
-                // Update syncing peer start height.
+                // TODO: Update syncing peer start height.
 
-                // Validate hashes.
+                HeadersResponse.Header prevHeader = new HeadersResponse.Header(
+                        block.getHash(),
+                        block.getPreviousBlockHash(),
+                        block.getMerkleRootHash(),
+                        block.getBlockHeight()
+                );
 
-//                for(Object hashObj : hashes) {
-//                    try {
-//                        hashChain.add((String) hashObj);
-//                    } catch (ClassCastException ignore) {}
-//                }
+                for(HeadersResponse.Header header : headers) {
+                    // Validate header.
+                    if (!prevHeader.hash.equals(header.previousBlockHash) ||
+                            prevHeader.blockHeight+1 != header.blockHeight) continue;
+
+                    blockRepository.createBlock(
+                            header.hash,
+                            header.previousBlockHash,
+                            header.merkleRootHash,
+                            header.blockHeight
+                    );
+
+                    localBlockHeight++;
+                    prevHeader = header;
+                }
             }
+
+            waitIfStateIncorrect();
         }
 
         waitIfStateIncorrect();
 
         // TODO: retrieve all block data from header chain
-        Iterator<String> it = hashChain.iterator();
-        while (it.hasNext()) {
-            String hash = it.next();
-
-            WaitForResponse command = new WaitForResponse(new BlocksRequest(new ArrayList<>() {{ add(hash); }}));
-            command.await();
-
-            if (command.getResponse() != null) {
-                // BlockResponse response = ((BlockResponse) command.getResponse());
-
-                // Validate transactions in a block
-
-                // Save in database
-
-                localBlockHeight++;
-                it.remove();
-            }
-
-            waitIfStateIncorrect();
-        }
+//        Iterator<String> it = hashChain.iterator();
+//        while (it.hasNext()) {
+//            String hash = it.next();
+//
+//            WaitForResponse command = new WaitForResponse(new BlocksRequest(new ArrayList<>() {{ add(hash); }}));
+//            command.await();
+//
+//            if (command.getResponse() != null) {
+//                // BlockResponse response = ((BlockResponse) command.getResponse());
+//
+//                // Validate transactions in a block
+//
+//                // Save in database
+//
+//                localBlockHeight++;
+//                it.remove();
+//            }
+//
+//            waitIfStateIncorrect();
+//        }
 
         if (syncingPeer.getStartHeight() == localBlockHeight) {
             nodeStateQueue.add(NodeState.PARTICIPATING);

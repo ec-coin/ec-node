@@ -1,5 +1,6 @@
 package nl.hanze.ec.node.app.workers;
 
+import nl.hanze.ec.node.database.models.Block;
 import nl.hanze.ec.node.database.repositories.BlockRepository;
 import nl.hanze.ec.node.network.peers.commands.Command;
 import nl.hanze.ec.node.network.peers.commands.requests.HeadersRequest;
@@ -21,13 +22,25 @@ public class HeadersRequestWorker extends Worker {
 
     @Override
     public void run() {
-//        HeadersRequest command = (HeadersRequest) receivedCommand;
-//
-//        List<Object> hashes = command.getBlockHashes();
-//        String hash = (String) hashes.get(0);
-//
-//        blockRepository.getCurrentBlock()
+        HeadersRequest command = (HeadersRequest) receivedCommand;
+
+        String hash = command.getBlockHash();
+
+        Integer blockHeight = blockRepository.getBlockHeight(hash);
+
+        // Requested block not present in database
+        if (blockHeight == null) {
+            blockHeight = 0;
+        }
+
+        // TODO: return more blocks
+        Block nextBlock = blockRepository.getBlock(blockHeight + 1);
+
+        // No next block present
+        if (nextBlock == null) {
+            return;
+        }
         
-        peerCommandQueue.add(new HeadersResponse(new ArrayList<>() {{ add(blockRepository.getCurrentBlock()); }}, receivedCommand.getMessageNumber()));
+        peerCommandQueue.add(new HeadersResponse(new ArrayList<>() {{ add(nextBlock); }}, receivedCommand.getMessageNumber()));
     }
 }

@@ -18,10 +18,10 @@ import java.util.stream.Collectors;
 
 public class HeadersResponse extends AbstractCommand implements Response {
     public static class Header {
-        private String hash;
-        private String previousBlockHash;
-        private String merkleRootHash;
-        private int blockHeight;
+        public String hash;
+        public String previousBlockHash;
+        public String merkleRootHash;
+        public int blockHeight;
         // private DateTime timestamp;
 
         public Header(String hash, String previousBlockHash, String merkleRootHash, int blockHeight) {

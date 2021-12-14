@@ -11,26 +11,26 @@ import java.util.List;
 import java.util.concurrent.BlockingQueue;
 
 public class HeadersRequest extends AbstractCommand implements Request {
-    List<Object> blockHashes;
+    private String blockHash;
 
-    public HeadersRequest(List<Object> blockHashes) {
-        this.blockHashes = blockHashes;
+    public HeadersRequest(String blockHash) {
+        this.blockHash = blockHash;
     }
 
     public HeadersRequest(JSONObject payload, WorkerFactory workerFactory) {
         super(payload, workerFactory);
-        this.blockHashes = payload.getJSONArray("blockHashes").toList();
+        this.blockHash = payload.getString("blockHash");
     }
 
     @Override
     protected JSONObject getData(JSONObject payload) {
-        payload.put("blockHashes", this.blockHashes);
+        payload.put("blockHash", this.blockHash);
 
         return payload;
     }
 
-    public List<Object> getBlockHashes() {
-        return blockHashes;
+    public String getBlockHash() {
+        return blockHash;
     }
 
     @Override

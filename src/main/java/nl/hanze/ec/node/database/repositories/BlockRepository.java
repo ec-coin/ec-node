@@ -78,6 +78,36 @@ public class BlockRepository {
         return height;
     }
 
+    public Integer getBlockHeight(String hash) {
+        try {
+            List<Block> blocks = blockDAO.queryBuilder()
+                    .where().eq("hash", hash).query();
+
+            if (blocks.size() == 1) {
+                return blocks.get(0).getBlockHeight();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public Block getBlock(int block_height) {
+        try {
+            List<Block> blocks = blockDAO.queryBuilder()
+                    .where().eq("block_height", block_height).query();
+
+            if (blocks.size() == 1) {
+                return blocks.get(0);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
     public Block getCurrentBlock() {
         Block block = null;
         try {
