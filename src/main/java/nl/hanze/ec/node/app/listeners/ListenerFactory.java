@@ -41,7 +41,8 @@ public class ListenerFactory {
             return new BlockSyncer(
                     nodeStateQueue,
                     peerPool,
-                    blockRepositoryProvider.get()
+                    blockRepositoryProvider.get(),
+                    transactionRepositoryProvider.get()
             );
         }
 
