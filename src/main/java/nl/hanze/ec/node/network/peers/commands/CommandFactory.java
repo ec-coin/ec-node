@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import nl.hanze.ec.node.exceptions.InvalidCommand;
 import nl.hanze.ec.node.network.peers.commands.announcements.TestAnnouncement;
+import nl.hanze.ec.node.network.peers.commands.requests.TransactionsRequest;
 import nl.hanze.ec.node.network.peers.commands.requests.HeadersRequest;
 import nl.hanze.ec.node.network.peers.commands.requests.NeighborsRequest;
 import nl.hanze.ec.node.network.peers.commands.handshake.VersionCommand;
@@ -11,6 +12,7 @@ import nl.hanze.ec.node.network.peers.commands.responses.HeadersResponse;
 import nl.hanze.ec.node.network.peers.commands.responses.NeighborsResponse;
 import nl.hanze.ec.node.network.peers.commands.handshake.VersionAckCommand;
 import nl.hanze.ec.node.app.workers.WorkerFactory;
+import nl.hanze.ec.node.network.peers.commands.responses.TransactionsResponse;
 import org.json.JSONObject;
 
 public class CommandFactory {
@@ -37,6 +39,10 @@ public class CommandFactory {
                 return new HeadersRequest(payload, workerFactoryProvider.get());
             case "headers-response":
                 return new HeadersResponse(payload, workerFactoryProvider.get());
+            case "tx-request":
+                return new TransactionsRequest(payload, workerFactoryProvider.get());
+            case "tx-response":
+                return new TransactionsResponse(payload, workerFactoryProvider.get());
             default:
                 throw new InvalidCommand("Invalid or no command found in payload");
         }

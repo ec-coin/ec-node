@@ -3,17 +3,18 @@ package nl.hanze.ec.node.app.listeners;
 import nl.hanze.ec.node.app.NodeState;
 import nl.hanze.ec.node.database.models.Block;
 import nl.hanze.ec.node.database.repositories.BlockRepository;
+import nl.hanze.ec.node.database.repositories.TransactionRepository;
 import nl.hanze.ec.node.modules.annotations.NodeStateQueue;
 import nl.hanze.ec.node.network.peers.PeerPool;
 import nl.hanze.ec.node.network.peers.commands.WaitForResponse;
-import nl.hanze.ec.node.network.peers.commands.requests.BlocksRequest;
+import nl.hanze.ec.node.network.peers.commands.requests.TransactionsRequest;
 import nl.hanze.ec.node.network.peers.commands.requests.HeadersRequest;
 import nl.hanze.ec.node.network.peers.commands.responses.HeadersResponse;
+import nl.hanze.ec.node.network.peers.commands.responses.TransactionsResponse;
 import nl.hanze.ec.node.network.peers.peer.Peer;
 import nl.hanze.ec.node.network.peers.peer.PeerState;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
@@ -27,14 +28,17 @@ public class BlockSyncer extends StateListener {
     private int localBlockHeight;
 
     private final BlockRepository blockRepository;
+    private final TransactionRepository transactionRepository;
 
     public BlockSyncer(
             @NodeStateQueue BlockingQueue<NodeState> nodeStateQueue,
             PeerPool peerPool,
-            BlockRepository blockRepository
+            BlockRepository blockRepository,
+            TransactionRepository transactionRepository
     ) {
         super(nodeStateQueue, peerPool);
         this.blockRepository = blockRepository;
+        this.transactionRepository = transactionRepository;
         localBlockHeight = blockRepository.getCurrentBlockHeight();
     }
 
@@ -97,38 +101,49 @@ public class BlockSyncer extends StateListener {
 
             waitIfStateIncorrect();
         }
-//
-//        waitIfStateIncorrect();
-//
-//        // TODO: retrieve all block data from header chain
-////        Iterator<String> it = hashChain.iterator();
-////        while (it.hasNext()) {
-////            String hash = it.next();
-////
-////            WaitForResponse command = new WaitForResponse(new BlocksRequest(new ArrayList<>() {{ add(hash); }}));
-////            command.await();
-////
-////            if (command.getResponse() != null) {
-////                // BlockResponse response = ((BlockResponse) command.getResponse());
-////
-////                // Validate transactions in a block
-////
-////                // Save in database
-////
-////                localBlockHeight++;
-////                it.remove();
-////            }
-////
-////            waitIfStateIncorrect();
-////        }
-//
-        if (syncingPeer.getStartHeight() == localBlockHeight) {
-            nodeStateQueue.add(NodeState.PARTICIPATING);
-        }
-    }
 
-    protected void beforeSleep() {
-        // this.blockHashesToBeFetched = new ArrayList<>();
+        // TODO: only retrieve blocks that miss transactions
+        List<Block> blocks = blockRepository.getAllBlocks();
+
+        for (Block block : blocks) {
+            WaitForResponse command = new WaitForResponse(new TransactionsRequest(block.getHash()));
+            command.await();
+
+            if (command.getResponse() == null) {
+                // TODO: fix new syncingPeer
+                continue;
+            }
+
+            TransactionsResponse response = ((TransactionsResponse) command.getResponse());
+
+            List<TransactionsResponse.Tx> transactions = response.getTransactions();
+
+            // TODO: Validate merkle root of transactions with merkle root of block in DB.
+
+            for(TransactionsResponse.Tx transaction : transactions) {
+                // TODO: Validate transaction.
+                // (1) signature
+                // (2) valid amount
+
+                // TODO: use timestamp from syncing node?
+                transactionRepository.createTransaction(
+                        transaction.hash,
+                        block,
+                        transaction.from,
+                        transaction.to,
+                        transaction.amount,
+                        transaction.signature,
+                        transaction.addressType
+                );
+            }
+
+            waitIfStateIncorrect();
+        }
+
+        // TODO: if all blocks & transactions are received & verified go to PARTICIPATING
+//        if (syncingPeer.getStartHeight() == localBlockHeight) {
+//            nodeStateQueue.add(NodeState.PARTICIPATING);
+//        }
     }
 
     /**

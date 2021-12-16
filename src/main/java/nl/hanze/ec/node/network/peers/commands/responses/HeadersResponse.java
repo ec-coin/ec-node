@@ -9,10 +9,7 @@ import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.stream.Collectors;
 
@@ -50,7 +47,7 @@ public class HeadersResponse extends AbstractCommand implements Response {
     List<Header> headers;
     int responseTo;
 
-    public HeadersResponse(List<nl.hanze.ec.node.database.models.Block> headers, int responseTo) {
+    public HeadersResponse(Collection<Block> headers, int responseTo) {
         this.headers = headers.stream()
                 .map(header -> new Header(
                         header.getHash(),

@@ -1,45 +1,44 @@
 package nl.hanze.ec.node.network.peers.commands.requests;
 
-import nl.hanze.ec.node.app.workers.HeadersRequestWorker;
+import nl.hanze.ec.node.app.workers.TransactionsRequestWorker;
 import nl.hanze.ec.node.app.workers.Worker;
 import nl.hanze.ec.node.app.workers.WorkerFactory;
 import nl.hanze.ec.node.network.peers.commands.AbstractCommand;
 import nl.hanze.ec.node.network.peers.commands.Command;
 import org.json.JSONObject;
 
-import java.util.List;
 import java.util.concurrent.BlockingQueue;
 
-public class BlocksRequest extends AbstractCommand implements Request {
-    List<Object> blockHashes;
+public class TransactionsRequest extends AbstractCommand implements Request {
+    String blockHash;
 
-    public BlocksRequest(List<Object> blockHashes) {
-        this.blockHashes = blockHashes;
+    public TransactionsRequest(String blockHash) {
+        this.blockHash = blockHash;
     }
 
-    public BlocksRequest(JSONObject payload, WorkerFactory workerFactory) {
+    public TransactionsRequest(JSONObject payload, WorkerFactory workerFactory) {
         super(payload, workerFactory);
-        this.blockHashes = payload.getJSONArray("blockHashes").toList();
+        this.blockHash = payload.getString("blockHash");
     }
 
     @Override
     protected JSONObject getData(JSONObject payload) {
-        payload.put("blockHashes", this.blockHashes);
+        payload.put("blockHash", this.blockHash);
 
         return payload;
     }
 
-    public List<Object> getBlockHashes() {
-        return blockHashes;
+    public String getBlockHash() {
+        return blockHash;
     }
 
     @Override
     public String getCommandName() {
-        return "block-request";
+        return "tx-request";
     }
 
     @Override
     public Worker getWorker(Command receivedCommand, BlockingQueue<Command> peerCommandQueue) {
-        return workerFactory.create(HeadersRequestWorker.class, receivedCommand, peerCommandQueue);
+        return workerFactory.create(TransactionsRequestWorker.class, receivedCommand, peerCommandQueue);
     }
 }
