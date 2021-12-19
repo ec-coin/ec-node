@@ -65,7 +65,7 @@ public class HeadersResponse extends AbstractCommand implements Response {
         this.responseTo = payload.getInt("responseTo");
 
         List<Object> jArray = payload.getJSONArray("headers").toList();
-        headers = new ArrayList<>();
+        this.headers = new ArrayList<>();
         for (Object obj : jArray) {
             if (obj instanceof HashMap) {
                 HashMap<?, ?> header = (HashMap<?, ?>) obj;

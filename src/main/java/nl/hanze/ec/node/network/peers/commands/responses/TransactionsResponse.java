@@ -7,6 +7,7 @@ import nl.hanze.ec.node.network.peers.commands.AbstractCommand;
 import nl.hanze.ec.node.network.peers.commands.Command;
 import org.json.JSONObject;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.stream.Collectors;
@@ -75,8 +76,8 @@ public class TransactionsResponse extends AbstractCommand implements Response {
 
         this.responseTo = payload.getInt("responseTo");
 
-        List<Object> jArray = payload.getJSONArray("headers").toList();
-        transactions = new ArrayList<>();
+        List<Object> jArray = payload.getJSONArray("transactions").toList();
+        this.transactions = new ArrayList<>();
         for (Object obj : jArray) {
             if (obj instanceof HashMap) {
                 HashMap<?, ?> tx = (HashMap<?, ?>) obj;
@@ -84,11 +85,16 @@ public class TransactionsResponse extends AbstractCommand implements Response {
                 if (tx.get("hash") instanceof String &&
                         tx.get("from") instanceof String &&
                         tx.get("to") instanceof String &&
-                        tx.get("amount") instanceof Float &&
+                        (tx.get("amount") instanceof BigDecimal || tx.get("amount") instanceof Integer) &&
                         tx.get("signature") instanceof String &&
                         tx.get("status") instanceof String &&
                         tx.get("addressType") instanceof String) {
-                    float amount = (Float) tx.get("amount");
+                    float amount;
+                    if (tx.get("amount") instanceof Integer) {
+                        amount = ((Integer) tx.get("amount")).floatValue();
+                    } else {
+                        amount = ((BigDecimal) tx.get("amount")).floatValue();
+                    }
 
                     this.transactions.add(new Tx(
                             tx.get("hash").toString(),

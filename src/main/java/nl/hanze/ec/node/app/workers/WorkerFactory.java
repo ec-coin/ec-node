@@ -32,6 +32,8 @@ public class WorkerFactory {
             return new NeighborRequestWorker(receivedCommand, peerCommandQueue, neighboursRepositoryProvider.get());
         } else if (workerClass == HeadersRequestWorker.class) {
             return new HeadersRequestWorker(receivedCommand, peerCommandQueue, blockRepositoryProvider.get());
+        } else if (workerClass == TransactionsRequestWorker.class) {
+            return new TransactionsRequestWorker(receivedCommand, peerCommandQueue, blockRepositoryProvider.get());
         }
 
         throw new UnsupportedOperationException("Factory has not defined how the given worker class has to be created");

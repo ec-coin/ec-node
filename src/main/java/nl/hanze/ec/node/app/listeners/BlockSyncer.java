@@ -29,6 +29,7 @@ public class BlockSyncer extends StateListener {
 
     private final BlockRepository blockRepository;
     private final TransactionRepository transactionRepository;
+    private boolean tempSyncingComplete;
 
     public BlockSyncer(
             @NodeStateQueue BlockingQueue<NodeState> nodeStateQueue,
@@ -95,7 +96,7 @@ public class BlockSyncer extends StateListener {
                         header.blockHeight
                 );
 
-                localBlockHeight++;
+                localBlockHeight++; // localBlockHeight = header.blockHeight
                 prevHeader = header;
             }
 
@@ -107,6 +108,7 @@ public class BlockSyncer extends StateListener {
 
         for (Block block : blocks) {
             WaitForResponse command = new WaitForResponse(new TransactionsRequest(block.getHash()));
+            peerPool.sendCommand(syncingPeer, command);
             command.await();
 
             if (command.getResponse() == null) {
@@ -141,9 +143,9 @@ public class BlockSyncer extends StateListener {
         }
 
         // TODO: if all blocks & transactions are received & verified go to PARTICIPATING
-//        if (syncingPeer.getStartHeight() == localBlockHeight) {
-//            nodeStateQueue.add(NodeState.PARTICIPATING);
-//        }
+        if (true) { //blocks.size() == 0) {
+            nodeStateQueue.add(NodeState.PARTICIPATING);
+        }
     }
 
     /**

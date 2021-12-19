@@ -34,7 +34,7 @@ public class PeerPool implements Runnable {
     private static final Logger logger = LogManager.getLogger(PeerPool.class);
     private final int maxPeers;
     private final int minPeers;
-    private final int blockStartHeight;
+    private int blockStartHeight;
     private final BlockingQueue<Socket> incomingConnectionsQueue;
     private final BlockingQueue<NodeState> nodeStateQueue;
     private final static int transactionThreshold = 3;
@@ -194,8 +194,20 @@ public class PeerPool implements Runnable {
 //                String hash = HashingService.hash(previousBlockHash + merkleRootHash);
 //                int blockheight = prevBlock.getBlockHeight() + 1;
 //
-//                prevBlock = blockRepository.createBlock(hash, previousBlockHash, merkleRootHash, blockheight);
+//                Block block = blockRepository.createBlock(hash, previousBlockHash, merkleRootHash, blockheight);
+//
+//                for (int j = 0; j < 10; j++) {
+//                    String transactionHash1 = HashingService.hash("transaction" + i);
+//                    String fromHash1 = "**addressFrom**";
+//                    String toHash1 = "**addressTo**";
+//                    String signature1 = "**signature**";
+//                    transactionRepository.createTransaction(transactionHash1, block, fromHash1, toHash1, 50.4f, signature1, "wallet");
+//                }
+//
+//                prevBlock = block;
 //            }
+//
+//            this.blockStartHeight = blockRepository.getCurrentBlockHeight();
 //        }
 
 //        String password = "hello this is a hashhhhhhhhhhhhhhhhh";
