@@ -31,17 +31,17 @@ public class ListenerFactory {
     public Listener create(Class<? extends Listener> listener, PeerPool peerPool) {
         if (listener == Consensus.class) {
             return new Consensus(
-                    nodeStateQueue,
-                    peerPool,
-                    transactionRepositoryProvider.get(),
-                    neighboursRepositoryProvider.get(),
-                    blockRepositoryProvider.get()
+                nodeStateQueue,
+                peerPool,
+                transactionRepositoryProvider.get(),
+                neighboursRepositoryProvider.get(),
+                blockRepositoryProvider.get()
             );
         } else if (listener == BlockSyncer.class) {
             return new BlockSyncer(
-                    nodeStateQueue,
-                    peerPool,
-                    blockRepositoryProvider.get()
+                nodeStateQueue,
+                peerPool,
+                blockRepositoryProvider.get()
             );
         }
 

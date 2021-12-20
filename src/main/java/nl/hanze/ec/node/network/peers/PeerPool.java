@@ -117,16 +117,16 @@ public class PeerPool implements Runnable {
 
     @Inject
     public PeerPool(
-            @MaxPeers int maxPeers,
-            @MinPeers int minPeers,
-            @Port int port,
-            @IncomingConnectionsQueue BlockingQueue<Socket> incomingConnectionsQueue,
-            PeerConnectionFactory peerConnectionFactory,
-            NeighboursRepository neighboursRepository,
-            BalancesCacheRepository balancesCacheRepository,
-            BlockRepository blockRepository,
-            TransactionRepository transactionRepository,
-            @NodeStateQueue BlockingQueue<NodeState> nodeStateQueue
+        @MaxPeers int maxPeers,
+        @MinPeers int minPeers,
+        @Port int port,
+        @IncomingConnectionsQueue BlockingQueue<Socket> incomingConnectionsQueue,
+        PeerConnectionFactory peerConnectionFactory,
+        NeighboursRepository neighboursRepository,
+        BalancesCacheRepository balancesCacheRepository,
+        BlockRepository blockRepository,
+        TransactionRepository transactionRepository,
+        @NodeStateQueue BlockingQueue<NodeState> nodeStateQueue
     ) {
         this.neighboursRepository = neighboursRepository;
         this.balancesCacheRepository = balancesCacheRepository;
@@ -366,7 +366,6 @@ public class PeerPool implements Runnable {
         String merkleRootHash = "0000000000000000000000000000000000000000000000000000000000000000";
         int blockheight = 0;
         blockRepository.createBlock(blockHash1, previousBlockHash1, merkleRootHash, blockheight);
-
 
         String blockHash2 = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
         String previousBlockHash2 = "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB";

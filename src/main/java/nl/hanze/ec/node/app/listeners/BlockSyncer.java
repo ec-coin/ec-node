@@ -32,9 +32,9 @@ public class BlockSyncer extends StateListener {
     private final BlockRepository blockRepository;
 
     public BlockSyncer(
-            @NodeStateQueue BlockingQueue<NodeState> nodeStateQueue,
-            PeerPool peerPool,
-            BlockRepository blockRepository
+        @NodeStateQueue BlockingQueue<NodeState> nodeStateQueue,
+        PeerPool peerPool,
+        BlockRepository blockRepository
     ) {
         super(nodeStateQueue, peerPool);
         this.blockRepository = blockRepository;

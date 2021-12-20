@@ -25,6 +25,22 @@ public class BalancesCacheRepository {
         return null;
     }
 
+    public synchronized Boolean hasValidBalance(
+        String hash,
+        float amount
+    ) {
+        try {
+            List<BalancesCache> balances = balancesCacheDAO.queryBuilder().where().eq("address", hash).query();
+            if (balances.get(0).getBalance() > amount) {
+                return true;
+            };
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
     public synchronized void updateBalanceCache(String address, float balance) {
         try {
             BalancesCache balancesCache = new BalancesCache(address, balance);

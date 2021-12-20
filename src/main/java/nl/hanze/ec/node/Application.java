@@ -38,11 +38,12 @@ public class Application {
     private static final AtomicReference<NodeState> state = new AtomicReference<>(NodeState.INIT);
 
     @Inject
-    public Application(Server server,
-                       PeerPool peerPool,
-                       StateHandler stateHandler,
-                       ListenerFactory listenerFactory,
-                       @NodeStateQueue BlockingQueue<NodeState> nodeStateQueue
+    public Application(
+        Server server,
+        PeerPool peerPool,
+        StateHandler stateHandler,
+        ListenerFactory listenerFactory,
+        @NodeStateQueue BlockingQueue<NodeState> nodeStateQueue
     ) {
         this.server = server;
         this.peerPool = peerPool;

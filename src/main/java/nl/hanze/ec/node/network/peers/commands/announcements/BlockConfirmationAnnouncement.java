@@ -9,14 +9,14 @@ import org.json.JSONObject;
 
 import java.util.concurrent.BlockingQueue;
 
-public class NewBlockAnnouncement extends AbstractCommand implements Announcement {
+public class BlockConfirmationAnnouncement extends AbstractCommand implements Announcement {
     JSONObject block;
 
-    public NewBlockAnnouncement(JSONObject block) {
+    public BlockConfirmationAnnouncement(JSONObject block) {
         this.block = block;
     }
 
-    public NewBlockAnnouncement(JSONObject payload, WorkerFactory workerFactory) {
+    public BlockConfirmationAnnouncement(JSONObject payload, WorkerFactory workerFactory) {
         super(payload, workerFactory);
         this.block = payload.getJSONObject("block");
     }

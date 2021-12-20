@@ -3,19 +3,17 @@ package nl.hanze.ec.node.app.workers;
 import com.google.gson.Gson;
 import nl.hanze.ec.node.database.models.Block;
 import nl.hanze.ec.node.database.models.Transaction;
-
 import nl.hanze.ec.node.database.repositories.BalancesCacheRepository;
 import nl.hanze.ec.node.network.peers.commands.Command;
-import nl.hanze.ec.node.utils.HashingUtils;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 
 import java.util.concurrent.BlockingQueue;
 
-public class NewBlockAnnouncementWorker extends Worker {
+public class NewBlockConfirmationAnnouncementWorker extends Worker {
     private final BalancesCacheRepository balanceCacheRepository;
 
-    public NewBlockAnnouncementWorker(
+    public NewBlockConfirmationAnnouncementWorker(
         Command receivedCommand,
         BlockingQueue<Command> peerCommandQueue,
         BalancesCacheRepository balancesCacheRepositoryProvider
@@ -27,7 +25,7 @@ public class NewBlockAnnouncementWorker extends Worker {
 
     @Override
     public void run() {
-        System.out.println("New block received");
+        System.out.println("New block confirmation received");
         JSONObject payload = receivedCommand.getPayload();
         Object blockObject = payload.get("block");
         Block block = fromJSONToObject(blockObject);

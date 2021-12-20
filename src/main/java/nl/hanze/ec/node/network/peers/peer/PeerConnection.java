@@ -35,11 +35,12 @@ public class PeerConnection implements Runnable {
     private boolean waitingForPong = false;
 
     public PeerConnection(
-            Peer peer,
-            BlockingQueue<Command> commandQueue,
-            Socket socket,
-            PeerStateMachine stateMachine,
-            CommandFactory commandFactory) {
+        Peer peer,
+        BlockingQueue<Command> commandQueue,
+        Socket socket,
+        PeerStateMachine stateMachine,
+        CommandFactory commandFactory
+    ) {
         this.peer = peer;
         this.commandQueue = commandQueue;
         this.socket = socket;
