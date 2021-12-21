@@ -39,37 +39,35 @@ public class Consensus extends StateListener {
     }
 
     protected void iteration() {
-//        nodeStateQueue.add(NodeState.INIT);
-//
-//        // 1. Get all node addresses from DB
-//        List<String> nodes = transactionRepository.getAllNodeAddresses();
-//
-//        canContinue();
-//
-//        // 2. Set nodes as validating nodes by paying a transaction fee.
-//        for (String node : nodes) {
-//            String signature = "temporary signature";
-//            transactionRepository.addNodeAsValidatingNode(HashingService.hash(node), null, node, signature);
-//        }
-//
-//        canContinue();
-//
-//        // 3. Check which node's nodeState == validating.
-//        List<String> validatingNodes = transactionRepository.getAllValidatingNodes();
-//
-//        canContinue();
-//
-//        // 4. Determine if transaction threshold has been reached
-//        if (transactionRepository.transactionThresholdReached()) {
-//            // 5. Determine leader
-//            String leader = getLeader(validatingNodes);
-//
-//            // 6. Check whether you are the leader
-//            if (leader.equals(this.ownAddress)) {
-//                // 7. Validate block
-//                createBlock();
-//            }
-//        }
+        // 1. Get all node addresses from DB
+        List<String> nodes = transactionRepository.getAllNodeAddresses();
+
+        waitIfStateIncorrect();
+
+        // 2. Set nodes as validating nodes by paying a transaction fee.
+        for (String node : nodes) {
+            String signature = "temporary signature";
+            transactionRepository.addNodeAsValidatingNode(HashingService.hash(node), null, node, signature);
+        }
+
+        waitIfStateIncorrect();
+
+        // 3. Check which node's nodeState == validating.
+        List<String> validatingNodes = transactionRepository.getAllValidatingNodes();
+
+        waitIfStateIncorrect();
+
+        // 4. Determine if transaction threshold has been reached
+        if (transactionRepository.transactionThresholdReached()) {
+            // 5. Determine leader
+            String leader = getLeader(validatingNodes);
+
+            // 6. Check whether you are the leader
+            if (leader.equals(this.ownAddress)) {
+                // 7. Validate block
+                createBlock();
+            }
+        }
     }
 
     private String getLeader(List<String> participatingNodes) {
