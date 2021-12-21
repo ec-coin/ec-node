@@ -5,23 +5,23 @@ import nl.hanze.ec.node.network.peers.commands.AbstractCommand;
 import nl.hanze.ec.node.app.workers.NeighborResponseWorker;
 import nl.hanze.ec.node.app.workers.Worker;
 import nl.hanze.ec.node.network.peers.commands.Command;
+import nl.hanze.ec.node.utils.CollectionMappingUtils;
 import org.json.JSONObject;
-
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 
 public class NeighborsResponse extends AbstractCommand implements Response {
-    List<Object> ips;
-    int responseTo;
+    private List<String> ips;
+    private int responseTo;
 
-    public NeighborsResponse(List<Object> ips, int responseTo) {
+    public NeighborsResponse(List<String> ips, int responseTo) {
         this.ips = ips;
         this.responseTo = responseTo;
     }
 
     public NeighborsResponse(JSONObject payload, WorkerFactory workerFactory) {
         super(payload, workerFactory);
-        this.ips = payload.getJSONArray("ips").toList();
+        this.ips = CollectionMappingUtils.mapToStringList(payload.getJSONArray("ips").toList());
         this.responseTo = payload.getInt("responseTo");
     }
 
@@ -33,7 +33,7 @@ public class NeighborsResponse extends AbstractCommand implements Response {
         return payload;
     }
 
-    public List<Object> getIps() {
+    public List<String> getIps() {
         return ips;
     }
 

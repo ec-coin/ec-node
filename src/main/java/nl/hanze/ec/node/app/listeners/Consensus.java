@@ -9,7 +9,8 @@ import nl.hanze.ec.node.database.repositories.NeighboursRepository;
 import nl.hanze.ec.node.database.repositories.TransactionRepository;
 import nl.hanze.ec.node.modules.annotations.NodeStateQueue;
 import nl.hanze.ec.node.network.peers.PeerPool;
-import nl.hanze.ec.node.services.HashingService;
+import nl.hanze.ec.node.network.peers.commands.announcements.NewBlockAnnouncement;
+import nl.hanze.ec.node.utils.HashingUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +21,7 @@ public class Consensus extends StateListener {
     private final TransactionRepository transactionRepository;
     private final NeighboursRepository neighboursRepository;
     private final BlockRepository blockRepository;
-    private final String ownAddress = "333333333333333333333333333333333333333333333333333333333333";
+    private final String ownAddress = "3333333333333333333333333333333333333333333333333333333333333333";
 
     private final List<NodeState> listenFor = new ArrayList<>() {
         {
@@ -28,17 +29,23 @@ public class Consensus extends StateListener {
         }
     };
 
-    public Consensus(@NodeStateQueue BlockingQueue<NodeState> nodeStateQueue, PeerPool peerPool,
-                     TransactionRepository transactionRepository,
-                     NeighboursRepository neighboursRepository,
-                     BlockRepository blockRepository) {
+    @Inject
+    public Consensus(
+        @NodeStateQueue BlockingQueue<NodeState> nodeStateQueue,
+        PeerPool peerPool,
+        TransactionRepository transactionRepository,
+        NeighboursRepository neighboursRepository,
+        BlockRepository blockRepository
+    ) {
         super(nodeStateQueue, peerPool);
         this.transactionRepository = transactionRepository;
         this.neighboursRepository = neighboursRepository;
         this.blockRepository = blockRepository;
     }
 
-    protected void iteration() {
+    protected void doWork() {
+        nodeStateQueue.add(NodeState.INIT);
+
         // 1. Get all node addresses from DB
         List<String> nodes = transactionRepository.getAllNodeAddresses();
 
@@ -47,7 +54,7 @@ public class Consensus extends StateListener {
         // 2. Set nodes as validating nodes by paying a transaction fee.
         for (String node : nodes) {
             String signature = "temporary signature";
-            transactionRepository.addNodeAsValidatingNode(HashingService.hash(node), null, node, signature);
+            transactionRepository.addNodeAsValidatingNode(HashingUtils.hash(node), null, node, signature);
         }
 
         waitIfStateIncorrect();
@@ -97,9 +104,13 @@ public class Consensus extends StateListener {
         for(Transaction transaction : pendingTransactions) {
             hashInput.append(transaction.getHash());
         }
-        String blockHash = HashingService.hash(hashInput + prevHash);
 
+        String blockHash = HashingUtils.hash(hashInput + prevHash);
         Block block = blockRepository.createBlock(blockHash, prevHash, merkleRootHash, blockHeight + 1);
+
+        if (block != null) {
+            new NewBlockAnnouncement(block.toJSONObject());
+        }
 
         for(Transaction transaction : pendingTransactions) {
             transactionRepository.setTransactionAsValidated(transaction, block);

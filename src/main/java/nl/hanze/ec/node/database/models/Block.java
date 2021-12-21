@@ -1,10 +1,13 @@
 package nl.hanze.ec.node.database.models;
 
+import com.google.gson.Gson;
 import com.j256.ormlite.dao.ForeignCollection;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.field.ForeignCollectionField;
 import com.j256.ormlite.table.DatabaseTable;
 import org.joda.time.DateTime;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 @DatabaseTable(tableName = "blocks")
 public class Block {
@@ -24,7 +27,7 @@ public class Block {
     private DateTime timestamp;
 
     @ForeignCollectionField(eager = false)
-    private ForeignCollection<Transaction> transactions;
+    private transient ForeignCollection<Transaction> transactions;
 
     // ORMLite requires a no-arg constructor.
     public Block() {}
@@ -59,5 +62,17 @@ public class Block {
 
     public ForeignCollection<Transaction> getTransactions() {
         return transactions;
+    }
+
+    public JSONObject toJSONObject() {
+        Gson gson = new Gson();
+        JSONObject object = null;
+        try {
+            object = new JSONObject(gson.toJson(this));
+        } catch (JSONException exception) {
+            exception.printStackTrace();
+        }
+
+        return object;
     }
 }

@@ -1,7 +1,6 @@
 package nl.hanze.ec.node.network.peers;
 
 import com.google.inject.Inject;
-import com.google.inject.Provider;
 import nl.hanze.ec.node.Application;
 import nl.hanze.ec.node.app.NodeState;
 import nl.hanze.ec.node.database.models.Block;
@@ -14,7 +13,7 @@ import nl.hanze.ec.node.network.peers.peer.Peer;
 import nl.hanze.ec.node.network.peers.peer.PeerConnection;
 import nl.hanze.ec.node.network.peers.peer.PeerConnectionFactory;
 import nl.hanze.ec.node.network.peers.peer.PeerState;
-import nl.hanze.ec.node.services.HashingService;
+import nl.hanze.ec.node.utils.SignatureUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
@@ -22,6 +21,10 @@ import org.joda.time.Seconds;
 
 import java.io.IOException;
 import java.net.*;
+import java.net.Socket;
+import java.net.UnknownHostException;
+import java.security.KeyPair;
+import java.security.PublicKey;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -114,16 +117,16 @@ public class PeerPool implements Runnable {
 
     @Inject
     public PeerPool(
-            @MaxPeers int maxPeers,
-            @MinPeers int minPeers,
-            @Port int port,
-            @IncomingConnectionsQueue BlockingQueue<Socket> incomingConnectionsQueue,
-            PeerConnectionFactory peerConnectionFactory,
-            NeighboursRepository neighboursRepository,
-            BalancesCacheRepository balancesCacheRepository,
-            BlockRepository blockRepository,
-            TransactionRepository transactionRepository,
-            @NodeStateQueue BlockingQueue<NodeState> nodeStateQueue
+        @MaxPeers int maxPeers,
+        @MinPeers int minPeers,
+        @Port int port,
+        @IncomingConnectionsQueue BlockingQueue<Socket> incomingConnectionsQueue,
+        PeerConnectionFactory peerConnectionFactory,
+        NeighboursRepository neighboursRepository,
+        BalancesCacheRepository balancesCacheRepository,
+        BlockRepository blockRepository,
+        TransactionRepository transactionRepository,
+        @NodeStateQueue BlockingQueue<NodeState> nodeStateQueue
     ) {
         this.neighboursRepository = neighboursRepository;
         this.balancesCacheRepository = balancesCacheRepository;
@@ -184,35 +187,10 @@ public class PeerPool implements Runnable {
 
     @Override
     public void run() {
-        String password = "hello this is a hashhhhhhhhhhhhhhhhh";
-        String hash = HashingService.hash(password);
-        System.out.println("hash: " + hash);
-
         fillDatabaseWithMockData();
+        logDatabaseInteraction();
 
-        float balance = transactionRepository.getBalance("333333333333333333333333333333333333333333333333333333333333");
-        float stake = transactionRepository.getStake("333333333333333333333333333333333333333333333333333333333333");
-        System.out.println("balance before: " + balance);
-        System.out.println("stake before: " + stake);
-        balancesCacheRepository.updateBalanceCache("333333333333333333333333333333333333333333333333333333333333", balance);
-
-        balance = transactionRepository.getBalance("333333333333333333333333333333333333333333333333333333333333");
-        stake = transactionRepository.getStake("333333333333333333333333333333333333333333333333333333333333");
-        System.out.println("\nbalance after: " + balance);
-        System.out.println("stake before: " + stake);
-        balancesCacheRepository.updateBalanceCache("333333333333333333333333333333333333333333333333333333333333", balance);
-
-        Block block = blockRepository.getCurrentBlock();
-        Iterator<Transaction> iterator = block.getTransactions().iterator();
-        Transaction transaction = iterator.next();
-        System.out.println("\nIn block with hash " + block.getHash() + " there are " + block.getTransactions().size() + " transactions");
-        System.out.println("hash of transaction 1: " + transaction.getHash() + " with status: " + transaction.getStatus());
-        transaction = iterator.next();
-        System.out.println("hash of transaction 2: " + transaction.getHash() + " with status: " + transaction.getStatus());
-        transaction = iterator.next();
-        System.out.println("hash of transaction 3: " + transaction.getHash() + " with status: " + transaction.getStatus());
-
-        while (running.get()) {
+        while (true) {
             //################################
             //  Handle incoming socket connections
             //################################
@@ -384,50 +362,88 @@ public class PeerPool implements Runnable {
 
     private void fillDatabaseWithMockData() {
         // Create some mock blocks;
-        String blockHash1 =         "39523F928AF4839398BDCE38111111111111111111111111111111111111";
-        String previousBlockHash1 = "39523F928AF4839398BDCE38000000000000000000000000000000000000";
-        String merkleRootHash = "000000000000000000000000000000000000000000000000000000000000";
+        String blockHash1 = "7e35543e662e1ff7e399d1ad7f92f4f3945769328ff3cf58535cf5c5529de31e";
+        String previousBlockHash1 = "39523F928AF4839398BDCE380000000000000000000000000000000000000000";
+        String merkleRootHash = "0000000000000000000000000000000000000000000000000000000000000000";
         int blockheight = 0;
         blockRepository.createBlock(blockHash1, previousBlockHash1, merkleRootHash, blockheight);
 
-        String blockHash2 =         "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
-        String previousBlockHash2 = "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB";
+        String blockHash2 = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+        String previousBlockHash2 = "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB";
         blockRepository.createBlock(blockHash2, previousBlockHash2, merkleRootHash, ++blockheight);
 
         balancesCacheRepository.getAllBalancesInCache();
         List<Block> blocks = blockRepository.getAllBlocks();
 
         // Create some mock transactions;
-        // TODO weghalen als ongevalideerde transacties gevalideerd moeten worden.
-        String status = "pending";
         float amount = 5;
 
-        String transactionHash1 = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF";
-        String fromHash1 = "222222222222222222222222222222222222222222222222222222222222";
-        String toHash1 = "333333333333333333333333333333333333333333333333333333333333";
-        String signature1 = "111111111111111111111111111111111111111111111111111111111111";
+        String transactionHash1 = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF";
+        String fromHash1 = "2222222222222222222222222222222222222222222222222222222222222222";
+        String toHash1 = "3333333333333333333333333333333333333333333333333333333333333333";
+        String signature1 = "1111111111111111111111111111111111111111111111111111111111111111";
         transactionRepository.createTransaction(transactionHash1, null, fromHash1, toHash1, amount, signature1, "node");
 
-        String transactionHash2 = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFAAAAA";
-        String fromHash2 = "333333333333333333333333333333333333333333333333333333333333";
-        String toHash2 = "3333333333333333333333333333333333333333333333333333333AAAAA";
-        String signature2 = "1111111111111111111111111111111111111111111111111111111AAAAA";
+        String transactionHash2 = "AAAAAFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF";
+        String fromHash2 = "3333333333333333333333333333333333333333333333333333333333333333";
+        String toHash2 = "33333333333333333333333333333333333333333333333333333333333AAAAA";
+        String signature2 = "11111111111111111111111111111111111111111111111111111111111AAAAA";
         transactionRepository.createTransaction(transactionHash2, null, fromHash1, toHash1, 10, signature2, "node");
 
-        String transactionHash3 = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFBBBBB";
-        String fromHash3 = "2222222222222222222222222222222222222222222222222222222BBBBB";
-        String toHash3 = "3333333333333333333333333333333333333333333333333333333BBBBB";
-        String signature3 = "1111111111111111111111111111111111111111111111111111111BBBBB";
+        String transactionHash3 = "BBBBBFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF";
+        String fromHash3 = "22222222222222222222222222222222222222222222222222222222222BBBBB";
+        String toHash3 = "33333333333333333333333333333333333333333333333333333333333BBBBB";
+        String signature3 = "11111111111111111111111111111111111111111111111111111111111BBBBB";
         transactionRepository.createTransaction(transactionHash3, null, fromHash1, toHash2, amount, signature3, "node");
 
-        String transactionHash4 = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFCCCCC";
-        String fromHash4 = "2222222222222222222222222222222222222222222222222222222CCCCC";
-        String toHash4 = "3333333333333333333333333333333333333333333333333333333CCCCC";
-        String signature4 = "1111111111111111111111111111111111111111111111111111111CCCCC";
+        String transactionHash4 = "CCCCCFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF";
+        String fromHash4 = "22222222222222222222222222222222222222222222222222222222222CCCCC";
+        String toHash4 = "33333333333333333333333333333333333333333333333333333333333CCCCC";
+        String signature4 = "11111111111111111111111111111111111111111111111111111111111CCCCC";
         transactionRepository.createTransaction(transactionHash4, null, fromHash4, toHash4, amount, signature4, "wallet");
     }
 
     public static int getTransactionThreshold() {
         return transactionThreshold;
+    }
+
+    private void logDatabaseInteraction() {
+        String example = "7e35543e662e1ff7e399d1ad7f92f4f3945769328ff3cf58535cf5c5529de31e";
+        float balance = transactionRepository.getBalance("3333333333333333333333333333333333333333333333333333333333333333");
+        float stake = transactionRepository.getStake("3333333333333333333333333333333333333333333333333333333333333333");
+        System.out.println("balance before: " + balance);
+        System.out.println("stake before: " + stake);
+        balancesCacheRepository.updateBalanceCache("3333333333333333333333333333333333333333333333333333333333333333", balance);
+
+        if (connectedPeers.size() == 0) {
+            nodeStateQueue.add(NodeState.PARTICIPATING);
+        }
+
+        try {
+            Thread.sleep(1000);
+        }
+        catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        balance = transactionRepository.getBalance("3333333333333333333333333333333333333333333333333333333333333333");
+        stake = transactionRepository.getStake("3333333333333333333333333333333333333333333333333333333333333333");
+        System.out.println("\nbalance after: " + balance);
+        System.out.println("stake after: " + stake);
+        balancesCacheRepository.updateBalanceCache("3333333333333333333333333333333333333333333333333333333333333333", balance);
+
+        Block block = blockRepository.getCurrentBlock();
+
+        for (Transaction transaction : block.getTransactions()) {
+            System.out.println("\nIn block with hash " + block.getHash() + " there are " + block.getTransactions().size() + " transactions");
+            System.out.println("hash of transaction: " + transaction.getHash() + " with status: " + transaction.getStatus());
+        }
+
+        KeyPair keyPair = SignatureUtils.generateKeyPair();
+        String value = "hello";
+        byte[] signature = SignatureUtils.sign(keyPair, value);
+        PublicKey publicKey = keyPair.getPublic();
+        boolean verified = SignatureUtils.verify(publicKey, signature, value);
+        System.out.println("signature verified: " + verified);
     }
 }

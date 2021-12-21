@@ -2,6 +2,7 @@ package nl.hanze.ec.node.database.models;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
+import nl.hanze.ec.node.database.repositories.BalancesCacheRepository;
 import org.joda.time.DateTime;
 
 @DatabaseTable(tableName = "transactions")
@@ -36,7 +37,16 @@ public class Transaction {
     // ORMLite requires a no-arg constructor.
     public Transaction() {}
 
-    public Transaction(String hash, Block block, String from, String to, float amount, String signature, String status, String addressType) {
+    public Transaction(
+        String hash,
+        Block block,
+        String from,
+        String to,
+        float amount,
+        String signature,
+        String status,
+        String addressType
+    ) {
         this.hash = hash;
         this.block = block;
         this.from = from;

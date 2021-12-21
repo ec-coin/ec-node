@@ -5,3 +5,5 @@
 *.iml
 /out
 *.db
+openvpn-data/
+openvpn-data/*

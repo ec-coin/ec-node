@@ -40,12 +40,13 @@ public class Application {
     private final BlockRepository blockRepository;
 
     @Inject
-    public Application(Server server,
-                       PeerPool peerPool,
-                       StateHandler stateHandler,
-                       ListenerFactory listenerFactory,
-                       BlockRepository blockRepository,
-                       @NodeStateQueue BlockingQueue<NodeState> nodeStateQueue
+    public Application(
+            Server server,
+            PeerPool peerPool,
+            StateHandler stateHandler,
+            ListenerFactory listenerFactory,
+            BlockRepository blockRepository,
+            @NodeStateQueue BlockingQueue<NodeState> nodeStateQueue
     ) {
         this.server = server;
         this.peerPool = peerPool;
