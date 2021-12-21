@@ -43,7 +43,7 @@ public class Consensus extends StateListener {
         this.blockRepository = blockRepository;
     }
 
-    protected void doWork() {
+    protected void iteration() {
         nodeStateQueue.add(NodeState.INIT);
 
         // 1. Get all node addresses from DB

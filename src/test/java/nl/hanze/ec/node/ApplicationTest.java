@@ -52,7 +52,7 @@ public class ApplicationTest {
                     "\"previous_block_hash\":\"$previousBlockHash$\"," +
                     "\"block_height\":0,\"hash\":\"$hash$\"" +
                 "}]," +
-                "\"command\":\"headers-response\"}", json);
+                "\"command\":\"headers-response\",\"responseTo\":1}", json);
     }
 
     @Test
