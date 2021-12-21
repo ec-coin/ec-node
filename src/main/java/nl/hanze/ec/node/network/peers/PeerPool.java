@@ -184,59 +184,33 @@ public class PeerPool implements Runnable {
 
     @Override
     public void run() {
-//        // Mock data when not present
-//        if (blockRepository.getCurrentBlockHeight() != 20) {
-//            Block prevBlock = blockRepository.getCurrentBlock();
-//
-//            for (int i = 0; i < 20; i++) {
-//                String previousBlockHash = prevBlock.getHash();
-//                String merkleRootHash = HashingService.hash("" + i);
-//                String hash = HashingService.hash(previousBlockHash + merkleRootHash);
-//                int blockheight = prevBlock.getBlockHeight() + 1;
-//
-//                Block block = blockRepository.createBlock(hash, previousBlockHash, merkleRootHash, blockheight);
-//
-//                for (int j = 0; j < 10; j++) {
-//                    String transactionHash1 = HashingService.hash("transaction" + i);
-//                    String fromHash1 = "**addressFrom**";
-//                    String toHash1 = "**addressTo**";
-//                    String signature1 = "**signature**";
-//                    transactionRepository.createTransaction(transactionHash1, block, fromHash1, toHash1, 50.4f, signature1, "wallet");
-//                }
-//
-//                prevBlock = block;
-//            }
-//
-//            this.blockStartHeight = blockRepository.getCurrentBlockHeight();
-//        }
+        String password = "hello this is a hashhhhhhhhhhhhhhhhh";
+        String hash = HashingService.hash(password);
+        System.out.println("hash: " + hash);
 
-//        String password = "hello this is a hashhhhhhhhhhhhhhhhh";
-//        String hash = HashingService.hash(password);
-//        System.out.println("hash: " + hash);
-//
-//        fillDatabaseWithMockData();
-//
-//        float balance = transactionRepository.getBalance("333333333333333333333333333333333333333333333333333333333333");
-//        float stake = transactionRepository.getStake("333333333333333333333333333333333333333333333333333333333333");
-//        System.out.println("balance before: " + balance);
-//        System.out.println("stake before: " + stake);
-//        balancesCacheRepository.updateBalanceCache("333333333333333333333333333333333333333333333333333333333333", balance);
-//
-//        balance = transactionRepository.getBalance("333333333333333333333333333333333333333333333333333333333333");
-//        stake = transactionRepository.getStake("333333333333333333333333333333333333333333333333333333333333");
-//        System.out.println("\nbalance after: " + balance);
-//        System.out.println("stake before: " + stake);
-//        balancesCacheRepository.updateBalanceCache("333333333333333333333333333333333333333333333333333333333333", balance);
-//
-//        Block block = blockRepository.getCurrentBlock();
-//        Iterator<Transaction> iterator = block.getTransactions().iterator();
-//        Transaction transaction = iterator.next();
-//        System.out.println("\nIn block with hash " + block.getHash() + " there are " + block.getTransactions().size() + " transactions");
-//        System.out.println("hash of transaction 1: " + transaction.getHash() + " with status: " + transaction.getStatus());
-//        transaction = iterator.next();
-//        System.out.println("hash of transaction 2: " + transaction.getHash() + " with status: " + transaction.getStatus());
-//        transaction = iterator.next();
-//        System.out.println("hash of transaction 3: " + transaction.getHash() + " with status: " + transaction.getStatus());
+        fillDatabaseWithMockData();
+
+        float balance = transactionRepository.getBalance("333333333333333333333333333333333333333333333333333333333333");
+        float stake = transactionRepository.getStake("333333333333333333333333333333333333333333333333333333333333");
+        System.out.println("balance before: " + balance);
+        System.out.println("stake before: " + stake);
+        balancesCacheRepository.updateBalanceCache("333333333333333333333333333333333333333333333333333333333333", balance);
+
+        balance = transactionRepository.getBalance("333333333333333333333333333333333333333333333333333333333333");
+        stake = transactionRepository.getStake("333333333333333333333333333333333333333333333333333333333333");
+        System.out.println("\nbalance after: " + balance);
+        System.out.println("stake before: " + stake);
+        balancesCacheRepository.updateBalanceCache("333333333333333333333333333333333333333333333333333333333333", balance);
+
+        Block block = blockRepository.getCurrentBlock();
+        Iterator<Transaction> iterator = block.getTransactions().iterator();
+        Transaction transaction = iterator.next();
+        System.out.println("\nIn block with hash " + block.getHash() + " there are " + block.getTransactions().size() + " transactions");
+        System.out.println("hash of transaction 1: " + transaction.getHash() + " with status: " + transaction.getStatus());
+        transaction = iterator.next();
+        System.out.println("hash of transaction 2: " + transaction.getHash() + " with status: " + transaction.getStatus());
+        transaction = iterator.next();
+        System.out.println("hash of transaction 3: " + transaction.getHash() + " with status: " + transaction.getStatus());
 
         while (running.get()) {
             //################################
