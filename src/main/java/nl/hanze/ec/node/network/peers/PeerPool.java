@@ -13,6 +13,7 @@ import nl.hanze.ec.node.network.peers.peer.Peer;
 import nl.hanze.ec.node.network.peers.peer.PeerConnection;
 import nl.hanze.ec.node.network.peers.peer.PeerConnectionFactory;
 import nl.hanze.ec.node.network.peers.peer.PeerState;
+import nl.hanze.ec.node.utils.HashingUtils;
 import nl.hanze.ec.node.utils.SignatureUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -187,8 +188,34 @@ public class PeerPool implements Runnable {
 
     @Override
     public void run() {
-        fillDatabaseWithMockData();
-        logDatabaseInteraction();
+        // Mock data when not present
+        if (blockRepository.getCurrentBlockHeight() != 20) {
+            Block prevBlock = blockRepository.getCurrentBlock();
+
+            for (int i = 0; i < 20; i++) {
+                String previousBlockHash = prevBlock.getHash();
+                String merkleRootHash = HashingUtils.hash("" + i);
+                String hash = HashingUtils.hash(previousBlockHash + merkleRootHash);
+                int blockheight = prevBlock.getBlockHeight() + 1;
+
+                Block block = blockRepository.createBlock(hash, previousBlockHash, merkleRootHash, blockheight);
+
+                for (int j = 0; j < 10; j++) {
+                    String transactionHash1 = HashingUtils.hash("transaction" + i);
+                    String fromHash1 = "**addressFrom**";
+                    String toHash1 = "**addressTo**";
+                    String signature1 = "**signature**";
+                    transactionRepository.createTransaction(transactionHash1, block, fromHash1, toHash1, 50.4f, signature1, "wallet");
+                }
+
+                prevBlock = block;
+            }
+
+            this.blockStartHeight = blockRepository.getCurrentBlockHeight();
+        }
+
+//        fillDatabaseWithMockData();
+//        logDatabaseInteraction();
 
         while (true) {
             //################################
