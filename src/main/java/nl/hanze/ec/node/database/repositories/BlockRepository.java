@@ -74,6 +74,17 @@ public class BlockRepository {
         return rootMerkleHash;
     }
 
+    public synchronized int getNumberOfBlocks() {
+        int count = 0;
+        try {
+            count = (int) blockDAO.queryRawValue("select COUNT(block_height) from Blocks");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return count;
+    }
+
     public synchronized int getCurrentBlockHeight() {
         int height = 0;
         try {
@@ -83,6 +94,37 @@ public class BlockRepository {
         }
 
         return height;
+    }
+
+    public synchronized Integer getBlockHeight(String hash) {
+        try {
+            List<Block> blocks = blockDAO.queryBuilder()
+                    .where().eq("hash", hash).query();
+
+            if (blocks.size() == 1) {
+                return blocks.get(0).getBlockHeight();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public synchronized Block getBlock(int block_height) {
+        try {
+            List<Block> blocks = blockDAO.queryBuilder()
+                    .orderBy("block_height", true)
+                    .where().eq("block_height", block_height).query();
+
+            if (blocks.size() == 1) {
+                return blocks.get(0);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
     public synchronized Block getCurrentBlock() {

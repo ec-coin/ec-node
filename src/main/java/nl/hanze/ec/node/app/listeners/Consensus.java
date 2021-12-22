@@ -43,11 +43,13 @@ public class Consensus extends StateListener {
         this.blockRepository = blockRepository;
     }
 
-    protected void doWork() {
+    protected void iteration() {
         nodeStateQueue.add(NodeState.INIT);
 
         // 1. Get all node addresses from DB
         List<String> nodes = transactionRepository.getAllNodeAddresses();
+
+        waitIfStateIncorrect();
 
         // 2. Set nodes as validating nodes by paying a transaction fee.
         for (String node : nodes) {
@@ -55,8 +57,12 @@ public class Consensus extends StateListener {
             transactionRepository.addNodeAsValidatingNode(HashingUtils.hash(node), null, node, signature);
         }
 
+        waitIfStateIncorrect();
+
         // 3. Check which node's nodeState == validating.
         List<String> validatingNodes = transactionRepository.getAllValidatingNodes();
+
+        waitIfStateIncorrect();
 
         // 4. Determine if transaction threshold has been reached
         if (transactionRepository.transactionThresholdReached()) {

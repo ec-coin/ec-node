@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit;
 
 public class WaitForResponse implements Command {
     protected Request command;
-    protected Response response;
+    protected Response response = null;
     private long timeout;
     private CountDownLatch latch = new CountDownLatch(1);
 

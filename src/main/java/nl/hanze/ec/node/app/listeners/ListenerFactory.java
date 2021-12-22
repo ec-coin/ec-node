@@ -39,9 +39,10 @@ public class ListenerFactory {
             );
         } else if (listener == BlockSyncer.class) {
             return new BlockSyncer(
-                nodeStateQueue,
-                peerPool,
-                blockRepositoryProvider.get()
+                    nodeStateQueue,
+                    peerPool,
+                    blockRepositoryProvider.get(),
+                    transactionRepositoryProvider.get()
             );
         }
 
