@@ -5,13 +5,24 @@ import nl.hanze.ec.node.network.peers.PeerPool;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class StateListener implements Listener {
     protected final BlockingQueue<NodeState> nodeStateQueue;
     protected final PeerPool peerPool;
-    private CountDownLatch latch;
-    private boolean running = true;
+    protected CountDownLatch latch;
 
+    /**
+     * Is the Listener running?
+     */
+    private final AtomicBoolean running = new AtomicBoolean(true);
+
+    /**
+     * Constructs listener
+     *
+     * @param nodeStateQueue queue that holds node state changes.
+     * @param peerPool the peer pool used to communicate with peers.
+     */
     public StateListener(BlockingQueue<NodeState> nodeStateQueue, PeerPool peerPool) {
         this.nodeStateQueue = nodeStateQueue;
         this.peerPool = peerPool;
@@ -20,24 +31,16 @@ public abstract class StateListener implements Listener {
 
     @Override
     public void run() {
-        while (true) {
-            try {
-                latch.await();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+        while (running.get()) {
+            waitIfStateIncorrect();
 
-            if (this.running) {
-                doWork();
-            } else {
-                break;
-            }
+            iteration();
         }
     }
 
     public void stateChanged(NodeState state) {
         if (state == NodeState.CLOSING) {
-            running = false;
+            running.set(false);
         }
 
         if (latch.getCount() == 0) {
@@ -47,8 +50,22 @@ public abstract class StateListener implements Listener {
         if (listenFor().contains(state)) {
             this.latch.countDown();
         }
-
     }
 
-    protected abstract void doWork();
+    /**
+     * Sleep thread when current node state is not in listenFor() (i.e. latch != 1)
+     */
+    protected void waitIfStateIncorrect() {
+        try {
+            if (this.latch.getCount() != 0) {
+                beforeSleep();
+            }
+
+            this.latch.await();
+        } catch (InterruptedException ignore) {}
+    }
+
+    protected void beforeSleep() {}
+
+    protected abstract void iteration();
 }

@@ -2,7 +2,7 @@ package nl.hanze.ec.node.network.peers.peer;
 
 import nl.hanze.ec.node.exceptions.InvalidCommand;
 import nl.hanze.ec.node.network.peers.commands.*;
-import nl.hanze.ec.node.network.peers.commands.announcements.Announcement;
+import nl.hanze.ec.node.network.peers.commands.handshake.Handshake;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
@@ -29,17 +29,18 @@ public class PeerConnection implements Runnable {
     private PrintWriter out;
     private BufferedReader in;
     private final BlockingQueue<Command> commandQueue;
-    private CommandFactory commandFactory;
+    private final CommandFactory commandFactory;
 
     private DateTime lastPingSent = new DateTime();
     private boolean waitingForPong = false;
 
     public PeerConnection(
-            Peer peer,
-            BlockingQueue<Command> commandQueue,
-            Socket socket,
-            PeerStateMachine stateMachine,
-            CommandFactory commandFactory) {
+        Peer peer,
+        BlockingQueue<Command> commandQueue,
+        Socket socket,
+        PeerStateMachine stateMachine,
+        CommandFactory commandFactory
+    ) {
         this.peer = peer;
         this.commandQueue = commandQueue;
         this.socket = socket;
@@ -92,7 +93,11 @@ public class PeerConnection implements Runnable {
                 // Invalid command in current state, ignoring
                 if (cmd == null) continue;
 
-                logger.info("Sending:" + cmd);
+                if (command instanceof Handshake) {
+                    logger.debug("Sending:" + cmd);
+                } else {
+                    logger.info("Sending:" + cmd);
+                }
 
                 // Write to output stream
                 out.println(cmd);
@@ -123,7 +128,11 @@ public class PeerConnection implements Runnable {
 
                         Command cmd = commandFactory.create(payload);
 
-                        logger.info("Received:" + response);
+                        if (cmd instanceof Handshake) {
+                            logger.debug("Received:" + response);
+                        } else {
+                            logger.info("Received:" + response);
+                        }
 
                         stateMachine.input(cmd);
                     } catch (JSONException | InvalidCommand e) {
@@ -146,9 +155,6 @@ public class PeerConnection implements Runnable {
                     break;
                 }
             }
-
-
-
         }
 
         try {

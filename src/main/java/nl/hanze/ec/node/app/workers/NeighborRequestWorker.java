@@ -11,6 +11,7 @@ import java.util.concurrent.BlockingQueue;
 
 public class NeighborRequestWorker extends Worker {
     private final NeighboursRepository neighboursRepository;
+
     public NeighborRequestWorker(Command receivedCommand,
                                  BlockingQueue<Command> peerCommandQueue,
                                  NeighboursRepository neighboursRepository) {
@@ -20,7 +21,7 @@ public class NeighborRequestWorker extends Worker {
 
     @Override
     public void run() {
-        List<Object> ips = new ArrayList<>();
+        List<String> ips = new ArrayList<>();
 
         for(Neighbour n : neighboursRepository.getAllNeighbours()) {
             ips.add(n.getIp());

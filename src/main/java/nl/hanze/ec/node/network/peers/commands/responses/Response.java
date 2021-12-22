@@ -1,5 +1,7 @@
 package nl.hanze.ec.node.network.peers.commands.responses;
 
-public interface Response {
+import nl.hanze.ec.node.network.peers.commands.Command;
+
+public interface Response extends Command {
     public Integer inResponseTo();
 }

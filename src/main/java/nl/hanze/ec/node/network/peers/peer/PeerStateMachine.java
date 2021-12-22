@@ -1,5 +1,7 @@
 package nl.hanze.ec.node.network.peers.peer;
 
+import nl.hanze.ec.node.app.workers.Worker;
+import nl.hanze.ec.node.database.repositories.BlockRepository;
 import nl.hanze.ec.node.network.peers.PeerPool;
 import nl.hanze.ec.node.network.peers.commands.*;
 import nl.hanze.ec.node.network.peers.commands.announcements.Announcement;
@@ -20,6 +22,7 @@ public class PeerStateMachine {
     private final Peer peer;
     private final BlockingQueue<Command> commandQueue;
     private final PeerPool peerPool;
+    private final BlockRepository blockRepository;
 
     private final Map<Integer, WaitForResponse> requestsWaitingForResponse = new HashMap<>();
     private int commandCounter = 0;
@@ -34,11 +37,13 @@ public class PeerStateMachine {
     PeerStateMachine(
             Peer peer,
             BlockingQueue<Command> commandQueue,
-            PeerPool peerPool
+            PeerPool peerPool,
+            BlockRepository blockRepository
     ) {
         this.peer = peer;
         this.commandQueue = commandQueue;
         this.peerPool = peerPool;
+        this.blockRepository = blockRepository;
     }
 
     /**
@@ -46,7 +51,7 @@ public class PeerStateMachine {
      */
     public void start() {
         // Add version command to queue, so it will be sent when the thread is dispatched
-        commandQueue.add(new VersionCommand(0));
+        commandQueue.add(new VersionCommand(blockRepository.getCurrentBlockHeight()));
     }
 
     /**
@@ -84,9 +89,10 @@ public class PeerStateMachine {
         // When the command is a handshake command, update state accordingly
         if (command instanceof Handshake) {
             if (command instanceof VersionCommand) {
-                // Save the version number from the peer.
-                double version = ((VersionCommand) command).getVersion();
-                peer.setVersion(version);
+                // Save the version number and start height from the peer.
+                VersionCommand cmd = (VersionCommand) command;
+                peer.setVersion(cmd.getVersion());
+                peer.setStartHeight(cmd.getStartHeight());
 
                 // If VERSION_ACK already received transition to ESTABLISHED
                 // else wait for VERSION_ACK
@@ -106,20 +112,26 @@ public class PeerStateMachine {
 
             // When connection is ESTABLISHED with peer inform event via logger.
             if (peer.getState() == PeerState.ESTABLISHED) {
-                logger.info("Connection with peer " + peer.getIp() + "@" + peer.getPort() + " is now established");
+                logger.info("Connection with peer " + peer.getIp() + " w/ startHeight: " + peer.getStartHeight() + " is now established");
             }
         } else {
             // When command is not a handshake command, only allow them when the state with this peer is ESTABLISHED.
             if (peer.getState() == PeerState.ESTABLISHED) {
                 // Execute the associated worker for this command.
-                command.getWorker(command, commandQueue).run();
+                Worker worker = command.getWorker(command, commandQueue);
+                if (worker != null) {
+                    worker.run();
+                }
 
                 // When the command is a response, try to resolve the associated request
                 // and wake up the thread that is waiting for this response.
                 if (command instanceof Response) {
-                    Integer responseTo = ((Response) command).inResponseTo();
+                    Response response = (Response) command;
+                    Integer responseTo = response.inResponseTo();
                     WaitForResponse request = requestsWaitingForResponse.get(responseTo);
+
                     if (request != null) {
+                        request.setResponse(response);
                         request.resolve();
                         requestsWaitingForResponse.remove(responseTo);
                     }

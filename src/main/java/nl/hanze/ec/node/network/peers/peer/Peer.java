@@ -10,6 +10,7 @@ public class Peer {
     private final int port;
     private final AtomicReference<PeerState> state;
     private double version;
+    private int start_height;
 
     public Peer(String ip, int port) {
         try {
@@ -43,6 +44,14 @@ public class Peer {
 
     public void setVersion(double version) {
         this.version = version;
+    }
+
+    public int getStartHeight() {
+        return start_height;
+    }
+
+    public void setStartHeight(int start_height) {
+        this.start_height = start_height;
     }
 
     @Override
