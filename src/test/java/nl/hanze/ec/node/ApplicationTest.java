@@ -2,6 +2,7 @@ package nl.hanze.ec.node;
 
 import nl.hanze.ec.node.database.models.Block;
 import nl.hanze.ec.node.network.peers.commands.responses.HeadersResponse;
+import nl.hanze.ec.node.utils.FileUtils;
 import org.json.JSONObject;
 import io.github.novacrypto.bip39.MnemonicGenerator;
 import io.github.novacrypto.bip39.SeedCalculator;
@@ -100,6 +101,13 @@ public class ApplicationTest {
             signer.update("hello world".getBytes());
             byte[] signature = signer.sign();
             System.out.println("Signature: " + new BigInteger(signature).toString(16));
+
+            KeyPair keyPair = new KeyPair(publicKey, privateKey);
+            byte[] sig = SignatureUtils.sign(keyPair, "hello world");
+            boolean verified = SignatureUtils.verify(publicKey, sig, "hello world");
+            System.out.println("verified: " + verified);
+
+            System.out.println(FileUtils.writeToResources("privateKey.txt", privateKey));
 
             // return new KeyPair(publicKey, privateKey);
         } catch (SignatureException | InvalidKeyException | NoSuchAlgorithmException | NoSuchProviderException | InvalidKeySpecException e) {

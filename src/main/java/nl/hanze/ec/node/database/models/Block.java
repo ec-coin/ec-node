@@ -26,6 +26,9 @@ public class Block {
     @DatabaseField(canBeNull = false, columnName = "timestamp")
     private DateTime timestamp;
 
+    @DatabaseField(canBeNull = false, columnName = "status")
+    private String status;
+
     @ForeignCollectionField(eager = false)
     private transient ForeignCollection<Transaction> transactions;
 
@@ -38,6 +41,7 @@ public class Block {
         this.merkleRootHash = merkleRootHash;
         this.blockHeight = blockHeight;
         this.timestamp = new DateTime();
+        this.status = "unvalidated";
     }
 
     public String getHash() {
@@ -58,6 +62,10 @@ public class Block {
 
     public DateTime getTimestamp() {
         return timestamp;
+    }
+
+    public String getStatus() {
+        return status;
     }
 
     public ForeignCollection<Transaction> getTransactions() {

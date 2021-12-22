@@ -32,7 +32,6 @@ public class API implements Runnable {
     }
 
     public void run() {
-        //blockRepository.getAllBlocks();
         setupTransactionEndPoints();
         setupBlockEndPoints();
         setupNeighbourEndPoints();
