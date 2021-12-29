@@ -58,7 +58,10 @@ public class ApplicationTest {
 
     @Test
     public void bip39ToKeyPair() {
-        try {
+        SignatureUtils.storeKeyPairInKeyStore();
+        SignatureUtils.retrieveKeyFromKeyStore();
+        return;
+        /*try {
             Security.addProvider(new BouncyCastleProvider());
 
             // Generate mnemonic
@@ -112,6 +115,6 @@ public class ApplicationTest {
             // return new KeyPair(publicKey, privateKey);
         } catch (SignatureException | InvalidKeyException | NoSuchAlgorithmException | NoSuchProviderException | InvalidKeySpecException e) {
             e.printStackTrace();
-        }
+        }*/
     }
 }

@@ -65,16 +65,10 @@ public class ECNetworkNodeRunner {
         //################################
         //  Create IoC Container and launch application
         //################################
-        AbstractModule databaseModule = new DatabaseModule();
         Guice.createInjector(
                 new ConfigModule(ns),
                 new ThreadCommunicationModule(),
-                databaseModule
+                new DatabaseModule()
         ).getInstance(Application.class).run();
-
-        Guice.createInjector(
-                databaseModule,
-                new APIModule()
-        ).getInstance(API.class).run();
     }
 }

@@ -11,6 +11,7 @@ import nl.hanze.ec.node.database.repositories.BalancesCacheRepository;
 import nl.hanze.ec.node.database.repositories.BlockRepository;
 import nl.hanze.ec.node.database.repositories.NeighboursRepository;
 import nl.hanze.ec.node.database.repositories.TransactionRepository;
+import spark.Filter;
 
 import static spark.Spark.*;
 
@@ -32,10 +33,19 @@ public class API implements Runnable {
     }
 
     public void run() {
+        APISetup();
         setupTransactionEndPoints();
         setupBlockEndPoints();
         setupNeighbourEndPoints();
         setupBalancesCacheEndPoints();
+    }
+
+    public void APISetup() {
+        after((request, response) -> {
+            response.header("Access-Control-Allow-Origin", "*");
+            response.header("Access-Control-Allow-Methods", "GET");
+        });
+
     }
 
     public void setupTransactionEndPoints() {
@@ -53,18 +63,18 @@ public class API implements Runnable {
             return new Gson().toJson(new StandardResponse(StatusResponse.SUCCESS));
         });
 
-        get("/transactions", (request, response) -> {
-            response.type("application/json");
-            return new Gson().toJson(
-                    new StandardResponse(StatusResponse.SUCCESS, new Gson()
-                            .toJsonTree(transactionRepository.getAllTransactions())));
-        });
-
         get("/transactions/:hash", (request, response) -> {
             response.type("application/json");
             return new Gson().toJson(
                     new StandardResponse(StatusResponse.SUCCESS, new Gson()
-                            .toJsonTree(transactionRepository.getTransaction(request.params(":hash")))));
+                            .toJsonTree(transactionRepository.getTransactionsByAddress(request.params(":hash")))));
+        });
+
+        get("/transaction/:id", (request, response) -> {
+            response.type("application/json");
+            return new Gson().toJson(
+                    new StandardResponse(StatusResponse.SUCCESS, new Gson()
+                            .toJsonTree(transactionRepository.getTransaction(request.params(":id")))));
         });
     }
 
