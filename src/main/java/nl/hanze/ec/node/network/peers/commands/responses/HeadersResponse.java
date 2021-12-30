@@ -36,13 +36,15 @@ public class HeadersResponse extends AbstractCommand implements Response {
                 put("previous_block_hash", previousBlockHash);
                 put("merkle_root_hash", merkleRootHash);
                 put("block_height", blockHeight);
+                put("type", type);
             }};
         }
 
         @Override
         public String toString() {
             return "Header{" + "hash='" + hash + '\'' + ", previousBlockHash='" + previousBlockHash + '\'' +
-                    ", merkleRootHash='" + merkleRootHash + '\'' + ", blockHeight=" + blockHeight + '}';
+                    ", merkleRootHash='" + merkleRootHash + '\'' + ", blockHeight=" + blockHeight + '}'
+                    + '\'' + ", type=" + type + '}';
         }
     }
 

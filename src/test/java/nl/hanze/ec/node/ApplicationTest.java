@@ -52,7 +52,7 @@ public class ApplicationTest {
                 "\"headers\":[{" +
                     "\"merkle_root_hash\":\"$merkleRootHash$\"," +
                     "\"previous_block_hash\":\"$previousBlockHash$\"," +
-                    "\"block_height\":0,\"hash\":\"$hash$\"" +
+                    "\"block_height\":0,\"type\":\"full\",\"hash\":\"$hash$\"" +
                 "}]," +
                 "\"command\":\"headers-response\",\"responseTo\":1}", json);
     }
@@ -60,7 +60,7 @@ public class ApplicationTest {
     @Test
     public void bip39ToKeyPair() {
         SignatureUtils.storeKeyPairInKeyStore();
-        SignatureUtils.retrieveKeyFromKeyStore();
+        //SignatureUtils.retrieveKeyFromKeyStore();
         return;
         /*try {
             Security.addProvider(new BouncyCastleProvider());

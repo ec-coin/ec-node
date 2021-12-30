@@ -44,6 +44,7 @@ public class TransactionsResponse extends AbstractCommand implements Response {
                 put("signature", signature);
                 put("status", status);
                 put("addressType", addressType);
+                put("publicKey", publicKey);
             }};
         }
 
