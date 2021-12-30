@@ -37,7 +37,8 @@ public class ApplicationTest {
 
     @Test
     public void testHeadersResponse() {
-        HeadersResponse resp1 = new HeadersResponse(new ArrayList<>() {{ add(new Block("$hash$", "$previousBlockHash$", "$merkleRootHash$", 0)); }}, 1);
+        String type = "full";
+        HeadersResponse resp1 = new HeadersResponse(new ArrayList<>() {{ add(new Block("$hash$", "$previousBlockHash$", "$merkleRootHash$", 0, type)); }}, 1);
 
         String json = resp1.getPayload().toString();
 

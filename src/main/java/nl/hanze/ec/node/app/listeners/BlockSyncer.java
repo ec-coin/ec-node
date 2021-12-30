@@ -74,7 +74,8 @@ public class BlockSyncer extends StateListener {
                     block.getHash(),
                     block.getPreviousBlockHash(),
                     block.getMerkleRootHash(),
-                    block.getBlockHeight()
+                    block.getBlockHeight(),
+                    block.getType()
             );
 
             for(HeadersResponse.Header header : headers) {
@@ -93,7 +94,8 @@ public class BlockSyncer extends StateListener {
                         header.hash,
                         header.previousBlockHash,
                         header.merkleRootHash,
-                        header.blockHeight
+                        header.blockHeight,
+                        header.type
                 );
 
                 localBlockHeight++; // localBlockHeight = header.blockHeight
@@ -104,7 +106,7 @@ public class BlockSyncer extends StateListener {
         }
 
         // TODO: only retrieve blocks that miss transactions
-        List<Block> blocks = blockRepository.getAllBlocks();
+        List<Block> blocks = blockRepository.getAllBlocksOfParticularType("full");
 
         for (Block block : blocks) {
             WaitForResponse command = new WaitForResponse(new TransactionsRequest(block.getHash()));
@@ -135,7 +137,8 @@ public class BlockSyncer extends StateListener {
                         transaction.to,
                         transaction.amount,
                         transaction.signature,
-                        transaction.addressType
+                        transaction.addressType,
+                        transaction.publicKey
                 );
             }
 

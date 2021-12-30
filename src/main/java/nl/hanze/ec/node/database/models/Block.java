@@ -26,8 +26,8 @@ public class Block {
     @DatabaseField(canBeNull = false, columnName = "timestamp")
     private DateTime timestamp;
 
-    @DatabaseField(canBeNull = false, columnName = "status")
-    private String status;
+    @DatabaseField(canBeNull = false, columnName = "type")
+    private String type;
 
     @ForeignCollectionField(eager = false)
     private transient ForeignCollection<Transaction> transactions;
@@ -35,13 +35,20 @@ public class Block {
     // ORMLite requires a no-arg constructor.
     public Block() {}
 
-    public Block(String hash, String previousBlockHash, String merkleRootHash, int blockHeight) {
+    public Block(
+            String hash,
+            String previousBlockHash,
+            String merkleRootHash,
+            int blockHeight,
+            String type,
+            DateTime... dateTime
+    ) {
         this.hash = hash;
         this.previousBlockHash = previousBlockHash;
         this.merkleRootHash = merkleRootHash;
         this.blockHeight = blockHeight;
-        this.timestamp = new DateTime();
-        this.status = "unvalidated";
+        this.type = type;
+        this.timestamp = (dateTime.length == 1) ? dateTime[0] : new DateTime();
     }
 
     public String getHash() {
@@ -64,8 +71,8 @@ public class Block {
         return timestamp;
     }
 
-    public String getStatus() {
-        return status;
+    public String getType() {
+        return type;
     }
 
     public ForeignCollection<Transaction> getTransactions() {

@@ -109,7 +109,7 @@ public class Application {
     }
 
     private void createGenesisBlock() {
-        blockRepository.createBlock("GENESIS", "NULL", "GENESIS", 0);
+        blockRepository.createBlock("GENESIS", "NULL", "GENESIS", 0, "full");
     }
 
     public static NodeState getState() {

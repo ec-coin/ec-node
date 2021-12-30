@@ -19,13 +19,15 @@ public class HeadersResponse extends AbstractCommand implements Response {
         public String previousBlockHash;
         public String merkleRootHash;
         public int blockHeight;
+        public String type;
         // private DateTime timestamp;
 
-        public Header(String hash, String previousBlockHash, String merkleRootHash, int blockHeight) {
+        public Header(String hash, String previousBlockHash, String merkleRootHash, int blockHeight, String type) {
             this.hash = hash;
             this.previousBlockHash = previousBlockHash;
             this.merkleRootHash = merkleRootHash;
             this.blockHeight = blockHeight;
+            this.type = type;
         }
 
         public Map<String, Object> toMap() {
@@ -53,7 +55,8 @@ public class HeadersResponse extends AbstractCommand implements Response {
                         header.getHash(),
                         header.getPreviousBlockHash(),
                         header.getMerkleRootHash(),
-                        header.getBlockHeight()
+                        header.getBlockHeight(),
+                        header.getType()
                 )).collect(Collectors.toList());
 
         this.responseTo = responseTo;
@@ -80,7 +83,8 @@ public class HeadersResponse extends AbstractCommand implements Response {
                             header.get("hash").toString(),
                             header.get("previous_block_hash").toString(),
                             header.get("merkle_root_hash").toString(),
-                            blockHeight
+                            blockHeight,
+                            header.get("type").toString()
                     ));
                 }
             }

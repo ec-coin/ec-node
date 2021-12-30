@@ -11,7 +11,9 @@ import nl.hanze.ec.node.database.repositories.BalancesCacheRepository;
 import nl.hanze.ec.node.database.repositories.BlockRepository;
 import nl.hanze.ec.node.database.repositories.NeighboursRepository;
 import nl.hanze.ec.node.database.repositories.TransactionRepository;
-import spark.Filter;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static spark.Spark.*;
 
@@ -45,17 +47,9 @@ public class API implements Runnable {
             response.header("Access-Control-Allow-Origin", "*");
             response.header("Access-Control-Allow-Methods", "GET");
         });
-
     }
 
     public void setupTransactionEndPoints() {
-        get("/transactions", (request, response) -> {
-            response.type("application/json");
-            return new Gson().toJson(
-                    new StandardResponse(StatusResponse.SUCCESS, new Gson()
-                            .toJsonTree(transactionRepository.getAllTransactions())));
-        });
-
         post("/transactions", (request, response) -> {
             response.type("application/json");
             Transaction transaction = new Gson().fromJson(request.body(), Transaction.class);
@@ -63,18 +57,30 @@ public class API implements Runnable {
             return new Gson().toJson(new StandardResponse(StatusResponse.SUCCESS));
         });
 
-        get("/transactions/:hash", (request, response) -> {
+        get("/transactions", (request, response) -> {
             response.type("application/json");
-            return new Gson().toJson(
-                    new StandardResponse(StatusResponse.SUCCESS, new Gson()
-                            .toJsonTree(transactionRepository.getTransactionsByAddress(request.params(":hash")))));
-        });
 
-        get("/transaction/:id", (request, response) -> {
-            response.type("application/json");
+            List<Transaction> transactions = new ArrayList<>();
+            if (request.queryParams().size() == 0) {
+                transactions = transactionRepository.getAllTransactions();
+            }
+            else {
+                String parameter = (String) request.queryParams().toArray()[0];
+                String parameterValue = request.queryParamsValues(parameter)[0];
+
+                if (parameter.equals("hash")) {
+                    return new Gson().toJson(
+                            new StandardResponse(StatusResponse.SUCCESS,
+                                    new Gson().toJsonTree(transactionRepository.getTransaction(parameterValue)))
+                    );
+                }
+                else if (parameter.equals("from") || parameter.equals("to")) {
+                    transactions = transactionRepository.getTransactionsByAddress(parameterValue);
+                }
+            }
             return new Gson().toJson(
-                    new StandardResponse(StatusResponse.SUCCESS, new Gson()
-                            .toJsonTree(transactionRepository.getTransaction(request.params(":id")))));
+                    new StandardResponse(StatusResponse.SUCCESS, new Gson().toJsonTree(transactions))
+            );
         });
     }
 

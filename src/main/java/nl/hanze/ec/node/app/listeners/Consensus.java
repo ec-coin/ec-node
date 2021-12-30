@@ -51,10 +51,12 @@ public class Consensus extends StateListener {
 
         waitIfStateIncorrect();
 
+        String publicKey = "temp";
+
         // 2. Set nodes as validating nodes by paying a transaction fee.
         for (String node : nodes) {
             String signature = "temporary signature";
-            transactionRepository.addNodeAsValidatingNode(HashingUtils.hash(node), null, node, signature);
+            transactionRepository.addNodeAsValidatingNode(HashingUtils.hash(node), null, node, signature, publicKey);
         }
 
         waitIfStateIncorrect();
@@ -106,7 +108,7 @@ public class Consensus extends StateListener {
         }
 
         String blockHash = HashingUtils.hash(hashInput + prevHash);
-        Block block = blockRepository.createBlock(blockHash, prevHash, merkleRootHash, blockHeight + 1);
+        Block block = blockRepository.createBlock(blockHash, prevHash, merkleRootHash, blockHeight + 1, "full");
 
         if (block != null) {
             new NewBlockAnnouncement(block.toJSONObject());

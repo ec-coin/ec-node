@@ -198,14 +198,15 @@ public class PeerPool implements Runnable {
                 String hash = HashingUtils.hash(previousBlockHash + merkleRootHash);
                 int blockheight = prevBlock.getBlockHeight() + 1;
 
-                Block block = blockRepository.createBlock(hash, previousBlockHash, merkleRootHash, blockheight);
+                Block block = blockRepository.createBlock(hash, previousBlockHash, merkleRootHash, blockheight, "full");
 
                 for (int j = 0; j < 10; j++) {
                     String transactionHash1 = HashingUtils.hash("transaction" + i);
                     String fromHash1 = "**addressFrom**";
                     String toHash1 = "**addressTo**";
                     String signature1 = "**signature**";
-                    transactionRepository.createTransaction(transactionHash1, block, fromHash1, toHash1, 50.4f, signature1, "wallet");
+                    String publicKey1 = "**publicKey**";
+                    transactionRepository.createTransaction(transactionHash1, block, fromHash1, toHash1, 50.4f, signature1, "wallet", publicKey1);
                 }
 
                 prevBlock = block;
@@ -387,48 +388,7 @@ public class PeerPool implements Runnable {
         }
     }
 
-    private void fillDatabaseWithMockData() {
-        // Create some mock blocks;
-        String blockHash1 = "7e35543e662e1ff7e399d1ad7f92f4f3945769328ff3cf58535cf5c5529de31e";
-        String previousBlockHash1 = "39523F928AF4839398BDCE380000000000000000000000000000000000000000";
-        String merkleRootHash = "0000000000000000000000000000000000000000000000000000000000000000";
-        int blockheight = 0;
-        blockRepository.createBlock(blockHash1, previousBlockHash1, merkleRootHash, blockheight);
 
-        String blockHash2 = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
-        String previousBlockHash2 = "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB";
-        blockRepository.createBlock(blockHash2, previousBlockHash2, merkleRootHash, ++blockheight);
-
-        balancesCacheRepository.getAllBalancesInCache();
-        List<Block> blocks = blockRepository.getAllBlocks();
-
-        // Create some mock transactions;
-        float amount = 5;
-
-        String transactionHash1 = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF";
-        String fromHash1 = "2222222222222222222222222222222222222222222222222222222222222222";
-        String toHash1 = "3333333333333333333333333333333333333333333333333333333333333333";
-        String signature1 = "1111111111111111111111111111111111111111111111111111111111111111";
-        transactionRepository.createTransaction(transactionHash1, null, fromHash1, toHash1, amount, signature1, "node");
-
-        String transactionHash2 = "AAAAAFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF";
-        String fromHash2 = "3333333333333333333333333333333333333333333333333333333333333333";
-        String toHash2 = "33333333333333333333333333333333333333333333333333333333333AAAAA";
-        String signature2 = "11111111111111111111111111111111111111111111111111111111111AAAAA";
-        transactionRepository.createTransaction(transactionHash2, null, fromHash1, toHash1, 10, signature2, "node");
-
-        String transactionHash3 = "BBBBBFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF";
-        String fromHash3 = "22222222222222222222222222222222222222222222222222222222222BBBBB";
-        String toHash3 = "33333333333333333333333333333333333333333333333333333333333BBBBB";
-        String signature3 = "11111111111111111111111111111111111111111111111111111111111BBBBB";
-        transactionRepository.createTransaction(transactionHash3, null, fromHash1, toHash2, amount, signature3, "node");
-
-        String transactionHash4 = "CCCCCFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF";
-        String fromHash4 = "22222222222222222222222222222222222222222222222222222222222CCCCC";
-        String toHash4 = "33333333333333333333333333333333333333333333333333333333333CCCCC";
-        String signature4 = "11111111111111111111111111111111111111111111111111111111111CCCCC";
-        transactionRepository.createTransaction(transactionHash4, null, fromHash4, toHash4, amount, signature4, "wallet");
-    }
 
     public static int getTransactionThreshold() {
         return transactionThreshold;

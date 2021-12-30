@@ -34,18 +34,23 @@ public class Transaction {
     @DatabaseField(canBeNull = false, columnName = "address_type")
     private String addressType;
 
+    @DatabaseField(canBeNull = false, columnName = "public_key")
+    private String publicKey;
+
     // ORMLite requires a no-arg constructor.
     public Transaction() {}
 
     public Transaction(
-        String hash,
-        Block block,
-        String from,
-        String to,
-        float amount,
-        String signature,
-        String status,
-        String addressType
+            String hash,
+            Block block,
+            String from,
+            String to,
+            float amount,
+            String signature,
+            String status,
+            String addressType,
+            String publicKey,
+            DateTime... dateTime
     ) {
         this.hash = hash;
         this.block = block;
@@ -55,7 +60,8 @@ public class Transaction {
         this.signature = signature;
         this.status = status;
         this.addressType = addressType;
-        this.timestamp = new DateTime();
+        this.publicKey = publicKey;
+        this.timestamp = (dateTime.length == 1) ? dateTime[0] : new DateTime();
     }
 
     public String getHash() {
@@ -90,5 +96,11 @@ public class Transaction {
         return this.timestamp;
     }
 
-    public String getAddressType() { return this.addressType; }
+    public String getAddressType() {
+        return this.addressType;
+    }
+
+    public String getPublicKey() {
+        return this.publicKey;
+    }
 }
