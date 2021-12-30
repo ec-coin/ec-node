@@ -13,6 +13,7 @@ import nl.hanze.ec.node.network.peers.commands.responses.HeadersResponse;
 import nl.hanze.ec.node.network.peers.commands.responses.TransactionsResponse;
 import nl.hanze.ec.node.network.peers.peer.Peer;
 import nl.hanze.ec.node.network.peers.peer.PeerState;
+import nl.hanze.ec.node.utils.HashingUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +30,6 @@ public class BlockSyncer extends StateListener {
 
     private final BlockRepository blockRepository;
     private final TransactionRepository transactionRepository;
-    private boolean tempSyncingComplete;
 
     public BlockSyncer(
             @NodeStateQueue BlockingQueue<NodeState> nodeStateQueue,
@@ -44,13 +44,8 @@ public class BlockSyncer extends StateListener {
     }
 
     protected void iteration() {
-        // Determine a sync node
-        if (syncingPeer == null || syncingPeer.getState() == PeerState.CLOSED) {
-            determineSyncingPeer();
-        }
-
-        waitIfStateIncorrect();
-
+        // TODO: only download blocks up until a certain threshold (to prevent downloading blocks that are incorrect)
+        // Historic data / simulator data. block sync window
         while (localBlockHeight < syncingPeer.getStartHeight()) {
             String hash = blockRepository.getCurrentBlockHash(localBlockHeight);
             Block block = blockRepository.getBlock(localBlockHeight);
@@ -60,7 +55,7 @@ public class BlockSyncer extends StateListener {
             command.await();
 
             if (command.getResponse() == null) {
-                // TODO: fix new syncingPeer
+                determineSyncingPeer();
                 continue;
             }
 
@@ -78,7 +73,7 @@ public class BlockSyncer extends StateListener {
             );
 
             for(HeadersResponse.Header header : headers) {
-                // Validate header.
+                // Validate previous hash.
                 if (!prevHeader.hash.equals(header.previousBlockHash) ||
                         prevHeader.blockHeight+1 != header.blockHeight) {
                     // TODO: INVALID BLOCK choose other node to sync with
@@ -86,6 +81,24 @@ public class BlockSyncer extends StateListener {
                     System.out.println("prev" + prevHeader);
                     System.out.println("curr" + header);
                     break;
+                }
+
+                // Validate hash.
+                String blockHash = HashingUtils.hash(header.previousBlockHash + header.merkleRootHash);
+                if (!blockHash.equals(header.hash)) {
+                    // TODO: INVALID BLOCK choose other node to sync with
+                    System.out.println("INVALID HASH FOUND");
+                    System.out.println("prev" + prevHeader);
+                    System.out.println("curr" + header);
+                    break;
+                }
+
+                // Validate block height
+                if (header.blockHeight != (localBlockHeight + 1)) {
+                    // TODO: INVALID BLOCK choose other node to sync with
+                    System.out.println("INVALID BLOCK_HEIGHT FOUND");
+                    System.out.println("prev" + prevHeader);
+                    System.out.println("curr" + header);
                 }
 
                 // TODO: use timestamp from syncing node?
@@ -96,7 +109,7 @@ public class BlockSyncer extends StateListener {
                         header.blockHeight
                 );
 
-                localBlockHeight++; // localBlockHeight = header.blockHeight
+                localBlockHeight++;
                 prevHeader = header;
             }
 
@@ -123,9 +136,7 @@ public class BlockSyncer extends StateListener {
             // TODO: Validate merkle root of transactions with merkle root of block in DB.
 
             for(TransactionsResponse.Tx transaction : transactions) {
-                // TODO: Validate transaction.
-                // (1) signature
-                // (2) valid amount
+                // TODO: add pub key in database.
 
                 // TODO: use timestamp from syncing node?
                 transactionRepository.createTransaction(
@@ -143,8 +154,15 @@ public class BlockSyncer extends StateListener {
         }
 
         // TODO: if all blocks & transactions are received & verified go to PARTICIPATING
-        if (true) { //blocks.size() == 0) {
+        if (true) {
             nodeStateQueue.add(NodeState.PARTICIPATING);
+        }
+    }
+
+    @Override
+    protected void beforeWakeup() {
+        if (syncingPeer == null || syncingPeer.getState() == PeerState.CLOSED) {
+            determineSyncingPeer();
         }
     }
 
@@ -156,7 +174,7 @@ public class BlockSyncer extends StateListener {
         Set<Peer> peers = peerPool.getConnectedPeers();
         int maxStartHeight = 0;
         for (Peer peer : peers) {
-            if (peer.getStartHeight() > maxStartHeight) {
+            if (peer.getStartHeight() > maxStartHeight && peer.getState() == PeerState.ESTABLISHED) {
                 syncingPeer = peer;
                 maxStartHeight = peer.getStartHeight();
             }
