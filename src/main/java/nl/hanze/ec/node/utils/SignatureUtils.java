@@ -52,7 +52,6 @@ public class SignatureUtils {
 
             ECPrivateKeySpec privateKeySpec = new ECPrivateKeySpec(hash, ecSpec);
             ECPrivateKey privateKey = (ECPrivateKey) keyFactory.generatePrivate(privateKeySpec);
-            System.out.println(privateKey.toString());
 
             // ECPrivateKey -> ECPublicKey
             ECPoint Q = (new FixedPointCombMultiplier()).multiply(ecSpec.getG(), privateKey.getD()).normalize();
