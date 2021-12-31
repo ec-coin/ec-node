@@ -29,6 +29,18 @@ public class BlockRepository {
         return null;
     }
 
+    public synchronized void update(Block block) {
+        try {
+            blockDAO.update(block);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public synchronized Block createHeader(String hash, String previousBlockHash, String merkleRootHash, int blockHeight, DateTime... dateTime) {
+        return createBlock(hash, previousBlockHash, merkleRootHash, blockHeight, "header", dateTime);
+    }
+
     public synchronized Block createBlock(String hash, String previousBlockHash, String merkleRootHash, int blockHeight, String type, DateTime... dateTime) {
         Block block = null;
         try {
@@ -117,7 +129,8 @@ public class BlockRepository {
         try {
             List<Block> blocks = blockDAO.queryBuilder()
                     .orderBy("block_height", true)
-                    .where().eq("block_height", block_height).query();
+                    .where().eq("block_height", block_height)
+                    .and().eq("type", "full").query();
 
             if (blocks.size() == 1) {
                 return blocks.get(0);

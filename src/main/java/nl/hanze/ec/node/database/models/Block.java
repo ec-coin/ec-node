@@ -75,6 +75,10 @@ public class Block {
         return type;
     }
 
+    public void setType(String type) {
+        this.type = type;
+    }
+
     public ForeignCollection<Transaction> getTransactions() {
         return transactions;
     }

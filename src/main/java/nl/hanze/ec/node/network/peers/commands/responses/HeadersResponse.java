@@ -22,12 +22,11 @@ public class HeadersResponse extends AbstractCommand implements Response {
         public String type;
         // private DateTime timestamp;
 
-        public Header(String hash, String previousBlockHash, String merkleRootHash, int blockHeight, String type) {
+        public Header(String hash, String previousBlockHash, String merkleRootHash, int blockHeight) {
             this.hash = hash;
             this.previousBlockHash = previousBlockHash;
             this.merkleRootHash = merkleRootHash;
             this.blockHeight = blockHeight;
-            this.type = type;
         }
 
         public Map<String, Object> toMap() {
@@ -36,15 +35,13 @@ public class HeadersResponse extends AbstractCommand implements Response {
                 put("previous_block_hash", previousBlockHash);
                 put("merkle_root_hash", merkleRootHash);
                 put("block_height", blockHeight);
-                put("type", type);
             }};
         }
 
         @Override
         public String toString() {
             return "Header{" + "hash='" + hash + '\'' + ", previousBlockHash='" + previousBlockHash + '\'' +
-                    ", merkleRootHash='" + merkleRootHash + '\'' + ", blockHeight=" + blockHeight + '}'
-                    + '\'' + ", type=" + type + '}';
+                    ", merkleRootHash='" + merkleRootHash + '\'' + ", blockHeight=" + blockHeight + '}';
         }
     }
 
@@ -57,8 +54,7 @@ public class HeadersResponse extends AbstractCommand implements Response {
                         header.getHash(),
                         header.getPreviousBlockHash(),
                         header.getMerkleRootHash(),
-                        header.getBlockHeight(),
-                        header.getType()
+                        header.getBlockHeight()
                 )).collect(Collectors.toList());
 
         this.responseTo = responseTo;
@@ -85,8 +81,7 @@ public class HeadersResponse extends AbstractCommand implements Response {
                             header.get("hash").toString(),
                             header.get("previous_block_hash").toString(),
                             header.get("merkle_root_hash").toString(),
-                            blockHeight,
-                            header.get("type").toString()
+                            blockHeight
                     ));
                 }
             }

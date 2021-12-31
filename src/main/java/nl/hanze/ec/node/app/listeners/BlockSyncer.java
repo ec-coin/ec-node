@@ -45,7 +45,7 @@ public class BlockSyncer extends StateListener {
 
     protected void iteration() {
         // TODO: only download blocks up until a certain threshold (to prevent downloading blocks that are incorrect)
-        // Historic data / simulator data. block sync window
+        // Historic data / simulator data (use number of unverified txs?) [block sync window]
         while (localBlockHeight < syncingPeer.getStartHeight()) {
             String hash = blockRepository.getCurrentBlockHash(localBlockHeight);
             Block block = blockRepository.getBlock(localBlockHeight);
@@ -55,6 +55,7 @@ public class BlockSyncer extends StateListener {
             command.await();
 
             if (command.getResponse() == null) {
+                System.out.println("Dead syncing node, choosing a new one");
                 determineSyncingPeer();
                 continue;
             }
@@ -69,46 +70,35 @@ public class BlockSyncer extends StateListener {
                     block.getHash(),
                     block.getPreviousBlockHash(),
                     block.getMerkleRootHash(),
-                    block.getBlockHeight(),
-                    block.getType()
+                    block.getBlockHeight()
             );
 
             for(HeadersResponse.Header header : headers) {
                 // Validate previous hash.
                 if (!prevHeader.hash.equals(header.previousBlockHash) ||
                         prevHeader.blockHeight+1 != header.blockHeight) {
-                    // TODO: INVALID BLOCK choose other node to sync with
-                    System.out.println("INVALID HEADER FOUND");
-                    System.out.println("prev" + prevHeader);
-                    System.out.println("curr" + header);
+                    System.out.println("INVALID HEADER FOUND [prev:" + prevHeader + "] [curr:" + header + "]");
                     break;
                 }
 
                 // Validate hash.
                 String blockHash = HashingUtils.hash(header.previousBlockHash + header.merkleRootHash);
                 if (!blockHash.equals(header.hash)) {
-                    // TODO: INVALID BLOCK choose other node to sync with
-                    System.out.println("INVALID HASH FOUND");
-                    System.out.println("prev" + prevHeader);
-                    System.out.println("curr" + header);
+                    System.out.println("INVALID HASH FOUND [prev:" + prevHeader + "] [curr:" + header + "]");
                     break;
                 }
 
                 // Validate block height
                 if (header.blockHeight != (localBlockHeight + 1)) {
-                    // TODO: INVALID BLOCK choose other node to sync with
-                    System.out.println("INVALID BLOCK_HEIGHT FOUND");
-                    System.out.println("prev" + prevHeader);
-                    System.out.println("curr" + header);
+                    System.out.println("INVALID BLOCK_HEIGHT FOUND [prev:" + prevHeader + "] [curr:" + header + "]");
                 }
 
                 // TODO: use timestamp from syncing node?
-                blockRepository.createBlock(
+                blockRepository.createHeader(
                         header.hash,
                         header.previousBlockHash,
                         header.merkleRootHash,
-                        header.blockHeight,
-                        header.type
+                        header.blockHeight
                 );
 
                 localBlockHeight++;
@@ -118,8 +108,7 @@ public class BlockSyncer extends StateListener {
             waitIfStateIncorrect();
         }
 
-        // TODO: only retrieve blocks that miss transactions
-        List<Block> blocks = blockRepository.getAllBlocksOfParticularType("full");
+        List<Block> blocks = blockRepository.getAllBlocksOfParticularType("header");
 
         for (Block block : blocks) {
             WaitForResponse command = new WaitForResponse(new TransactionsRequest(block.getHash()));
@@ -127,7 +116,7 @@ public class BlockSyncer extends StateListener {
             command.await();
 
             if (command.getResponse() == null) {
-                // TODO: fix new syncingPeer
+                determineSyncingPeer();
                 continue;
             }
 
@@ -138,8 +127,6 @@ public class BlockSyncer extends StateListener {
             // TODO: Validate merkle root of transactions with merkle root of block in DB.
 
             for(TransactionsResponse.Tx transaction : transactions) {
-                // TODO: add pub key in database.
-
                 // TODO: use timestamp from syncing node?
                 transactionRepository.createTransaction(
                         transaction.hash,
@@ -153,11 +140,15 @@ public class BlockSyncer extends StateListener {
                 );
             }
 
+            block.setType("full");
+            blockRepository.update(block);
+
             waitIfStateIncorrect();
         }
 
-        // TODO: if all blocks & transactions are received & verified go to PARTICIPATING
-        if (true) {
+        localBlockHeight = blockRepository.getCurrentBlockHeight();
+        blocks = blockRepository.getAllBlocksOfParticularType("header");
+        if (localBlockHeight == syncingPeer.getStartHeight() && blocks.size() == 0) {
             nodeStateQueue.add(NodeState.PARTICIPATING);
         }
     }

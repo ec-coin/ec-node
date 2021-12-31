@@ -52,7 +52,7 @@ public class TransactionsResponse extends AbstractCommand implements Response {
         public String toString() {
             return "Tx{" + "hash='" + hash + '\'' + ", from='" + from + '\'' + ", to='" + to + '\'' +
                     ", amount=" + amount + ", signature='" + signature + '\'' + ", status='" + status + '\'' +
-                    ", addressType='" + addressType + '\'' + '}';
+                    ", addressType='" + addressType + '\'' + ", publicKey='" + publicKey + '\'' + '}';
         }
     }
 
@@ -92,7 +92,8 @@ public class TransactionsResponse extends AbstractCommand implements Response {
                         (tx.get("amount") instanceof BigDecimal || tx.get("amount") instanceof Integer) &&
                         tx.get("signature") instanceof String &&
                         tx.get("status") instanceof String &&
-                        tx.get("addressType") instanceof String) {
+                        tx.get("addressType") instanceof String &&
+                        tx.get("publicKey") instanceof String) {
                     float amount;
                     if (tx.get("amount") instanceof Integer) {
                         amount = ((Integer) tx.get("amount")).floatValue();
