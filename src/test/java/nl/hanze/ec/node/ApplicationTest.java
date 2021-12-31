@@ -2,6 +2,7 @@ package nl.hanze.ec.node;
 
 import nl.hanze.ec.node.database.models.Block;
 import nl.hanze.ec.node.network.peers.commands.responses.HeadersResponse;
+import nl.hanze.ec.node.utils.FileUtils;
 import org.json.JSONObject;
 import io.github.novacrypto.bip39.MnemonicGenerator;
 import io.github.novacrypto.bip39.SeedCalculator;
@@ -36,7 +37,8 @@ public class ApplicationTest {
 
     @Test
     public void testHeadersResponse() {
-        HeadersResponse resp1 = new HeadersResponse(new ArrayList<>() {{ add(new Block("$hash$", "$previousBlockHash$", "$merkleRootHash$", 0)); }}, 1);
+        String type = "full";
+        HeadersResponse resp1 = new HeadersResponse(new ArrayList<>() {{ add(new Block("$hash$", "$previousBlockHash$", "$merkleRootHash$", 0, type)); }}, 1);
 
         String json = resp1.getPayload().toString();
 
@@ -50,14 +52,17 @@ public class ApplicationTest {
                 "\"headers\":[{" +
                     "\"merkle_root_hash\":\"$merkleRootHash$\"," +
                     "\"previous_block_hash\":\"$previousBlockHash$\"," +
-                    "\"block_height\":0,\"hash\":\"$hash$\"" +
+                    "\"block_height\":0,\"type\":\"full\",\"hash\":\"$hash$\"" +
                 "}]," +
                 "\"command\":\"headers-response\",\"responseTo\":1}", json);
     }
 
     @Test
     public void bip39ToKeyPair() {
-        try {
+        SignatureUtils.storeKeyPairInKeyStore();
+        //SignatureUtils.retrieveKeyFromKeyStore();
+        return;
+        /*try {
             Security.addProvider(new BouncyCastleProvider());
 
             // Generate mnemonic
@@ -101,9 +106,16 @@ public class ApplicationTest {
             byte[] signature = signer.sign();
             System.out.println("Signature: " + new BigInteger(signature).toString(16));
 
+            KeyPair keyPair = new KeyPair(publicKey, privateKey);
+            byte[] sig = SignatureUtils.sign(keyPair, "hello world");
+            boolean verified = SignatureUtils.verify(publicKey, sig, "hello world");
+            System.out.println("verified: " + verified);
+
+            System.out.println(FileUtils.writeToResources("privateKey.txt", privateKey));
+
             // return new KeyPair(publicKey, privateKey);
         } catch (SignatureException | InvalidKeyException | NoSuchAlgorithmException | NoSuchProviderException | InvalidKeySpecException e) {
             e.printStackTrace();
-        }
+        }*/
     }
 }

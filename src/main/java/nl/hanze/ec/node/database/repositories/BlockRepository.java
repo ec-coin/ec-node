@@ -4,8 +4,10 @@ import com.google.inject.Inject;
 import com.j256.ormlite.dao.Dao;
 import nl.hanze.ec.node.database.models.Block;
 import nl.hanze.ec.node.modules.annotations.BlockDAO;
+import org.joda.time.DateTime;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class BlockRepository {
@@ -27,10 +29,10 @@ public class BlockRepository {
         return null;
     }
 
-    public synchronized Block createBlock(String hash, String previousBlockHash, String merkleRootHash, int blockHeight) {
+    public synchronized Block createBlock(String hash, String previousBlockHash, String merkleRootHash, int blockHeight, String type, DateTime... dateTime) {
         Block block = null;
         try {
-            block = new Block(hash, previousBlockHash, merkleRootHash, blockHeight);
+            block = new Block(hash, previousBlockHash, merkleRootHash, blockHeight, type, dateTime);
             blockDAO.createOrUpdate(block);
         } catch (SQLException e) {
             e.printStackTrace();
@@ -132,6 +134,17 @@ public class BlockRepository {
         try {
             block = blockDAO.queryBuilder()
                     .where().eq("block_height", getCurrentBlockHeight()).query().get(0);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return block;
+    }
+
+    public synchronized List<Block> getAllBlocksOfParticularType(String type) {
+        List<Block> block = new ArrayList<>();
+        try {
+            block = blockDAO.queryBuilder()
+                    .where().eq("type", type).query();
         } catch (SQLException e) {
             e.printStackTrace();
         }

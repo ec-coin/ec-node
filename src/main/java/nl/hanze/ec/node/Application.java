@@ -26,6 +26,7 @@ public class Application {
     private static final Logger logger = LogManager.getLogger(Application.class);
     private static final AtomicReference<NodeState> state = new AtomicReference<>(NodeState.INIT);
 
+    private final API api;
     private final Server server;
     private final PeerPool peerPool;
     private final List<Class<? extends Listener>> listeners = new ArrayList<>() {
@@ -41,6 +42,7 @@ public class Application {
 
     @Inject
     public Application(
+            API api,
             Server server,
             PeerPool peerPool,
             StateHandler stateHandler,
@@ -48,6 +50,7 @@ public class Application {
             BlockRepository blockRepository,
             @NodeStateQueue BlockingQueue<NodeState> nodeStateQueue
     ) {
+        this.api = api;
         this.server = server;
         this.peerPool = peerPool;
         this.listenerFactory = listenerFactory;
@@ -67,9 +70,11 @@ public class Application {
         }
 
         // Sets up server and client communication
+        Thread APIThread = new Thread(this.api);
         Thread serverThread = new Thread(this.server);
         Thread peersThread = new Thread(this.peerPool);
 
+        APIThread.start();
         serverThread.start();
         peersThread.start();
 
@@ -104,7 +109,7 @@ public class Application {
     }
 
     private void createGenesisBlock() {
-        blockRepository.createBlock("GENESIS", "NULL", "GENESIS", 0);
+        blockRepository.createBlock("GENESIS", "NULL", "GENESIS", 0, "full");
     }
 
     public static NodeState getState() {

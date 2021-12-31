@@ -21,9 +21,10 @@ public class TransactionsResponse extends AbstractCommand implements Response {
         public final String signature;
         public final String status;
         public final String addressType;
+        public final String publicKey;
         // public DateTime timestamp;
 
-        public Tx(String hash, String from, String to, float amount, String signature, String status, String addressType) {
+        public Tx(String hash, String from, String to, float amount, String signature, String status, String addressType, String publicKey) {
             this.hash = hash;
             this.from = from;
             this.to = to;
@@ -31,6 +32,7 @@ public class TransactionsResponse extends AbstractCommand implements Response {
             this.signature = signature;
             this.status = status;
             this.addressType = addressType;
+            this.publicKey = publicKey;
         }
 
         public Map<String, Object> toMap() {
@@ -42,6 +44,7 @@ public class TransactionsResponse extends AbstractCommand implements Response {
                 put("signature", signature);
                 put("status", status);
                 put("addressType", addressType);
+                put("publicKey", publicKey);
             }};
         }
 
@@ -65,7 +68,8 @@ public class TransactionsResponse extends AbstractCommand implements Response {
                         tx.getAmount(),
                         tx.getSignature(),
                         tx.getStatus(),
-                        tx.getAddressType()
+                        tx.getAddressType(),
+                        tx.getPublicKey()
                 )).collect(Collectors.toList());
 
         this.responseTo = responseTo;
@@ -103,7 +107,8 @@ public class TransactionsResponse extends AbstractCommand implements Response {
                             amount,
                             tx.get("signature").toString(),
                             tx.get("status").toString(),
-                            tx.get("addressType").toString()
+                            tx.get("addressType").toString(),
+                            tx.get("publicKey").toString()
                     ));
                 }
             }
