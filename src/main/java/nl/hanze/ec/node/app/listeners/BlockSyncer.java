@@ -85,7 +85,7 @@ public class BlockSyncer extends StateListener {
                 // Validate hash.
                 String blockHash = HashingUtils.hash(header.previousBlockHash + header.merkleRootHash);
                 if (!blockHash.equals(header.hash)) {
-                    System.out.println("INVALID HASH FOUND [prev:" + prevHeader + "] [curr:" + header + "]");
+                    System.out.println("INVALID HASH FOUND [curr:" + header + "]");
                     break;
                 }
 
