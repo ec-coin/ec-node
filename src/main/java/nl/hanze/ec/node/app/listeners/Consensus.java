@@ -11,6 +11,7 @@ import nl.hanze.ec.node.modules.annotations.NodeStateQueue;
 import nl.hanze.ec.node.network.peers.PeerPool;
 import nl.hanze.ec.node.network.peers.commands.announcements.NewBlockAnnouncement;
 import nl.hanze.ec.node.utils.HashingUtils;
+import org.joda.time.DateTime;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,7 +57,7 @@ public class Consensus extends StateListener {
         // 2. Set nodes as validating nodes by paying a transaction fee.
         for (String node : nodes) {
             String signature = "temporary signature";
-            transactionRepository.addNodeAsValidatingNode(HashingUtils.hash(node), null, node, signature, publicKey);
+            transactionRepository.addNodeAsValidatingNode(null, node, signature, publicKey);
         }
 
         waitIfStateIncorrect();
@@ -100,14 +101,8 @@ public class Consensus extends StateListener {
         List<Transaction> pendingTransactions = transactionRepository.getFiniteNumberOfPendingTransactions();
         int blockHeight = blockRepository.getCurrentBlockHeight();
         String prevHash = blockRepository.getCurrentBlockHash(blockHeight);
-        String merkleRootHash = blockRepository.getRootMerkleHash();
-
-        StringBuilder hashInput = new StringBuilder();
-        for(Transaction transaction : pendingTransactions) {
-            hashInput.append(transaction.getHash());
-        }
-
-        String blockHash = HashingUtils.hash(hashInput + prevHash);
+        String merkleRootHash = HashingUtils.generateMerkleRootHash(pendingTransactions);
+        String blockHash = HashingUtils.generateBlockHash(merkleRootHash, prevHash, new DateTime());
         Block block = blockRepository.createBlock(blockHash, prevHash, merkleRootHash, blockHeight + 1, "full");
 
         if (block != null) {

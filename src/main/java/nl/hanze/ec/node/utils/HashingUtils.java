@@ -11,7 +11,7 @@ import java.util.List;
 
 public class HashingUtils {
 
-    public synchronized static String hash(String value) {
+    private synchronized static String hash(String value) {
         String hash = "";
         try {
             MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
@@ -29,7 +29,7 @@ public class HashingUtils {
         return hash(from + to + amount + signature);
     }
 
-    public synchronized static String generateMerkleHash(List<Transaction> transactions) {
+    public synchronized static String generateMerkleRootHash(List<Transaction> transactions) {
         StringBuilder input = new StringBuilder();
         for (Transaction transaction : transactions) {
             input.append(transaction.getHash());
