@@ -29,24 +29,21 @@ public class BlockRepository {
         return null;
     }
 
-    public synchronized Block createBlock(String hash, String previousBlockHash, String merkleRootHash, int blockHeight, String type, DateTime... dateTime) {
-        Block block = null;
-        try {
-            block = new Block(hash, previousBlockHash, merkleRootHash, blockHeight, type, dateTime);
-            blockDAO.createOrUpdate(block);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return block;
+    public synchronized Block createBlock(String hash, String previousBlockHash, String merkleRootHash, int blockHeight, String type) {
+        return createBlock(new Block(hash, previousBlockHash, merkleRootHash, blockHeight, type));
     }
 
-    public synchronized void createBlock(Block block) {
+    public synchronized Block createBlock(String hash, String previousBlockHash, String merkleRootHash, int blockHeight, String type, DateTime dateTime) {
+        return createBlock(new Block(hash, previousBlockHash, merkleRootHash, blockHeight, type, dateTime));
+    }
+
+    public synchronized Block createBlock(Block block) {
         try {
             blockDAO.createOrUpdate(block);
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        return block;
     }
 
     public synchronized String getCurrentBlockHash(int blockHeight) {

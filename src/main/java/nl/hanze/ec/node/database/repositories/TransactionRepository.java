@@ -34,13 +34,12 @@ public class TransactionRepository {
         return null;
     }
 
-    public synchronized void createTransaction(String hash, Block block, String from, String to, float amount, String signature, String addressType, String publicKey, DateTime... dateTime) {
-        try {
-            Transaction transaction = new Transaction(hash, block, from, to, amount, signature, "pending", addressType, publicKey, dateTime);
-            transactionDAO.createOrUpdate(transaction);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+    public synchronized void createTransaction(String hash, Block block, String from, String to, float amount, String signature, String addressType, String publicKey) {
+        createTransaction(new Transaction(hash, block, from, to, amount, signature, "pending", addressType, publicKey));
+    }
+
+    public synchronized void createTransaction(String hash, Block block, String from, String to, float amount, String signature, String addressType, String publicKey, DateTime dateTime) {
+        createTransaction(new Transaction(hash, block, from, to, amount, signature, "pending", addressType, publicKey, dateTime));
     }
 
     public synchronized void createTransaction(Transaction transaction) {
