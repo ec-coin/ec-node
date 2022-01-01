@@ -70,7 +70,8 @@ public class BlockSyncer extends StateListener {
                     block.getHash(),
                     block.getPreviousBlockHash(),
                     block.getMerkleRootHash(),
-                    block.getBlockHeight()
+                    block.getBlockHeight(),
+                    block.getTimestamp()
             );
 
             for(HeadersResponse.Header header : headers) {
@@ -93,12 +94,12 @@ public class BlockSyncer extends StateListener {
                     System.out.println("INVALID BLOCK_HEIGHT FOUND [prev:" + prevHeader + "] [curr:" + header + "]");
                 }
 
-                // TODO: use timestamp from syncing node?
                 blockRepository.createHeader(
                         header.hash,
                         header.previousBlockHash,
                         header.merkleRootHash,
-                        header.blockHeight
+                        header.blockHeight,
+                        header.timestamp
                 );
 
                 localBlockHeight++;
@@ -136,7 +137,8 @@ public class BlockSyncer extends StateListener {
                         transaction.amount,
                         transaction.signature,
                         transaction.addressType,
-                        transaction.publicKey
+                        transaction.publicKey,
+                        transaction.timestamp
                 );
             }
 
