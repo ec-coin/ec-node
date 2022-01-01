@@ -2,8 +2,8 @@ package nl.hanze.ec.node.app.handlers;
 
 import com.google.inject.Inject;
 import nl.hanze.ec.node.Application;
-import nl.hanze.ec.node.app.NodeState;
 import nl.hanze.ec.node.app.listeners.Listener;
+import nl.hanze.ec.node.app.NodeState;
 import nl.hanze.ec.node.modules.annotations.NodeStateQueue;
 
 import java.util.ArrayList;

@@ -59,7 +59,7 @@ public class ApplicationTest {
 
     @Test
     public void bip39ToKeyPair() {
-        SignatureUtils.storeKeyPairInKeyStore();
+        SignatureUtils.generateKeyPair();
         //SignatureUtils.retrieveKeyFromKeyStore();
         return;
         /*try {

@@ -40,15 +40,26 @@ public class Block {
             String previousBlockHash,
             String merkleRootHash,
             int blockHeight,
-            String type,
-            DateTime... dateTime
+            String type
     ) {
         this.hash = hash;
         this.previousBlockHash = previousBlockHash;
         this.merkleRootHash = merkleRootHash;
         this.blockHeight = blockHeight;
         this.type = type;
-        this.timestamp = (dateTime.length == 1) ? dateTime[0] : new DateTime();
+        this.timestamp = new DateTime();
+    }
+
+    public Block(
+            String hash,
+            String previousBlockHash,
+            String merkleRootHash,
+            int blockHeight,
+            String type,
+            DateTime timestamp
+    ) {
+        this(hash, previousBlockHash, merkleRootHash, blockHeight, type);
+        this.timestamp = timestamp;
     }
 
     public String getHash() {

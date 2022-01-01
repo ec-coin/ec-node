@@ -31,16 +31,24 @@ public class SignatureUtils {
 
         try {
             Security.addProvider(new BouncyCastleProvider());
+            String savedMnemonic = FileUtils.readFromResources("secret/mnemonic.txt");
 
-            // Generate mnemonic
-            StringBuilder mnemonic = new StringBuilder();
-            byte[] buffer = new byte[Words.TWELVE.byteLength()];
-            new SecureRandom().nextBytes(buffer);
-            new MnemonicGenerator(English.INSTANCE)
-                    .createMnemonic(buffer, mnemonic::append);
+            //StringBuilder mnemonic;
+            if (savedMnemonic.equals("")) {
+                StringBuilder mnemonic = new StringBuilder();
+                byte[] buffer = new byte[Words.TWELVE.byteLength()];
+                new SecureRandom().nextBytes(buffer);
+
+                new MnemonicGenerator(English.INSTANCE)
+                        .createMnemonic(buffer, mnemonic::append);
+                savedMnemonic = mnemonic.toString();
+            }
+            System.out.println("mnemonic: " + savedMnemonic);
+
+            FileUtils.writeToResources("mnemonic.txt", savedMnemonic);
 
             // Mnemonic -> entropy
-            byte[] entropy = new SeedCalculator().calculateSeed(mnemonic.toString(), "");
+            byte[] entropy = new SeedCalculator().calculateSeed(savedMnemonic, "");
 
             // entropy -> sha256(entropy)
             MessageDigest md = MessageDigest.getInstance("SHA-256");
@@ -60,8 +68,6 @@ public class SignatureUtils {
             PublicKey publicKey = keyFactory.generatePublic(pubSpec);
 
             keyPair = new KeyPair(publicKey, privateKey);
-            FileUtils.writeToResources("privateKey.txt", privateKey);
-            FileUtils.writeToResources("publicKey.txt", privateKey);
         }
         catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidKeySpecException e) {
             e.printStackTrace();

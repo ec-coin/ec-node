@@ -12,7 +12,7 @@ import nl.hanze.ec.node.network.peers.PeerPool;
 import java.util.concurrent.BlockingQueue;
 
 public class ListenerFactory {
-    BlockingQueue<NodeState> nodeStateQueue;
+    private BlockingQueue<NodeState> nodeStateQueue;
     private final Provider<TransactionRepository> transactionRepositoryProvider;
     private final Provider<NeighboursRepository> neighboursRepositoryProvider;
     private final Provider<BlockRepository> blockRepositoryProvider;

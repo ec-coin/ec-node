@@ -49,8 +49,7 @@ public class Transaction {
             String signature,
             String status,
             String addressType,
-            String publicKey,
-            DateTime... dateTime
+            String publicKey
     ) {
         this.hash = hash;
         this.block = block;
@@ -61,7 +60,23 @@ public class Transaction {
         this.status = status;
         this.addressType = addressType;
         this.publicKey = publicKey;
-        this.timestamp = (dateTime.length == 1) ? dateTime[0] : new DateTime();
+        this.timestamp = new DateTime();
+    }
+
+    public Transaction(
+            String hash,
+            Block block,
+            String from,
+            String to,
+            float amount,
+            String signature,
+            String status,
+            String addressType,
+            String publicKey,
+            DateTime timestamp
+            ) {
+        this(hash, block, from, to, amount, signature, status, addressType, publicKey);
+        this.timestamp = timestamp;
     }
 
     public String getHash() {

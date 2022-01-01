@@ -27,7 +27,6 @@ public class FileUtils {
             if (classLoader.getResource(path) == null) {
                 return "";
             }
-
             File file = new File(classLoader.getResource(path).getFile());
 
             if (file.exists()) {
@@ -42,7 +41,7 @@ public class FileUtils {
 
     public synchronized static boolean writeToResources(String path, Object object) {
         try {
-            path = "src/main/resources/secret" + path;
+            path = "src/main/resources/secret/" + path;
             File file = new File(path);
 
             if (!file.createNewFile()) {

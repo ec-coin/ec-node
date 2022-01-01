@@ -6,7 +6,6 @@ import nl.hanze.ec.node.database.models.Transaction;
 
 import nl.hanze.ec.node.database.repositories.BalancesCacheRepository;
 import nl.hanze.ec.node.network.peers.commands.Command;
-import nl.hanze.ec.node.utils.HashingUtils;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 

@@ -52,8 +52,10 @@ public class API implements Runnable {
     public void setupTransactionEndPoints() {
         post("/transactions", (request, response) -> {
             response.type("application/json");
+
             Transaction transaction = new Gson().fromJson(request.body(), Transaction.class);
             transactionRepository.createTransaction(transaction);
+
             return new Gson().toJson(new StandardResponse(StatusResponse.SUCCESS));
         });
 
@@ -78,6 +80,7 @@ public class API implements Runnable {
                     transactions = transactionRepository.getTransactionsByAddress(parameterValue);
                 }
             }
+
             return new Gson().toJson(
                     new StandardResponse(StatusResponse.SUCCESS, new Gson().toJsonTree(transactions))
             );
@@ -87,6 +90,7 @@ public class API implements Runnable {
     public void setupBlockEndPoints() {
         get("/blocks", (request, response) -> {
             response.type("application/json");
+
             return new Gson().toJson(
                     new StandardResponse(StatusResponse.SUCCESS, new Gson()
                             .toJsonTree(blockRepository.getAllBlocks())));
@@ -94,13 +98,16 @@ public class API implements Runnable {
 
         post("/blocks", (request, response) -> {
             response.type("application/json");
+
             Block block = new Gson().fromJson(request.body(), Block.class);
             blockRepository.createBlock(block);
+
             return new Gson().toJson(new StandardResponse(StatusResponse.SUCCESS));
         });
 
         get("/blocks/:hash", (request, response) -> {
             response.type("application/json");
+
             return new Gson().toJson(
                     new StandardResponse(StatusResponse.SUCCESS, new Gson()
                             .toJsonTree(blockRepository.getBlock(request.params(":hash")))));
@@ -110,6 +117,7 @@ public class API implements Runnable {
     public void setupNeighbourEndPoints() {
         get("/neighbours", (request, response) -> {
             response.type("application/json");
+
             return new Gson().toJson(
                     new StandardResponse(StatusResponse.SUCCESS, new Gson()
                             .toJsonTree(neighboursRepository.getAllNeighbours())));
@@ -119,9 +127,28 @@ public class API implements Runnable {
     public void setupBalancesCacheEndPoints() {
         get("/balances", (request, response) -> {
             response.type("application/json");
+
+            int amount = 0;
+            if (request.queryParams().size() == 0) {
+                return new Gson().toJson(
+                        new StandardResponse(StatusResponse.SUCCESS, new Gson()
+                                .toJsonTree(balancesCacheRepository.getAllBalancesInCache())));
+            }
+            else {
+                String parameter = (String) request.queryParams().toArray()[0];
+                String parameterValue = request.queryParamsValues(parameter)[0];
+
+                if (parameter.equals("stake")) {
+                    amount = transactionRepository.getStake(parameterValue);
+                }
+                else if (parameter.equals("balance")) {
+                    amount = transactionRepository.getBalance(parameterValue);
+                }
+            }
+
             return new Gson().toJson(
-                    new StandardResponse(StatusResponse.SUCCESS, new Gson()
-                            .toJsonTree(balancesCacheRepository.getAllBalancesInCache())));
+                    new StandardResponse(StatusResponse.SUCCESS, new Gson().toJsonTree(amount))
+            );
         });
     }
 }
