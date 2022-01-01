@@ -51,6 +51,12 @@ public class ECNetworkNodeRunner {
                 .setDefault(10)
                 .help("Maximum peers to connect to");
 
+        parser.addArgument("--debug-db-seeding")
+                .type(Boolean.class)
+                .dest("db-seeding")
+                .setDefault(false)
+                .help("Seed blockchain with mock data for debug purposes");
+
         //################################
         //  Parse command line arguments
         //################################
@@ -68,7 +74,7 @@ public class ECNetworkNodeRunner {
         Guice.createInjector(
                 new ConfigModule(ns),
                 new ThreadCommunicationModule(),
-                new DatabaseModule()
+                new DatabaseModule(ns.getBoolean("db-seeding"))
         ).getInstance(Application.class).run();
     }
 }

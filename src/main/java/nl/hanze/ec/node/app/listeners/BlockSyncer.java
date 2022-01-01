@@ -14,6 +14,8 @@ import nl.hanze.ec.node.network.peers.commands.responses.TransactionsResponse;
 import nl.hanze.ec.node.network.peers.peer.Peer;
 import nl.hanze.ec.node.network.peers.peer.PeerState;
 import nl.hanze.ec.node.utils.HashingUtils;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +23,8 @@ import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 
 public class BlockSyncer extends StateListener {
+    private static final Logger logger = LogManager.getLogger(BlockSyncer.class);
+
     private final List<NodeState> listenFor = new ArrayList<>() {{
         add(NodeState.SYNCING);
     }};
@@ -128,7 +132,6 @@ public class BlockSyncer extends StateListener {
             // TODO: Validate merkle root of transactions with merkle root of block in DB.
 
             for(TransactionsResponse.Tx transaction : transactions) {
-                // TODO: use timestamp from syncing node?
                 transactionRepository.createTransaction(
                         transaction.hash,
                         block,
@@ -151,6 +154,7 @@ public class BlockSyncer extends StateListener {
         localBlockHeight = blockRepository.getCurrentBlockHeight();
         blocks = blockRepository.getAllBlocksOfParticularType("header");
         if (localBlockHeight == syncingPeer.getStartHeight() && blocks.size() == 0) {
+            logger.info("Blockchain is now in sync, transitioning to PARTICIPATING");
             nodeStateQueue.add(NodeState.PARTICIPATING);
         }
     }
