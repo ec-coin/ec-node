@@ -36,8 +36,7 @@ public class HeadersRequestWorker extends Worker {
 
         List<Block> blocks = new ArrayList<>();
 
-        for (int i = 1; i <= 7; i++) {
-            // TODO: Only select blocks that are verified and have verified transactions
+        for (int i = 1; i <= 50; i++) {
             Block block = blockRepository.getBlock(blockHeight + i);
 
             if (block == null) {

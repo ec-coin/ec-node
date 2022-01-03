@@ -17,7 +17,7 @@ import java.sql.SQLException;
 public class DatabaseModule extends AbstractModule {
     private ConnectionSource connectionSource;
 
-    public DatabaseModule() {
+    public DatabaseModule(boolean clearBlockchain) {
         super();
 
         try {
@@ -28,6 +28,11 @@ public class DatabaseModule extends AbstractModule {
             TableUtils.createTableIfNotExists(connectionSource, Block.class);
             TableUtils.createTableIfNotExists(connectionSource, Transaction.class);
             TableUtils.createTableIfNotExists(connectionSource, BalancesCache.class);
+
+            if (clearBlockchain) {
+                TableUtils.clearTable(connectionSource, Block.class);
+                TableUtils.clearTable(connectionSource, Transaction.class);
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }

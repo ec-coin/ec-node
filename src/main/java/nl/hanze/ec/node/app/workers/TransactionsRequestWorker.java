@@ -26,9 +26,8 @@ public class TransactionsRequestWorker extends Worker {
 
         Integer blockHeight = blockRepository.getBlockHeight(hash);
 
-        // Requested block not present in database
+        // Requested block not present in database then assume genesis block
         if (blockHeight == null) {
-            // TODO
             blockHeight = 0;
         }
 

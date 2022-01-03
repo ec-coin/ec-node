@@ -13,19 +13,18 @@ import java.util.stream.Collectors;
 
 public class HeadersResponse extends AbstractCommand implements Response {
     public static class Header {
-        public String hash;
-        public String previousBlockHash;
-        public String merkleRootHash;
-        public int blockHeight;
-        public String type;
-        // private DateTime timestamp;
+        public final String hash;
+        public final String previousBlockHash;
+        public final String merkleRootHash;
+        public final int blockHeight;
+        public final DateTime timestamp;
 
-        public Header(String hash, String previousBlockHash, String merkleRootHash, int blockHeight, String type) {
+        public Header(String hash, String previousBlockHash, String merkleRootHash, int blockHeight, DateTime timestamp) {
             this.hash = hash;
             this.previousBlockHash = previousBlockHash;
             this.merkleRootHash = merkleRootHash;
             this.blockHeight = blockHeight;
-            this.type = type;
+            this.timestamp = timestamp;
         }
 
         public Map<String, Object> toMap() {
@@ -34,15 +33,16 @@ public class HeadersResponse extends AbstractCommand implements Response {
                 put("previous_block_hash", previousBlockHash);
                 put("merkle_root_hash", merkleRootHash);
                 put("block_height", blockHeight);
-                put("type", type);
+                put("timestamp", timestamp.toString());
             }};
         }
 
         @Override
         public String toString() {
-            return "Header{" + "hash='" + hash + '\'' + ", previousBlockHash='" + previousBlockHash + '\'' +
-                    ", merkleRootHash='" + merkleRootHash + '\'' + ", blockHeight=" + blockHeight + '}'
-                    + '\'' + ", type=" + type + '}';
+            return "Header{" +
+                    "hash='" + hash + '\'' + ", previousBlockHash='" + previousBlockHash + '\'' +
+                    ", merkleRootHash='" + merkleRootHash + '\'' + ", blockHeight=" + blockHeight +
+                    ", timestamp=" + timestamp + '}';
         }
     }
 
@@ -56,7 +56,7 @@ public class HeadersResponse extends AbstractCommand implements Response {
                         header.getPreviousBlockHash(),
                         header.getMerkleRootHash(),
                         header.getBlockHeight(),
-                        header.getType()
+                        header.getTimestamp()
                 )).collect(Collectors.toList());
 
         this.responseTo = responseTo;
@@ -76,7 +76,8 @@ public class HeadersResponse extends AbstractCommand implements Response {
                 if (header.get("hash") instanceof String &&
                         header.get("previous_block_hash") instanceof String &&
                         header.get("merkle_root_hash") instanceof String &&
-                        header.get("block_height") instanceof Integer) {
+                        header.get("block_height") instanceof Integer &&
+                        header.get("timestamp") instanceof String) {
                     int blockHeight = (Integer) header.get("block_height");
 
                     this.headers.add(new Header(
@@ -84,7 +85,7 @@ public class HeadersResponse extends AbstractCommand implements Response {
                             header.get("previous_block_hash").toString(),
                             header.get("merkle_root_hash").toString(),
                             blockHeight,
-                            header.get("type").toString()
+                            DateTime.parse(header.get("timestamp").toString())
                     ));
                 }
             }

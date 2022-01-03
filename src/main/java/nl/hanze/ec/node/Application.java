@@ -8,12 +8,17 @@ import nl.hanze.ec.node.app.listeners.BlockSyncer;
 import nl.hanze.ec.node.app.listeners.Consensus;
 import nl.hanze.ec.node.app.listeners.Listener;
 import nl.hanze.ec.node.app.listeners.ListenerFactory;
+import nl.hanze.ec.node.database.models.Block;
 import nl.hanze.ec.node.database.repositories.BlockRepository;
 import nl.hanze.ec.node.modules.annotations.NodeKeyPair;
+import nl.hanze.ec.node.database.repositories.NeighboursRepository;
+import nl.hanze.ec.node.database.repositories.TransactionRepository;
+import nl.hanze.ec.node.modules.annotations.DbSeeding;
 import nl.hanze.ec.node.modules.annotations.NodeStateQueue;
 import nl.hanze.ec.node.network.Server;
 import nl.hanze.ec.node.network.peers.PeerPool;
 import nl.hanze.ec.node.utils.FileUtils;
+import nl.hanze.ec.node.utils.HashingUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -41,6 +46,9 @@ public class Application {
     private final ListenerFactory listenerFactory;
     private final BlockingQueue<NodeState> nodeStateQueue;
     private final BlockRepository blockRepository;
+    private final TransactionRepository transactionRepository;
+    private final NeighboursRepository neighboursRepository;
+    private final boolean shouldSeedDatabase;
     private final KeyPair keyPair;
     private final String nodeAddress;
 
@@ -53,8 +61,11 @@ public class Application {
             ListenerFactory listenerFactory,
             BlockRepository blockRepository,
             String nodeAddress,
+            TransactionRepository transactionRepository,
+            NeighboursRepository neighboursRepository,
             @NodeKeyPair KeyPair keyPair,
-            @NodeStateQueue BlockingQueue<NodeState> nodeStateQueue
+            @NodeStateQueue BlockingQueue<NodeState> nodeStateQueue,
+            @DbSeeding boolean shouldSeedDatabase
     ) {
         this.api = api;
         this.server = server;
@@ -63,6 +74,9 @@ public class Application {
         this.stateHandler = stateHandler;
         this.nodeStateQueue = nodeStateQueue;
         this.blockRepository = blockRepository;
+        this.transactionRepository = transactionRepository;
+        this.neighboursRepository = neighboursRepository;
+        this.shouldSeedDatabase = shouldSeedDatabase;
         this.keyPair = keyPair;
         this.nodeAddress = nodeAddress;
     }
@@ -77,7 +91,10 @@ public class Application {
             createGenesisBlock();
         }
 
-        System.out.println("public key: " + keyPair.getPublic());
+        // CLI option for development purposes
+        if (shouldSeedDatabase) {
+            mockBlockchainData();
+        }
 
         // Sets up server and client communication
         Thread APIThread = new Thread(this.api);
@@ -116,10 +133,41 @@ public class Application {
         if (!motd.equals("")) {
             System.out.println(motd);
         }
+
+        System.out.println("------Properties------");
+        System.out.println("blockHeight        : " + blockRepository.getCurrentBlockHeight());
+        System.out.println("# of old neighbors : " + neighboursRepository.getNumberOfNeighbors());
+        System.out.println("node's address     : " + "xxxxxxxxx");
+        System.out.println("----------------------");
+        System.out.println("");
     }
 
     private void createGenesisBlock() {
         blockRepository.createBlock("GENESIS", "NULL", "GENESIS", 0, "full");
+    }
+
+    private void mockBlockchainData() {
+        Block prevBlock = blockRepository.getCurrentBlock();
+
+        for (int i = 0; i < 20; i++) {
+            String previousBlockHash = prevBlock.getHash();
+            String merkleRootHash = HashingUtils.hash("" + i);
+            String hash = HashingUtils.hash(previousBlockHash + merkleRootHash);
+            int blockheight = prevBlock.getBlockHeight() + 1;
+
+            Block block = blockRepository.createBlock(hash, previousBlockHash, merkleRootHash, blockheight, "full");
+
+            for (int j = 0; j < 10; j++) {
+                String transactionHash1 = HashingUtils.hash("transaction" + i);
+                String fromHash1 = "**addressFrom**";
+                String toHash1 = "**addressTo**";
+                String signature1 = "**signature**";
+                String publicKey1 = "**publicKey**";
+                transactionRepository.createTransaction(transactionHash1, block, fromHash1, toHash1, 50.4f, signature1, "wallet", publicKey1);
+            }
+
+            prevBlock = block;
+        }
     }
 
     public static NodeState getState() {

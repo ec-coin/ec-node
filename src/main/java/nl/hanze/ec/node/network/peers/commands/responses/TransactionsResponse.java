@@ -5,6 +5,7 @@ import nl.hanze.ec.node.app.workers.WorkerFactory;
 import nl.hanze.ec.node.database.models.Transaction;
 import nl.hanze.ec.node.network.peers.commands.AbstractCommand;
 import nl.hanze.ec.node.network.peers.commands.Command;
+import org.joda.time.DateTime;
 import org.json.JSONObject;
 
 import java.math.BigDecimal;
@@ -22,9 +23,10 @@ public class TransactionsResponse extends AbstractCommand implements Response {
         public final String status;
         public final String addressType;
         public final String publicKey;
-        //public DateTime timestamp;
+        public final DateTime timestamp;
 
-        public Tx(String hash, String from, String to, float amount, String signature, String status, String addressType, String publicKey) {
+        public Tx(String hash, String from, String to, float amount, String signature,
+                  String status, String addressType, String publicKey, DateTime timestamp) {
             this.hash = hash;
             this.from = from;
             this.to = to;
@@ -33,6 +35,7 @@ public class TransactionsResponse extends AbstractCommand implements Response {
             this.status = status;
             this.addressType = addressType;
             this.publicKey = publicKey;
+            this.timestamp = timestamp;
         }
 
         public Map<String, Object> toMap() {
@@ -45,14 +48,16 @@ public class TransactionsResponse extends AbstractCommand implements Response {
                 put("status", status);
                 put("addressType", addressType);
                 put("publicKey", publicKey);
+                put("timestamp", timestamp.toString());
             }};
         }
 
         @Override
         public String toString() {
-            return "Tx{" + "hash='" + hash + '\'' + ", from='" + from + '\'' + ", to='" + to + '\'' +
-                    ", amount=" + amount + ", signature='" + signature + '\'' + ", status='" + status + '\'' +
-                    ", addressType='" + addressType + '\'' + '}';
+            return "Tx{" +
+                    "hash='" + hash + '\'' + ", from='" + from + '\'' + ", to='" + to + '\'' + ", amount=" + amount +
+                    ", signature='" + signature + '\'' + ", status='" + status + '\'' + ", addressType='" + addressType + '\'' +
+                    ", publicKey='" + publicKey + '\'' + ", timestamp=" + timestamp + '}';
         }
     }
 
@@ -69,7 +74,8 @@ public class TransactionsResponse extends AbstractCommand implements Response {
                         tx.getSignature(),
                         tx.getStatus(),
                         tx.getAddressType(),
-                        tx.getPublicKey()
+                        tx.getPublicKey(),
+                        tx.getTimestamp()
                 )).collect(Collectors.toList());
 
         this.responseTo = responseTo;
@@ -92,7 +98,9 @@ public class TransactionsResponse extends AbstractCommand implements Response {
                         (tx.get("amount") instanceof BigDecimal || tx.get("amount") instanceof Integer) &&
                         tx.get("signature") instanceof String &&
                         tx.get("status") instanceof String &&
-                        tx.get("addressType") instanceof String) {
+                        tx.get("addressType") instanceof String &&
+                        tx.get("publicKey") instanceof String &&
+                        tx.get("timestamp") instanceof String) {
                     float amount;
                     if (tx.get("amount") instanceof Integer) {
                         amount = ((Integer) tx.get("amount")).floatValue();
@@ -108,7 +116,8 @@ public class TransactionsResponse extends AbstractCommand implements Response {
                             tx.get("signature").toString(),
                             tx.get("status").toString(),
                             tx.get("addressType").toString(),
-                            tx.get("publicKey").toString()
+                            tx.get("publicKey").toString(),
+                            DateTime.parse(tx.get("timestamp").toString())
                     ));
                 }
             }

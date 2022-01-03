@@ -17,6 +17,7 @@ public class HashingUtils {
         String hash = "";
         try {
             MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
+            // value = diversifier() + value + diversifier();
             byte[] bytes = messageDigest.digest(value.getBytes(StandardCharsets.UTF_8));
             BigInteger noHash = new BigInteger(1, bytes);
             hash = noHash.toString(16);

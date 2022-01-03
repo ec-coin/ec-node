@@ -45,8 +45,6 @@ public class Consensus extends StateListener {
     }
 
     protected void iteration() {
-        nodeStateQueue.add(NodeState.INIT);
-
         // 1. Get all node addresses from DB
         List<String> nodes = transactionRepository.getAllNodeAddresses();
 
