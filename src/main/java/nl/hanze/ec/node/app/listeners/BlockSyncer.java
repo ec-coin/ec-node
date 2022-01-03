@@ -98,6 +98,7 @@ public class BlockSyncer extends StateListener {
                 // Validate block height
                 if (header.blockHeight != (localBlockHeight + 1)) {
                     System.out.println("INVALID BLOCK_HEIGHT FOUND [prev:" + prevHeader + "] [curr:" + header + "]");
+                    break;
                 }
 
                 blockRepository.createHeader(
@@ -140,13 +141,13 @@ public class BlockSyncer extends StateListener {
 
                 calculatedHash = HashingUtils.generateTransactionHash(transaction.from, transaction.to, transaction.amount, transaction.signature);
                 if (!calculatedHash.equals(transaction.hash)) {
-                    logger.info("Transaction Hash not valid");
+                    logger.info("Transaction Hash not valid [curr:" + transaction + "]");
                 }
                 transactionHashes.add(transaction.hash);
             }
 
             if (!HashingUtils.validateMerkleRootHash(block.getMerkleRootHash(), transactionHashes)) {
-                logger.info("Merkle Root Hash not valid");
+                logger.info("Merkle Root Hash not valid [curr:" + transactionHashes + "]");
             }
 
             for(TransactionsResponse.Tx transaction : transactions) {

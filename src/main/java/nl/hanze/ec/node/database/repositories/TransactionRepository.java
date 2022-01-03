@@ -139,7 +139,7 @@ public class TransactionRepository {
     public synchronized void setTransactionAsValidated(Transaction t, Block block) {
         try {
             transactionDAO.createOrUpdate(
-                    new Transaction(t.getHash(), block, t.getFrom(), t.getTo(), t.getAmount(), t.getSignature(), "validated", t.getAddressType(), t.getPublicKey())
+                    new Transaction(t.getHash(), block, t.getFrom(), t.getTo(), t.getAmount(), t.getSignature(), "validated", t.getAddressType(), t.getPublicKey(), t.getTimestamp())
             );
         } catch (SQLException e) {
             e.printStackTrace();

@@ -54,16 +54,7 @@ public class Transaction {
             String addressType,
             String publicKey
     ) {
-        this.hash = hash;
-        this.block = block;
-        this.from = from;
-        this.to = to;
-        this.amount = amount;
-        this.signature = signature;
-        this.status = status;
-        this.addressType = addressType;
-        this.publicKey = publicKey;
-        this.timestamp = new DateTime();
+        this(hash, block, from, to, amount, signature, status, addressType, publicKey, new DateTime());
     }
 
     public Transaction(
@@ -78,7 +69,15 @@ public class Transaction {
             String publicKey,
             DateTime timestamp
             ) {
-        this(hash, block, from, to, amount, signature, status, addressType, publicKey);
+        this.hash = hash;
+        this.block = block;
+        this.from = from;
+        this.to = to;
+        this.amount = amount;
+        this.signature = signature;
+        this.status = status;
+        this.addressType = addressType;
+        this.publicKey = publicKey;
         this.timestamp = timestamp;
     }
 

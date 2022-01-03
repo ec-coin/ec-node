@@ -12,6 +12,7 @@ import com.j256.ormlite.table.TableUtils;
 import nl.hanze.ec.node.database.models.*;
 import nl.hanze.ec.node.modules.annotations.*;
 
+import java.io.File;
 import java.sql.SQLException;
 
 public class DatabaseModule extends AbstractModule {
@@ -21,6 +22,11 @@ public class DatabaseModule extends AbstractModule {
         super();
 
         try {
+            if (clearBlockchain) {
+                File f= new File("./database.db");
+                f.delete();
+            }
+
             String databaseUrl = "jdbc:sqlite:database.db";
             connectionSource = new JdbcConnectionSource(databaseUrl);
 
@@ -28,11 +34,6 @@ public class DatabaseModule extends AbstractModule {
             TableUtils.createTableIfNotExists(connectionSource, Block.class);
             TableUtils.createTableIfNotExists(connectionSource, Transaction.class);
             TableUtils.createTableIfNotExists(connectionSource, BalancesCache.class);
-
-            if (clearBlockchain) {
-                TableUtils.clearTable(connectionSource, Block.class);
-                TableUtils.clearTable(connectionSource, Transaction.class);
-            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
