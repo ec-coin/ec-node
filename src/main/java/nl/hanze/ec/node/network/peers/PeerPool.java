@@ -3,8 +3,6 @@ package nl.hanze.ec.node.network.peers;
 import com.google.inject.Inject;
 import nl.hanze.ec.node.Application;
 import nl.hanze.ec.node.app.NodeState;
-import nl.hanze.ec.node.database.models.Block;
-import nl.hanze.ec.node.database.models.Transaction;
 import nl.hanze.ec.node.database.repositories.*;
 import nl.hanze.ec.node.modules.annotations.*;
 import nl.hanze.ec.node.network.peers.commands.Command;
@@ -13,8 +11,6 @@ import nl.hanze.ec.node.network.peers.peer.Peer;
 import nl.hanze.ec.node.network.peers.peer.PeerConnection;
 import nl.hanze.ec.node.network.peers.peer.PeerConnectionFactory;
 import nl.hanze.ec.node.network.peers.peer.PeerState;
-import nl.hanze.ec.node.utils.HashingUtils;
-import nl.hanze.ec.node.utils.SignatureUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
@@ -24,8 +20,6 @@ import java.io.IOException;
 import java.net.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.security.KeyPair;
-import java.security.PublicKey;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -359,45 +353,5 @@ public class PeerPool implements Runnable {
 
     public static int getTransactionThreshold() {
         return transactionThreshold;
-    }
-
-    private void logDatabaseInteraction() {
-        String example = "7e35543e662e1ff7e399d1ad7f92f4f3945769328ff3cf58535cf5c5529de31e";
-        float balance = transactionRepository.getBalance("3333333333333333333333333333333333333333333333333333333333333333");
-        float stake = transactionRepository.getStake("3333333333333333333333333333333333333333333333333333333333333333");
-        System.out.println("balance before: " + balance);
-        System.out.println("stake before: " + stake);
-        balancesCacheRepository.updateBalanceCache("3333333333333333333333333333333333333333333333333333333333333333", balance);
-
-        if (connectedPeers.size() == 0) {
-            nodeStateQueue.add(NodeState.PARTICIPATING);
-        }
-
-        try {
-            Thread.sleep(1000);
-        }
-        catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        balance = transactionRepository.getBalance("3333333333333333333333333333333333333333333333333333333333333333");
-        stake = transactionRepository.getStake("3333333333333333333333333333333333333333333333333333333333333333");
-        System.out.println("\nbalance after: " + balance);
-        System.out.println("stake after: " + stake);
-        balancesCacheRepository.updateBalanceCache("3333333333333333333333333333333333333333333333333333333333333333", balance);
-
-        Block block = blockRepository.getCurrentBlock();
-
-        for (Transaction transaction : block.getTransactions()) {
-            System.out.println("\nIn block with hash " + block.getHash() + " there are " + block.getTransactions().size() + " transactions");
-            System.out.println("hash of transaction: " + transaction.getHash() + " with status: " + transaction.getStatus());
-        }
-
-        KeyPair keyPair = SignatureUtils.generateKeyPair();
-        String value = "hello";
-        byte[] signature = SignatureUtils.sign(keyPair, value);
-        PublicKey publicKey = keyPair.getPublic();
-        boolean verified = SignatureUtils.verify(publicKey, signature, value);
-        System.out.println("signature verified: " + verified);
     }
 }

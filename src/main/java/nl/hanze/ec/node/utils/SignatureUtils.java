@@ -6,6 +6,7 @@ import io.github.novacrypto.bip39.Words;
 import io.github.novacrypto.bip39.wordlists.English;
 import org.bouncycastle.jce.ECNamedCurveTable;
 import org.bouncycastle.jce.interfaces.ECPrivateKey;
+import org.bouncycastle.jce.interfaces.ECPublicKey;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.jce.spec.ECParameterSpec;
 import org.bouncycastle.jce.spec.ECPrivateKeySpec;
@@ -13,8 +14,11 @@ import org.bouncycastle.jce.spec.ECPublicKeySpec;
 import org.bouncycastle.math.ec.ECPoint;
 import org.bouncycastle.math.ec.FixedPointCombMultiplier;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.Base64;
 
 public class SignatureUtils {
 
@@ -66,7 +70,7 @@ public class SignatureUtils {
         return keyPair;
     }
 
-    public synchronized static byte[] sign(KeyPair keyPair, String value) {
+    public synchronized static String sign(KeyPair keyPair, String value) {
         PrivateKey privateKey = keyPair.getPrivate();
         byte[] signature = null;
         try {
@@ -77,20 +81,38 @@ public class SignatureUtils {
         } catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException | NoSuchProviderException e) {
             e.printStackTrace();
         }
-        return signature;
+        return new BigInteger(1, signature).toString(16);
     }
 
-    public synchronized static boolean verify(PublicKey publicKey, byte[] signature, String value) {
+    public synchronized static boolean verify(PublicKey publicKey, String signatureHex, String value) {
         boolean legitimateSignature = false;
         try {
             Signature signer = Signature.getInstance("SHA256WithECDSA", "BC");
             signer.initVerify(publicKey);
             byte[] bytes = value.getBytes();
             signer.update(bytes);
-            legitimateSignature = signer.verify(signature);
+            legitimateSignature = signer.verify(new BigInteger(signatureHex, 16).toByteArray());
         } catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException | NoSuchProviderException e) {
             e.printStackTrace();
         }
         return legitimateSignature;
+    }
+
+    public synchronized static String encodePublicKey(PublicKey publicKey) {
+        byte[] encodedKey = publicKey.getEncoded();
+        return Base64.getEncoder().encodeToString(encodedKey);
+    }
+
+    public synchronized static PublicKey decodePublicKey(String publicKeyString) {
+        byte[] encodedKey = Base64.getDecoder().decode(publicKeyString);
+
+        PublicKey publicKey = null;
+        try {
+            KeyFactory keyFactory = KeyFactory.getInstance("ECDSA", "BC");
+            publicKey = keyFactory.generatePublic(new X509EncodedKeySpec(encodedKey));
+        } catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidKeySpecException e) {
+            e.printStackTrace();
+        }
+        return publicKey;
     }
 }

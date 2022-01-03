@@ -3,10 +3,13 @@ package nl.hanze.ec.node;
 import nl.hanze.ec.node.database.models.Block;
 import nl.hanze.ec.node.network.peers.commands.responses.HeadersResponse;
 import nl.hanze.ec.node.utils.HashingUtils;
+import nl.hanze.ec.node.utils.SignatureUtils;
 import org.joda.time.DateTime;
 import org.json.JSONObject;
 import org.junit.jupiter.api.*;
 
+import java.security.KeyPair;
+import java.security.PublicKey;
 import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -52,5 +55,16 @@ public class ApplicationTest {
                 "\"timestamp\":\"" + now + "\"" +
                 "}]," +
                 "\"command\":\"headers-response\",\"responseTo\":1}", json);
+    }
+
+    @Test
+    public void testSignatureUtils() {
+        KeyPair keyPair = SignatureUtils.generateKeyPair();
+        String value = "message payload";
+        String signature = SignatureUtils.sign(keyPair, value);
+        String publicKeyString = SignatureUtils.encodePublicKey(keyPair.getPublic());
+        PublicKey publicKey = SignatureUtils.decodePublicKey(publicKeyString);
+        boolean verified = SignatureUtils.verify(publicKey, signature, value);
+        assertTrue(verified);
     }
 }

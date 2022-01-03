@@ -19,6 +19,7 @@ import nl.hanze.ec.node.utils.SignatureUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
+import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -134,10 +135,13 @@ public class BlockSyncer extends StateListener {
 
             // TODO: Validate merkle root of transactions with merkle root of block in DB.
             List<String> transactionHashes = new ArrayList<>();
-            String calculatedSignature;
             String calculatedHash;
             for(TransactionsResponse.Tx transaction : transactions) {
-                // calculatedSignature = SignatureUtils.verify()
+                PublicKey publicKey = SignatureUtils.decodePublicKey(transaction.publicKey);
+                String message = transaction.from + transaction.to + transaction.timestamp + transaction.amount;
+                if (!SignatureUtils.verify(publicKey, transaction.signature, message)) {
+                    logger.info("Signature not valid [curr:" + transaction + "]");
+                }
 
                 calculatedHash = HashingUtils.generateTransactionHash(transaction.from, transaction.to, transaction.amount, transaction.signature);
                 if (!calculatedHash.equals(transaction.hash)) {
