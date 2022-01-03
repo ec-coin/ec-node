@@ -200,7 +200,7 @@ public class PeerPool implements Runnable {
                     String signature1 = "**signature**";
                     String publicKey1 = "**publicKey**";
                     String transactionHash1 = HashingUtils.generateTransactionHash(fromHash1, toHash1, 50.4f, signature1 + i + j);
-                    Transaction transaction = transactionRepository.createTransaction(transactionHash1, null, fromHash1, toHash1, 50.4f, signature1, "wallet", publicKey1, new DateTime());
+                    Transaction transaction = transactionRepository.createTransaction(transactionHash1, null, fromHash1, toHash1, 50.4f, signature1, "pending", "wallet", publicKey1, new DateTime());
                     transactions.add(transaction);
                 }
 

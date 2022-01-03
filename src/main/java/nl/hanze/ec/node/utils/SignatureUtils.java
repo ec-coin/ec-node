@@ -12,16 +12,8 @@ import org.bouncycastle.jce.spec.ECPrivateKeySpec;
 import org.bouncycastle.jce.spec.ECPublicKeySpec;
 import org.bouncycastle.math.ec.ECPoint;
 import org.bouncycastle.math.ec.FixedPointCombMultiplier;
-
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.math.BigInteger;
 import java.security.*;
-import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 
 public class SignatureUtils {
@@ -43,7 +35,6 @@ public class SignatureUtils {
                         .createMnemonic(buffer, mnemonic::append);
                 savedMnemonic = mnemonic.toString();
             }
-            System.out.println("mnemonic: " + savedMnemonic);
 
             FileUtils.writeToResources("mnemonic.txt", savedMnemonic);
 
@@ -60,7 +51,6 @@ public class SignatureUtils {
 
             ECPrivateKeySpec privateKeySpec = new ECPrivateKeySpec(hash, ecSpec);
             ECPrivateKey privateKey = (ECPrivateKey) keyFactory.generatePrivate(privateKeySpec);
-            System.out.println(privateKey.toString());
 
             // ECPrivateKey -> ECPublicKey
             ECPoint Q = (new FixedPointCombMultiplier()).multiply(ecSpec.getG(), privateKey.getD()).normalize();
@@ -102,54 +92,5 @@ public class SignatureUtils {
             e.printStackTrace();
         }
         return legitimateSignature;
-    }
-
-    public synchronized static void storeKeyPairInKeyStore() {
-        try {
-            KeyStore keyStore = KeyStore.getInstance("JCEKS");
-            char[] password = "changeit".toCharArray();
-            String path = "src/main/resources/secret/cacerts";
-            FileInputStream fis = new FileInputStream(path);
-
-            keyStore.load(fis, password);
-            loadKeyFromKeyStore(keyStore, password, fis);
-            System.out.println("data stored");
-        }
-        catch (KeyStoreException | IOException | CertificateException | NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public synchronized static void retrieveKeyFromKeyStore() {
-        try {
-            KeyStore keyStore = KeyStore.getInstance("JCEKS");
-            char[] password = "changeit".toCharArray();
-            FileInputStream fis = new FileInputStream("src/main/resources/secret/cacerts");
-
-            keyStore.load(fis, password);
-            KeyStore.ProtectionParameter protectionParam = loadKeyFromKeyStore(keyStore, password, fis);
-            KeyStore.SecretKeyEntry secretKeyEnt = (KeyStore.SecretKeyEntry) keyStore.getEntry("secretKeyAlias", protectionParam);
-
-            SecretKey mysecretKey = secretKeyEnt.getSecretKey();
-            System.out.println("Algorithm used to generate key : " + mysecretKey.getAlgorithm());
-            System.out.println("Format used for the key: " + mysecretKey.getFormat());
-        }
-        catch (KeyStoreException | IOException | CertificateException | NoSuchAlgorithmException | UnrecoverableEntryException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private synchronized static KeyStore.ProtectionParameter loadKeyFromKeyStore(KeyStore keyStore, char[] password, java.io.FileInputStream fis) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException {
-        //Creating the KeyStore.ProtectionParameter object
-        KeyStore.ProtectionParameter protectionParam = new KeyStore.PasswordProtection(password);
-
-        //Creating SecretKey object
-        SecretKey mySecretKey = new SecretKeySpec("myPassword".getBytes(), "ECDSA");
-
-        //Creating SecretKeyEntry object
-        KeyStore.SecretKeyEntry secretKeyEntry = new KeyStore.SecretKeyEntry(mySecretKey);
-        keyStore.setEntry("privateKeyNode", secretKeyEntry, protectionParam);
-
-        return protectionParam;
     }
 }

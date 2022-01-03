@@ -137,6 +137,7 @@ public class BlockSyncer extends StateListener {
                         transaction.to,
                         transaction.amount,
                         transaction.signature,
+                        transaction.status,
                         transaction.addressType,
                         transaction.publicKey
                 );

@@ -22,7 +22,7 @@ public class TransactionsResponse extends AbstractCommand implements Response {
         public final String status;
         public final String addressType;
         public final String publicKey;
-        // public DateTime timestamp;
+        //public DateTime timestamp;
 
         public Tx(String hash, String from, String to, float amount, String signature, String status, String addressType, String publicKey) {
             this.hash = hash;

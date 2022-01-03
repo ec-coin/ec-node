@@ -37,6 +37,9 @@ public class Transaction {
     @DatabaseField(canBeNull = false, columnName = "public_key")
     private String publicKey;
 
+    @DatabaseField(canBeNull = true, columnName = "order_in_block")
+    private int orderInBlock;
+
     // ORMLite requires a no-arg constructor.
     public Transaction() {}
 
@@ -117,5 +120,13 @@ public class Transaction {
 
     public String getPublicKey() {
         return this.publicKey;
+    }
+
+    public int getOrderInBlock() {
+        return orderInBlock;
+    }
+
+    public void setOrderInBlock(int orderInBlock) {
+        this.orderInBlock = orderInBlock;
     }
 }

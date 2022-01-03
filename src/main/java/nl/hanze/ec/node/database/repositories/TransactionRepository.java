@@ -35,12 +35,13 @@ public class TransactionRepository {
         return null;
     }
 
-    public synchronized Transaction createTransaction(String hash, Block block, String from, String to, float amount, String signature, String addressType, String publicKey) {
+    public synchronized Transaction createTransaction(Block block, String from, String to, float amount, String signature, String addressType, String publicKey) {
+        String hash = HashingUtils.generateTransactionHash(from, to, transactionFee, signature);
         return createTransaction(new Transaction(hash, block, from, to, amount, signature, "pending", addressType, publicKey));
     }
 
-    public synchronized Transaction createTransaction(String hash, Block block, String from, String to, float amount, String signature, String addressType, String publicKey, DateTime dateTime) {
-        return createTransaction(new Transaction(hash, block, from, to, amount, signature, "pending", addressType, publicKey, dateTime));
+    public synchronized Transaction createTransaction(String hash, Block block, String from, String to, float amount, String signature, String status, String addressType, String publicKey, DateTime dateTime) {
+        return createTransaction(new Transaction(hash, block, from, to, amount, signature, status, addressType, publicKey, dateTime));
     }
 
     public synchronized Transaction createTransaction(Transaction transaction) {

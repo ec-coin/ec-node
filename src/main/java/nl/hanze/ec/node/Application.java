@@ -9,6 +9,7 @@ import nl.hanze.ec.node.app.listeners.Consensus;
 import nl.hanze.ec.node.app.listeners.Listener;
 import nl.hanze.ec.node.app.listeners.ListenerFactory;
 import nl.hanze.ec.node.database.repositories.BlockRepository;
+import nl.hanze.ec.node.modules.annotations.NodeKeyPair;
 import nl.hanze.ec.node.modules.annotations.NodeStateQueue;
 import nl.hanze.ec.node.network.Server;
 import nl.hanze.ec.node.network.peers.PeerPool;
@@ -16,6 +17,7 @@ import nl.hanze.ec.node.utils.FileUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
+import java.security.KeyPair;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
@@ -39,6 +41,8 @@ public class Application {
     private final ListenerFactory listenerFactory;
     private final BlockingQueue<NodeState> nodeStateQueue;
     private final BlockRepository blockRepository;
+    private final KeyPair keyPair;
+    private final String nodeAddress;
 
     @Inject
     public Application(
@@ -48,6 +52,8 @@ public class Application {
             StateHandler stateHandler,
             ListenerFactory listenerFactory,
             BlockRepository blockRepository,
+            String nodeAddress,
+            @NodeKeyPair KeyPair keyPair,
             @NodeStateQueue BlockingQueue<NodeState> nodeStateQueue
     ) {
         this.api = api;
@@ -57,6 +63,8 @@ public class Application {
         this.stateHandler = stateHandler;
         this.nodeStateQueue = nodeStateQueue;
         this.blockRepository = blockRepository;
+        this.keyPair = keyPair;
+        this.nodeAddress = nodeAddress;
     }
 
     /**
@@ -68,6 +76,8 @@ public class Application {
         if (blockRepository.getNumberOfBlocks() == 0) {
             createGenesisBlock();
         }
+
+        System.out.println("public key: " + keyPair.getPublic());
 
         // Sets up server and client communication
         Thread APIThread = new Thread(this.api);
