@@ -50,10 +50,10 @@ public class HashingUtils {
         return hash(input.toString());
     }
 
-    public synchronized static boolean validateMerkleRootHash(String merkleRootHash, List<Transaction> transactions) {
+    public synchronized static boolean validateMerkleRootHash(String merkleRootHash, List<String> transactionHashes) {
         StringBuilder input = new StringBuilder();
-        for (Transaction transaction : transactions) {
-            input.append(transaction.getHash());
+        for (String hash : transactionHashes) {
+            input.append(hash);
         }
         return merkleRootHash.equals(hash(input.toString()));
     }

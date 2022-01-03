@@ -37,7 +37,7 @@ public class BlockRepository {
         }
     }
 
-    public synchronized Block createHeader(String hash, String previousBlockHash, String merkleRootHash, int blockHeight, DateTime... dateTime) {
+    public synchronized Block createHeader(String hash, String previousBlockHash, String merkleRootHash, int blockHeight, DateTime dateTime) {
         return createBlock(hash, previousBlockHash, merkleRootHash, blockHeight, "header", dateTime);
     }
 

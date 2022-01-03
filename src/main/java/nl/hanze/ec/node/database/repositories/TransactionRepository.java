@@ -123,20 +123,17 @@ public class TransactionRepository {
     }
 
     public synchronized List<Transaction> getFiniteNumberOfPendingTransactions() {
-        List<Transaction> transactionsToBeValidated = new ArrayList<>();
+        List<Transaction> pendingTransactions = new ArrayList<>();
         try {
-            List<Transaction> pendingTransactions = transactionDAO.queryBuilder()
-                    .where().eq("status", "pending").query();
-
-            int threshold = PeerPool.getTransactionThreshold();
-            for (int i = 0; i < threshold; i++) {
-                transactionsToBeValidated.add(pendingTransactions.get(i));
-            }
+            pendingTransactions = transactionDAO.queryBuilder()
+                    .limit((long) PeerPool.getTransactionThreshold())
+                    .where().eq("status", "pending")
+                    .query();
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
-        return transactionsToBeValidated;
+        return pendingTransactions;
     }
 
     public synchronized void setTransactionAsValidated(Transaction t, Block block) {

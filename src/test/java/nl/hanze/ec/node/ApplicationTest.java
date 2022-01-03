@@ -19,13 +19,13 @@ public class ApplicationTest {
     }
 
     @Test
-    public void testHashing() {
+    public void testBlockHashing() {
         String previousBlockHash = "GENESIS";
-        String merkleRootHash = HashingUtils.hash("" + 0);
-        String hash = HashingUtils.hash(previousBlockHash + merkleRootHash);
+        String merkleRootHash = "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9";
+        DateTime dateTime = new DateTime("2022-01-03T14:05:33.379+01:00");
+        String hash = HashingUtils.generateBlockHash(merkleRootHash, previousBlockHash, dateTime);
 
-        assertEquals("5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9", merkleRootHash);
-        assertEquals("95acc55d4646f4e482d85fdd573689f0b490535a181af6a7ab1c20f94b6ca509", hash);
+        assertEquals("a0500af02626cb6491e5ac09b249000ddc52a2ba3c6f4061ef43cbfd42378441", hash);
     }
 
     @Test

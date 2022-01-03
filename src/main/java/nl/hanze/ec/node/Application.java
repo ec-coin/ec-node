@@ -9,6 +9,7 @@ import nl.hanze.ec.node.app.listeners.Consensus;
 import nl.hanze.ec.node.app.listeners.Listener;
 import nl.hanze.ec.node.app.listeners.ListenerFactory;
 import nl.hanze.ec.node.database.models.Block;
+import nl.hanze.ec.node.database.models.Transaction;
 import nl.hanze.ec.node.database.repositories.BlockRepository;
 import nl.hanze.ec.node.modules.annotations.NodeKeyPair;
 import nl.hanze.ec.node.database.repositories.NeighboursRepository;
@@ -21,6 +22,7 @@ import nl.hanze.ec.node.utils.FileUtils;
 import nl.hanze.ec.node.utils.HashingUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.joda.time.DateTime;
 
 import java.security.KeyPair;
 import java.util.ArrayList;
@@ -150,20 +152,26 @@ public class Application {
         Block prevBlock = blockRepository.getCurrentBlock();
 
         for (int i = 0; i < 20; i++) {
-            String previousBlockHash = prevBlock.getHash();
-            String merkleRootHash = HashingUtils.hash("" + i);
-            String hash = HashingUtils.hash(previousBlockHash + merkleRootHash);
-            int blockheight = prevBlock.getBlockHeight() + 1;
-
-            Block block = blockRepository.createBlock(hash, previousBlockHash, merkleRootHash, blockheight, "full");
-
+            List<Transaction> transactions = new ArrayList<>();
             for (int j = 0; j < 10; j++) {
-                String transactionHash1 = HashingUtils.hash("transaction" + i);
                 String fromHash1 = "**addressFrom**";
                 String toHash1 = "**addressTo**";
                 String signature1 = "**signature**";
                 String publicKey1 = "**publicKey**";
-                transactionRepository.createTransaction(transactionHash1, block, fromHash1, toHash1, 50.4f, signature1, "wallet", publicKey1);
+                String transactionHash1 = HashingUtils.generateTransactionHash(fromHash1, toHash1, 50.4f, signature1 + i + j);
+                Transaction transaction = transactionRepository.createTransaction(transactionHash1, null, fromHash1, toHash1, 50.4f, signature1, "pending", "wallet", publicKey1, new DateTime());
+                transactions.add(transaction);
+            }
+
+            String previousBlockHash = prevBlock.getHash();
+            String merkleRootHash = HashingUtils.generateMerkleRootHash(transactions);
+            String hash = HashingUtils.generateBlockHash(merkleRootHash, previousBlockHash, new DateTime());
+            int blockheight = prevBlock.getBlockHeight() + 1;
+
+            Block block = blockRepository.createBlock(hash, previousBlockHash, merkleRootHash, blockheight, "full");
+
+            for(Transaction transaction : transactions) {
+                transactionRepository.setTransactionAsValidated(transaction, block);
             }
 
             prevBlock = block;

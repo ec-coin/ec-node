@@ -2,6 +2,7 @@ package nl.hanze.ec.node.app.listeners;
 
 import nl.hanze.ec.node.app.NodeState;
 import nl.hanze.ec.node.database.models.Block;
+import nl.hanze.ec.node.database.models.Transaction;
 import nl.hanze.ec.node.database.repositories.BlockRepository;
 import nl.hanze.ec.node.database.repositories.TransactionRepository;
 import nl.hanze.ec.node.modules.annotations.NodeStateQueue;
@@ -14,6 +15,7 @@ import nl.hanze.ec.node.network.peers.commands.responses.TransactionsResponse;
 import nl.hanze.ec.node.network.peers.peer.Peer;
 import nl.hanze.ec.node.network.peers.peer.PeerState;
 import nl.hanze.ec.node.utils.HashingUtils;
+import nl.hanze.ec.node.utils.SignatureUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -87,7 +89,7 @@ public class BlockSyncer extends StateListener {
                 }
 
                 // Validate hash.
-                String blockHash = HashingUtils.hash(header.previousBlockHash + header.merkleRootHash);
+                String blockHash = HashingUtils.generateBlockHash(header.merkleRootHash, header.previousBlockHash, header.timestamp);
                 if (!blockHash.equals(header.hash)) {
                     System.out.println("INVALID HASH FOUND [curr:" + header + "]");
                     break;
@@ -130,6 +132,22 @@ public class BlockSyncer extends StateListener {
             List<TransactionsResponse.Tx> transactions = response.getTransactions();
 
             // TODO: Validate merkle root of transactions with merkle root of block in DB.
+            List<String> transactionHashes = new ArrayList<>();
+            String calculatedSignature;
+            String calculatedHash;
+            for(TransactionsResponse.Tx transaction : transactions) {
+                // calculatedSignature = SignatureUtils.verify()
+
+                calculatedHash = HashingUtils.generateTransactionHash(transaction.from, transaction.to, transaction.amount, transaction.signature);
+                if (!calculatedHash.equals(transaction.hash)) {
+                    logger.info("Transaction Hash not valid");
+                }
+                transactionHashes.add(transaction.hash);
+            }
+
+            if (!HashingUtils.validateMerkleRootHash(block.getMerkleRootHash(), transactionHashes)) {
+                logger.info("Merkle Root Hash not valid");
+            }
 
             for(TransactionsResponse.Tx transaction : transactions) {
                 transactionRepository.createTransaction(
