@@ -132,11 +132,9 @@ public class BlockSyncer extends StateListener {
             }
 
             TransactionsResponse response = ((TransactionsResponse) command.getResponse());
-
             List<TransactionsResponse.Tx> transactions = response.getTransactions();
-
-            // TODO: Validate merkle root of transactions with merkle root of block in DB.
             List<String> transactionHashes = new ArrayList<>();
+
             for(TransactionsResponse.Tx transaction : transactions) {
                 try {
                     ValidationUtils.validateTransaction(new Transaction(
