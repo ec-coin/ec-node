@@ -11,6 +11,7 @@ import nl.hanze.ec.node.app.listeners.ListenerFactory;
 import nl.hanze.ec.node.database.models.Block;
 import nl.hanze.ec.node.database.models.Transaction;
 import nl.hanze.ec.node.database.repositories.BlockRepository;
+import nl.hanze.ec.node.modules.annotations.NodeAddress;
 import nl.hanze.ec.node.modules.annotations.NodeKeyPair;
 import nl.hanze.ec.node.database.repositories.NeighboursRepository;
 import nl.hanze.ec.node.database.repositories.TransactionRepository;
@@ -63,7 +64,7 @@ public class Application {
             StateHandler stateHandler,
             ListenerFactory listenerFactory,
             BlockRepository blockRepository,
-            String nodeAddress,
+            @NodeAddress String nodeAddress,
             TransactionRepository transactionRepository,
             NeighboursRepository neighboursRepository,
             @NodeKeyPair KeyPair keyPair,
