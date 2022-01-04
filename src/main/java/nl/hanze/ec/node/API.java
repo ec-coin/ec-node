@@ -128,7 +128,7 @@ public class API implements Runnable {
         get("/balances", (request, response) -> {
             response.type("application/json");
 
-            int amount = 0;
+            float amount = 0;
             if (request.queryParams().size() == 0) {
                 return new Gson().toJson(
                         new StandardResponse(StatusResponse.SUCCESS, new Gson()

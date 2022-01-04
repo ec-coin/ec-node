@@ -6,9 +6,12 @@ import nl.hanze.ec.node.app.NodeState;
 import nl.hanze.ec.node.database.repositories.BlockRepository;
 import nl.hanze.ec.node.database.repositories.NeighboursRepository;
 import nl.hanze.ec.node.database.repositories.TransactionRepository;
+import nl.hanze.ec.node.modules.annotations.NodeAddress;
+import nl.hanze.ec.node.modules.annotations.NodeKeyPair;
 import nl.hanze.ec.node.modules.annotations.NodeStateQueue;
 import nl.hanze.ec.node.network.peers.PeerPool;
 
+import java.security.KeyPair;
 import java.util.concurrent.BlockingQueue;
 
 public class ListenerFactory {
@@ -16,9 +19,13 @@ public class ListenerFactory {
     private final Provider<TransactionRepository> transactionRepositoryProvider;
     private final Provider<NeighboursRepository> neighboursRepositoryProvider;
     private final Provider<BlockRepository> blockRepositoryProvider;
+    private final KeyPair nodeKeyPair;
+    private final String nodeAddress;
 
     @Inject
     public ListenerFactory(@NodeStateQueue BlockingQueue<NodeState> nodeStateQueue,
+                           @NodeKeyPair KeyPair keyPair,
+                           @NodeAddress String address,
                            Provider<TransactionRepository> transactionRepositoryProvider,
                            Provider<NeighboursRepository> neighboursRepositoryProvider,
                            Provider<BlockRepository> blockRepositoryProvider) {
@@ -26,12 +33,16 @@ public class ListenerFactory {
         this.transactionRepositoryProvider = transactionRepositoryProvider;
         this.neighboursRepositoryProvider = neighboursRepositoryProvider;
         this.blockRepositoryProvider = blockRepositoryProvider;
+        this.nodeAddress = address;
+        this.nodeKeyPair = keyPair;
     }
 
     public Listener create(Class<? extends Listener> listener, PeerPool peerPool) {
         if (listener == Consensus.class) {
             return new Consensus(
                 nodeStateQueue,
+                nodeKeyPair,
+                nodeAddress,
                 peerPool,
                 transactionRepositoryProvider.get(),
                 neighboursRepositoryProvider.get(),

@@ -54,15 +54,15 @@ public class TransactionRepository {
         return null;
     }
 
-    public synchronized int getStake(String address) {
+    public synchronized float getStake(String address) {
         return getAmount(address, "node");
     }
 
-    public synchronized int getBalance(String address) {
+    public synchronized float getBalance(String address) {
         return getAmount(address, "wallet");
     }
 
-    public synchronized int getAmount(String address, String address_type) {
+    public synchronized float getAmount(String address, String address_type) {
         int amount = 0;
         try {
             Where<Transaction, String> where = transactionDAO.queryBuilder()
