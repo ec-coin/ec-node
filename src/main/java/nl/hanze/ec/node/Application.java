@@ -159,7 +159,7 @@ public class Application {
             List<Transaction> transactions = new ArrayList<>();
             for (int j = 0; j < 10; j++) {
                 DateTime transactionTimestamp = new DateTime();
-                String fromHash1 = "**addressFrom**";
+                String fromHash1 = nodeAddress;
                 String toHash1 = "**addressTo**";
                 String signature1 = SignatureUtils.sign(keyPair, fromHash1 + toHash1 + transactionTimestamp + amount);
                 String publicKey1 = SignatureUtils.encodePublicKey(keyPair.getPublic());
