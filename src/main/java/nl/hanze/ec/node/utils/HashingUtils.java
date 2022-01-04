@@ -50,19 +50,19 @@ public class HashingUtils {
         return hash(input.toString());
     }
 
-    public synchronized static boolean validateMerkleRootHash(String merkleRootHash, List<String> transactionHashes) {
-        StringBuilder input = new StringBuilder();
-        for (String hash : transactionHashes) {
-            input.append(hash);
-        }
-        return merkleRootHash.equals(hash(input.toString()));
-    }
-
     public synchronized static String generateBlockHash(String merkleRootHash, String previousHash, DateTime timestamp) {
         return hash(merkleRootHash + previousHash + timestamp.toString());
     }
 
     public synchronized static String getAddress(PublicKey publicKey) {
         return hash(publicKey.toString());
+    }
+
+    public synchronized static boolean validateMerkleRootHash(String merkleRootHash, List<String> transactionHashes) {
+        StringBuilder input = new StringBuilder();
+        for (String hash : transactionHashes) {
+            input.append(hash);
+        }
+        return merkleRootHash.equals(hash(input.toString()));
     }
 }
