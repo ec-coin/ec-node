@@ -2,12 +2,14 @@ package nl.hanze.ec.node;
 
 import nl.hanze.ec.node.database.models.Block;
 import nl.hanze.ec.node.network.peers.commands.responses.HeadersResponse;
+import nl.hanze.ec.node.utils.BaseNUtils;
 import nl.hanze.ec.node.utils.HashingUtils;
 import nl.hanze.ec.node.utils.SignatureUtils;
 import org.joda.time.DateTime;
 import org.json.JSONObject;
 import org.junit.jupiter.api.*;
 
+import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.PublicKey;
 import java.util.ArrayList;
@@ -66,5 +68,22 @@ public class ApplicationTest {
         PublicKey publicKey = SignatureUtils.decodePublicKey(publicKeyString);
         boolean verified = SignatureUtils.verify(publicKey, signature, value);
         assertTrue(verified);
+    }
+
+    @Test
+    public void testBaseNUtils() {
+        String encoding = BaseNUtils.Base58Encode("123456789",10);
+        assertEquals("BukQL", encoding);
+        String decoding = BaseNUtils.Base58Decode(encoding, 10);
+        assertEquals("123456789", decoding);
+        decoding = BaseNUtils.Base58Decode(encoding, 16);
+        assertEquals("75bcd15", decoding);
+
+        encoding = BaseNUtils.Base58Encode("1b0ee1e3",16);
+        assertEquals("h7fYN", encoding);
+        decoding = BaseNUtils.Base58Decode(encoding, 10);
+        assertEquals("453960163", decoding);
+        decoding = BaseNUtils.Base58Decode(encoding, 16);
+        assertEquals("1b0ee1e3", decoding);
     }
 }

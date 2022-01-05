@@ -16,7 +16,6 @@ import java.math.BigInteger;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
-import java.util.Base64;
 
 public class SignatureUtils {
 
@@ -97,12 +96,11 @@ public class SignatureUtils {
     }
 
     public synchronized static String encodePublicKey(PublicKey publicKey) {
-        byte[] encodedKey = publicKey.getEncoded();
-        return Base64.getEncoder().encodeToString(encodedKey);
+        return BaseNUtils.Base64Encode(publicKey.getEncoded());
     }
 
     public synchronized static PublicKey decodePublicKey(String publicKeyString) {
-        byte[] encodedKey = Base64.getDecoder().decode(publicKeyString);
+        byte[] encodedKey = BaseNUtils.Base64Decode(publicKeyString);
 
         PublicKey publicKey = null;
         try {
