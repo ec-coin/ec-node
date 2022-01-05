@@ -94,9 +94,9 @@ public class Application {
         }
 
         // CLI option for development purposes
-        //if (shouldSeedDatabase) {
+        if (shouldSeedDatabase) {
             mockBlockchainData();
-        //}
+        }
 
         printMessageOfTheDay();
 
@@ -161,7 +161,6 @@ public class Application {
             for (int j = 0; j < 10; j++) {
                 DateTime transactionTimestamp = new DateTime();
                 String fromHash1 = nodeAddress;
-                //System.out.println("nodeAddress: "+ nodeAddress);
                 String toHash1 = "**addressTo**";
                 String signature1 = SignatureUtils.sign(keyPair, fromHash1 + toHash1 + transactionTimestamp + amount);
                 String publicKey1 = SignatureUtils.encodePublicKey(keyPair.getPublic());
