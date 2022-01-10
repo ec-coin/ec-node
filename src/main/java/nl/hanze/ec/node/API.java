@@ -11,11 +11,13 @@ import nl.hanze.ec.node.database.repositories.BalancesCacheRepository;
 import nl.hanze.ec.node.database.repositories.BlockRepository;
 import nl.hanze.ec.node.database.repositories.NeighboursRepository;
 import nl.hanze.ec.node.database.repositories.TransactionRepository;
+import spark.Route;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static spark.Spark.*;
+import static spark.Spark.post;
 
 public class API implements Runnable {
     private final NeighboursRepository neighboursRepository;
@@ -44,18 +46,24 @@ public class API implements Runnable {
 
     public void APISetup() {
         after((request, response) -> {
-            response.header("Access-Control-Allow-Origin", "*");
-            response.header("Access-Control-Allow-Methods", "GET");
+            response.header("Access-Control-Allow-Origin", request.headers("Origin"));
+            response.header("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS");
+            response.header("Access-Control-Allow-Headers", request.headers("Access-Control-Request-Headers"));
         });
     }
 
-    public void setupTransactionEndPoints() {
-        post("/transactions", (request, response) -> {
-            response.type("application/json");
+    public void postCORS(String path, Route route) {
+        options(path, (request, response) -> response);
+        post(path, route);
+    }
 
+    public void setupTransactionEndPoints() {
+        postCORS("/transactions", (request, response) -> {
+            response.type("application/json");
+            System.out.println("request body: " + request.body());
             Transaction transaction = new Gson().fromJson(request.body(), Transaction.class);
             transactionRepository.createTransaction(transaction);
-
+            response.status(200);
             return new Gson().toJson(new StandardResponse(StatusResponse.SUCCESS));
         });
 
@@ -96,7 +104,7 @@ public class API implements Runnable {
                             .toJsonTree(blockRepository.getAllBlocks())));
         });
 
-        post("/blocks", (request, response) -> {
+        postCORS("/blocks", (request, response) -> {
             response.type("application/json");
 
             Block block = new Gson().fromJson(request.body(), Block.class);
