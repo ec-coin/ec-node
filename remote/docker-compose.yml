@@ -1,0 +1,15 @@
+version: "3.9"
+
+services:
+  node:
+    build: .
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun
+    deploy:
+      mode: replicated
+      replicas: 3
+    volumes:
+      - ./client:/etc/openvpn/client
+      - ../target:/opt/app
