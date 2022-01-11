@@ -4,8 +4,10 @@ import com.google.inject.Inject;
 import com.j256.ormlite.dao.Dao;
 import nl.hanze.ec.node.database.models.Block;
 import nl.hanze.ec.node.modules.annotations.BlockDAO;
+import org.joda.time.DateTime;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class BlockRepository {
@@ -27,24 +29,33 @@ public class BlockRepository {
         return null;
     }
 
-    public synchronized Block createBlock(String hash, String previousBlockHash, String merkleRootHash, int blockHeight) {
-        Block block = null;
+    public synchronized void update(Block block) {
         try {
-            block = new Block(hash, previousBlockHash, merkleRootHash, blockHeight);
-            blockDAO.createOrUpdate(block);
+            blockDAO.update(block);
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
-        return block;
     }
 
-    public synchronized void createBlock(Block block) {
+    public synchronized Block createHeader(String hash, String previousBlockHash, String merkleRootHash, int blockHeight, DateTime dateTime) {
+        return createBlock(hash, previousBlockHash, merkleRootHash, blockHeight, "header", dateTime);
+    }
+
+    public synchronized Block createBlock(String hash, String previousBlockHash, String merkleRootHash, int blockHeight, String type) {
+        return createBlock(new Block(hash, previousBlockHash, merkleRootHash, blockHeight, type));
+    }
+
+    public synchronized Block createBlock(String hash, String previousBlockHash, String merkleRootHash, int blockHeight, String type, DateTime dateTime) {
+        return createBlock(new Block(hash, previousBlockHash, merkleRootHash, blockHeight, type, dateTime));
+    }
+
+    public synchronized Block createBlock(Block block) {
         try {
             blockDAO.createOrUpdate(block);
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        return block;
     }
 
     public synchronized String getCurrentBlockHash(int blockHeight) {
@@ -88,7 +99,7 @@ public class BlockRepository {
     public synchronized int getCurrentBlockHeight() {
         int height = 0;
         try {
-            height = (int) blockDAO.queryRawValue("select MAX(block_height) from Blocks");
+            height = (int) blockDAO.queryRawValue("select MAX(block_height) from Blocks where type = 'full'");
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -115,7 +126,8 @@ public class BlockRepository {
         try {
             List<Block> blocks = blockDAO.queryBuilder()
                     .orderBy("block_height", true)
-                    .where().eq("block_height", block_height).query();
+                    .where().eq("block_height", block_height)
+                    .and().eq("type", "full").query();
 
             if (blocks.size() == 1) {
                 return blocks.get(0);
@@ -132,6 +144,17 @@ public class BlockRepository {
         try {
             block = blockDAO.queryBuilder()
                     .where().eq("block_height", getCurrentBlockHeight()).query().get(0);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return block;
+    }
+
+    public synchronized List<Block> getAllBlocksOfParticularType(String type) {
+        List<Block> block = new ArrayList<>();
+        try {
+            block = blockDAO.queryBuilder()
+                    .where().eq("type", type).query();
         } catch (SQLException e) {
             e.printStackTrace();
         }

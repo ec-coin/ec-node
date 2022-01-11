@@ -2,30 +2,19 @@ package nl.hanze.ec.node;
 
 import nl.hanze.ec.node.database.models.Block;
 import nl.hanze.ec.node.network.peers.commands.responses.HeadersResponse;
-import org.json.JSONObject;
-import io.github.novacrypto.bip39.MnemonicGenerator;
-import io.github.novacrypto.bip39.SeedCalculator;
-import io.github.novacrypto.bip39.Words;
-import io.github.novacrypto.bip39.wordlists.English;
+import nl.hanze.ec.node.utils.BaseNUtils;
+import nl.hanze.ec.node.utils.HashingUtils;
 import nl.hanze.ec.node.utils.SignatureUtils;
-import org.bouncycastle.jce.ECNamedCurveTable;
-import org.bouncycastle.jce.interfaces.ECPrivateKey;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.jce.spec.ECParameterSpec;
-import org.bouncycastle.jce.spec.ECPrivateKeySpec;
-import org.bouncycastle.jce.spec.ECPublicKeySpec;
-import org.bouncycastle.math.ec.ECPoint;
-import org.bouncycastle.math.ec.FixedPointCombMultiplier;
+import org.joda.time.DateTime;
+import org.json.JSONObject;
 import org.junit.jupiter.api.*;
 
+import java.math.BigInteger;
+import java.security.KeyPair;
+import java.security.PublicKey;
 import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
-import java.security.*;
-import java.security.spec.InvalidKeySpecException;
-
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ApplicationTest {
@@ -35,75 +24,69 @@ public class ApplicationTest {
     }
 
     @Test
+    public void testBlockHashing() {
+        String previousBlockHash = "GENESIS";
+        String merkleRootHash = "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9";
+        DateTime dateTime = new DateTime("2022-01-03T14:05:33.379+01:00");
+        String hash = HashingUtils.generateBlockHash(merkleRootHash, previousBlockHash, dateTime);
+
+        assertEquals("a0500af02626cb6491e5ac09b249000ddc52a2ba3c6f4061ef43cbfd42378441", hash);
+    }
+
+    @Test
     public void testHeadersResponse() {
-        HeadersResponse resp1 = new HeadersResponse(new ArrayList<>() {{ add(new Block("$hash$", "$previousBlockHash$", "$merkleRootHash$", 0)); }}, 1);
+        String type = "full";
+        DateTime now = new DateTime();
+        HeadersResponse resp1 = new HeadersResponse(new ArrayList<>() {{
+            add(new Block("$hash$", "$previousBlockHash$", "$merkleRootHash$", 0, type, now));
+        }}, 1);
 
         String json = resp1.getPayload().toString();
 
         System.out.println(json);
 
         HeadersResponse resp2 = new HeadersResponse(new JSONObject(json), null);
-
         System.out.println(resp2.getHeaders());
 
         assertEquals("{\"number\":0," +
                 "\"headers\":[{" +
-                    "\"merkle_root_hash\":\"$merkleRootHash$\"," +
-                    "\"previous_block_hash\":\"$previousBlockHash$\"," +
-                    "\"block_height\":0,\"hash\":\"$hash$\"" +
+                "\"merkle_root_hash\":\"$merkleRootHash$\"," +
+                "\"previous_block_hash\":\"$previousBlockHash$\"," +
+                "\"block_height\":0," +
+                "\"hash\":\"$hash$\"," +
+                "\"timestamp\":\"" + now + "\"" +
                 "}]," +
                 "\"command\":\"headers-response\",\"responseTo\":1}", json);
     }
 
     @Test
-    public void bip39ToKeyPair() {
-        try {
-            Security.addProvider(new BouncyCastleProvider());
+    public void testSignatureUtils() {
+        KeyPair keyPair = SignatureUtils.generateKeyPair();
+        String value = "message payload";
+        String signature = SignatureUtils.sign(keyPair, value);
+        String publicKeyString = SignatureUtils.encodePublicKey(keyPair.getPublic());
+        PublicKey publicKey = SignatureUtils.decodePublicKey(publicKeyString);
+        boolean verified = SignatureUtils.verify(publicKey, signature, value);
+        assertTrue(verified);
+    }
 
-            // Generate mnemonic
-            StringBuilder mnemonic = new StringBuilder();
-            byte[] buffer = new byte[Words.TWELVE.byteLength()];
-            new SecureRandom().nextBytes(buffer);
-            new MnemonicGenerator(English.INSTANCE)
-                    .createMnemonic(buffer, mnemonic::append);
-            System.out.println("Mnemonic: " + mnemonic);
+    @Test
+    public void testBaseNUtils() {
+        String encoding = BaseNUtils.Base58Encode("123456789",10);
+        assertEquals("BukQL", encoding);
+        String decoding = BaseNUtils.Base58Decode(encoding, 10);
+        assertEquals("123456789", decoding);
+        decoding = BaseNUtils.Base58Decode(encoding, 16);
+        assertEquals("75bcd15", decoding);
 
-            // Mnemonic -> entropy
-            byte[] entropy = new SeedCalculator().calculateSeed(mnemonic.toString(), "");
-            System.out.println("Entropy: " + new BigInteger(1, entropy).toString(16));
+        encoding = BaseNUtils.Base58Encode("1b0ee1e3",16);
+        assertEquals("h7fYN", encoding);
+        decoding = BaseNUtils.Base58Decode(encoding, 10);
+        assertEquals("453960163", decoding);
+        decoding = BaseNUtils.Base58Decode(encoding, 16);
+        assertEquals("1b0ee1e3", decoding);
 
-            // entropy -> sha256(entropy)
-            MessageDigest md = MessageDigest.getInstance("SHA-256");
-            BigInteger hash = new BigInteger(1, md.digest(entropy));
-            System.out.println("Hash: " + hash.toString(16));
-
-            // sha256(entropy) -> ECPrivateKey
-            ECParameterSpec ecSpec = ECNamedCurveTable.getParameterSpec("secp256k1");
-            KeyFactory keyFactory = KeyFactory.getInstance("ECDSA", "BC");
-
-            BigInteger privKey = hash;
-            ECPrivateKeySpec privateKeySpec = new ECPrivateKeySpec(privKey, ecSpec);
-            ECPrivateKey privateKey = (ECPrivateKey) keyFactory.generatePrivate(privateKeySpec);
-            System.out.println(privateKey.toString());
-
-            // ECPrivateKey -> ECPublicKey
-            ECPoint Q = (new FixedPointCombMultiplier()).multiply(ecSpec.getG(), privateKey.getD()).normalize();
-            ECPublicKeySpec pubSpec = new ECPublicKeySpec(Q, ecSpec);
-            PublicKey publicKey = keyFactory.generatePublic(pubSpec);
-            System.out.println(publicKey.toString());
-
-//            byte[] signature = SignatureUtils.sign(new KeyPair(publicKey, privateKey), "hello world");
-//            System.out.println("Signature: " + new BigInteger(signature).toString(16));
-
-            Signature signer = Signature.getInstance("SHA256WithECDSA", "BC");
-            signer.initSign(privateKey);
-            signer.update("hello world".getBytes());
-            byte[] signature = signer.sign();
-            System.out.println("Signature: " + new BigInteger(signature).toString(16));
-
-            // return new KeyPair(publicKey, privateKey);
-        } catch (SignatureException | InvalidKeyException | NoSuchAlgorithmException | NoSuchProviderException | InvalidKeySpecException e) {
-            e.printStackTrace();
-        }
+        encoding = BaseNUtils.Base64Encode1("green".getBytes());
+        assertEquals("Z3JlZW4=", encoding);
     }
 }

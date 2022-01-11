@@ -7,7 +7,6 @@ import nl.hanze.ec.node.network.peers.commands.AbstractCommand;
 import nl.hanze.ec.node.network.peers.commands.Command;
 import org.json.JSONObject;
 
-import java.util.List;
 import java.util.concurrent.BlockingQueue;
 
 public class HeadersRequest extends AbstractCommand implements Request {

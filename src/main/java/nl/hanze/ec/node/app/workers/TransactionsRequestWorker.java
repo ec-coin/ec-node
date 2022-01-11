@@ -1,14 +1,11 @@
 package nl.hanze.ec.node.app.workers;
 
 import nl.hanze.ec.node.database.models.Block;
-import nl.hanze.ec.node.database.models.Transaction;
 import nl.hanze.ec.node.database.repositories.BlockRepository;
 import nl.hanze.ec.node.network.peers.commands.Command;
 import nl.hanze.ec.node.network.peers.commands.requests.TransactionsRequest;
 import nl.hanze.ec.node.network.peers.commands.responses.TransactionsResponse;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.BlockingQueue;
 
 public class TransactionsRequestWorker extends Worker {
@@ -29,9 +26,8 @@ public class TransactionsRequestWorker extends Worker {
 
         Integer blockHeight = blockRepository.getBlockHeight(hash);
 
-        // Requested block not present in database
+        // Requested block not present in database then assume genesis block
         if (blockHeight == null) {
-            // TODO
             blockHeight = 0;
         }
 

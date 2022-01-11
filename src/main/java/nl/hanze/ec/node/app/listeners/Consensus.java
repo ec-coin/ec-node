@@ -7,11 +7,16 @@ import nl.hanze.ec.node.database.models.Transaction;
 import nl.hanze.ec.node.database.repositories.BlockRepository;
 import nl.hanze.ec.node.database.repositories.NeighboursRepository;
 import nl.hanze.ec.node.database.repositories.TransactionRepository;
+import nl.hanze.ec.node.modules.annotations.NodeAddress;
+import nl.hanze.ec.node.modules.annotations.NodeKeyPair;
 import nl.hanze.ec.node.modules.annotations.NodeStateQueue;
 import nl.hanze.ec.node.network.peers.PeerPool;
 import nl.hanze.ec.node.network.peers.commands.announcements.NewBlockAnnouncement;
 import nl.hanze.ec.node.utils.HashingUtils;
+import nl.hanze.ec.node.utils.SignatureUtils;
+import org.joda.time.DateTime;
 
+import java.security.KeyPair;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
@@ -21,7 +26,8 @@ public class Consensus extends StateListener {
     private final TransactionRepository transactionRepository;
     private final NeighboursRepository neighboursRepository;
     private final BlockRepository blockRepository;
-    private final String ownAddress = "3333333333333333333333333333333333333333333333333333333333333333";
+    private final KeyPair nodeKeyPair;
+    private final String nodeAddress;
 
     private final List<NodeState> listenFor = new ArrayList<>() {
         {
@@ -32,6 +38,8 @@ public class Consensus extends StateListener {
     @Inject
     public Consensus(
         @NodeStateQueue BlockingQueue<NodeState> nodeStateQueue,
+        @NodeKeyPair KeyPair keyPair,
+        @NodeAddress String address,
         PeerPool peerPool,
         TransactionRepository transactionRepository,
         NeighboursRepository neighboursRepository,
@@ -41,20 +49,23 @@ public class Consensus extends StateListener {
         this.transactionRepository = transactionRepository;
         this.neighboursRepository = neighboursRepository;
         this.blockRepository = blockRepository;
+        this.nodeAddress = address;
+        this.nodeKeyPair = keyPair;
     }
 
     protected void iteration() {
-        nodeStateQueue.add(NodeState.INIT);
-
         // 1. Get all node addresses from DB
         List<String> nodes = transactionRepository.getAllNodeAddresses();
 
         waitIfStateIncorrect();
 
         // 2. Set nodes as validating nodes by paying a transaction fee.
+        String encodedPublicKey = SignatureUtils.encodePublicKey(nodeKeyPair.getPublic());
+        String signature;
         for (String node : nodes) {
-            String signature = "temporary signature";
-            transactionRepository.addNodeAsValidatingNode(HashingUtils.hash(node), null, node, signature);
+            // TODO ensure each node pays a transaction fee before being allowed to validate.
+            signature = SignatureUtils.sign(nodeKeyPair, node);
+            transactionRepository.addNodeAsValidatingNode(null, node, signature, encodedPublicKey);
         }
 
         waitIfStateIncorrect();
@@ -70,7 +81,7 @@ public class Consensus extends StateListener {
             String leader = getLeader(validatingNodes);
 
             // 6. Check whether you are the leader
-            if (leader.equals(this.ownAddress)) {
+            if (leader.equals(this.nodeAddress)) {
                 // 7. Validate block
                 createBlock();
             }
@@ -80,10 +91,15 @@ public class Consensus extends StateListener {
     private String getLeader(List<String> participatingNodes) {
         String currentLeader = "";
         float highestStake = 0;
+        float currentStake;
         for (String node : participatingNodes) {
-            if (transactionRepository.getStake(node) > highestStake) {
+            currentStake = transactionRepository.getStake(node);
+            if (currentStake > highestStake) {
                 highestStake = transactionRepository.getStake(node);
                 currentLeader = node;
+            }
+            else if (currentStake == highestStake) {
+
             }
         }
 
@@ -98,15 +114,9 @@ public class Consensus extends StateListener {
         List<Transaction> pendingTransactions = transactionRepository.getFiniteNumberOfPendingTransactions();
         int blockHeight = blockRepository.getCurrentBlockHeight();
         String prevHash = blockRepository.getCurrentBlockHash(blockHeight);
-        String merkleRootHash = blockRepository.getRootMerkleHash();
-
-        StringBuilder hashInput = new StringBuilder();
-        for(Transaction transaction : pendingTransactions) {
-            hashInput.append(transaction.getHash());
-        }
-
-        String blockHash = HashingUtils.hash(hashInput + prevHash);
-        Block block = blockRepository.createBlock(blockHash, prevHash, merkleRootHash, blockHeight + 1);
+        String merkleRootHash = HashingUtils.generateMerkleRootHash(pendingTransactions);
+        String blockHash = HashingUtils.generateBlockHash(merkleRootHash, prevHash, new DateTime());
+        Block block = blockRepository.createBlock(blockHash, prevHash, merkleRootHash, blockHeight + 1, "full");
 
         if (block != null) {
             new NewBlockAnnouncement(block.toJSONObject());

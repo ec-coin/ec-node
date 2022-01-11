@@ -6,7 +6,6 @@ import nl.hanze.ec.node.database.models.Block;
 import nl.hanze.ec.node.network.peers.commands.AbstractCommand;
 import nl.hanze.ec.node.network.peers.commands.Command;
 import org.joda.time.DateTime;
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.*;
@@ -15,17 +14,18 @@ import java.util.stream.Collectors;
 
 public class HeadersResponse extends AbstractCommand implements Response {
     public static class Header {
-        public String hash;
-        public String previousBlockHash;
-        public String merkleRootHash;
-        public int blockHeight;
-        // private DateTime timestamp;
+        public final String hash;
+        public final String previousBlockHash;
+        public final String merkleRootHash;
+        public final int blockHeight;
+        public final DateTime timestamp;
 
-        public Header(String hash, String previousBlockHash, String merkleRootHash, int blockHeight) {
+        public Header(String hash, String previousBlockHash, String merkleRootHash, int blockHeight, DateTime timestamp) {
             this.hash = hash;
             this.previousBlockHash = previousBlockHash;
             this.merkleRootHash = merkleRootHash;
             this.blockHeight = blockHeight;
+            this.timestamp = timestamp;
         }
 
         public Map<String, Object> toMap() {
@@ -34,13 +34,16 @@ public class HeadersResponse extends AbstractCommand implements Response {
                 put("previous_block_hash", previousBlockHash);
                 put("merkle_root_hash", merkleRootHash);
                 put("block_height", blockHeight);
+                put("timestamp", timestamp.toString());
             }};
         }
 
         @Override
         public String toString() {
-            return "Header{" + "hash='" + hash + '\'' + ", previousBlockHash='" + previousBlockHash + '\'' +
-                    ", merkleRootHash='" + merkleRootHash + '\'' + ", blockHeight=" + blockHeight + '}';
+            return "Header{" +
+                    "hash='" + hash + '\'' + ", previousBlockHash='" + previousBlockHash + '\'' +
+                    ", merkleRootHash='" + merkleRootHash + '\'' + ", blockHeight=" + blockHeight +
+                    ", timestamp=" + timestamp + '}';
         }
     }
 
@@ -53,7 +56,8 @@ public class HeadersResponse extends AbstractCommand implements Response {
                         header.getHash(),
                         header.getPreviousBlockHash(),
                         header.getMerkleRootHash(),
-                        header.getBlockHeight()
+                        header.getBlockHeight(),
+                        header.getTimestamp()
                 )).collect(Collectors.toList());
 
         this.responseTo = responseTo;
@@ -73,14 +77,16 @@ public class HeadersResponse extends AbstractCommand implements Response {
                 if (header.get("hash") instanceof String &&
                         header.get("previous_block_hash") instanceof String &&
                         header.get("merkle_root_hash") instanceof String &&
-                        header.get("block_height") instanceof Integer) {
+                        header.get("block_height") instanceof Integer &&
+                        header.get("timestamp") instanceof String) {
                     int blockHeight = (Integer) header.get("block_height");
 
                     this.headers.add(new Header(
                             header.get("hash").toString(),
                             header.get("previous_block_hash").toString(),
                             header.get("merkle_root_hash").toString(),
-                            blockHeight
+                            blockHeight,
+                            DateTime.parse(header.get("timestamp").toString())
                     ));
                 }
             }
