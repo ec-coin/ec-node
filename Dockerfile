@@ -1,5 +1,4 @@
-FROM debian
-RUN apt-get update && apt-get install default-jdk -y
+FROM adoptopenjdk/openjdk16:ubi
 
 RUN mkdir /opt/app
 # COPY out/artifacts/ec_network_node_jar /opt/app

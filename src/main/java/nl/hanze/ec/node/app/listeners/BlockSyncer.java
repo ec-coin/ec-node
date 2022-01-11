@@ -56,6 +56,11 @@ public class BlockSyncer extends StateListener {
         // TODO: only download blocks up until a certain threshold (to prevent downloading blocks that are incorrect)
         // Historic data / simulator data (use number of unverified txs?) [block sync window]
         while (localBlockHeight < syncingPeer.getStartHeight()) {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             String hash = blockRepository.getCurrentBlockHash(localBlockHeight);
             Block block = blockRepository.getBlock(localBlockHeight);
 

@@ -77,6 +77,13 @@ public class PeerConnection implements Runnable {
          * Continuously poll command queue and read the output buffer
          */
         while (true) {
+
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
             // When state closing, close socket and terminate thread
             if (peer.getState() == PeerState.CLOSING) {
                 out.println("close");
@@ -154,6 +161,12 @@ public class PeerConnection implements Runnable {
                     peer.setState(PeerState.CLOSED);
                     break;
                 }
+            }
+
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         }
 

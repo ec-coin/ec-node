@@ -32,6 +32,13 @@ public abstract class StateListener implements Listener {
     @Override
     public void run() {
         while (running.get()) {
+
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
             waitIfStateIncorrect();
 
             iteration();

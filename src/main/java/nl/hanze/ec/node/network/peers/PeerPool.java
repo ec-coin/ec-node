@@ -293,6 +293,12 @@ public class PeerPool implements Runnable {
             }
 
             removeDeadPeers();
+
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 
