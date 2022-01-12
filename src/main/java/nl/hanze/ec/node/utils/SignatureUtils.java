@@ -69,7 +69,7 @@ public class SignatureUtils {
         PrivateKey privateKey = keyPair.getPrivate();
         byte[] signature = null;
         try {
-            Signature signer = Signature.getInstance("NONEWithECDSA", "BC");
+            Signature signer = Signature.getInstance("SHA256withECDSA", "BC");
             signer.initSign(privateKey);
             signer.update(value.getBytes());
             signature = signer.sign();
@@ -82,7 +82,7 @@ public class SignatureUtils {
     public synchronized static boolean verify(PublicKey publicKey, String signatureHex, String value) {
         boolean legitimateSignature = false;
         try {
-            Signature signer = Signature.getInstance("NONEWithECDSA", "BC");
+            Signature signer = Signature.getInstance("SHA256withECDSA", "BC");
             signer.initVerify(publicKey);
             byte[] bytes = value.getBytes();
             signer.update(bytes);

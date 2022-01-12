@@ -79,6 +79,7 @@ public class API implements Runnable {
     public void setupTransactionEndPoints() {
         postCORS("/transactions", (request, response) -> {
             response.type("application/json");
+            System.out.println(request.body());
             JSONObject transactionObject = (JSONObject) parser.parse(request.body());
             createTransaction(transactionObject);
             response.status(200);
@@ -197,17 +198,14 @@ public class API implements Runnable {
 
         int amount = Integer.parseInt((String) transactionObject.get("amount"));
 
-        String payload = from + to + transactionObject.get("timestamp") + amount + "!!";
+        String payload = from + to + transactionObject.get("timestamp") + amount;
 
         PublicKey publicKey = null;
         try {
             publicKey = SignatureUtils.decodeWalletPublicKey(publicKeyString);
-            System.out.println(publicKey);
-            System.out.println(signature);
-            System.out.println(publicKeyString);
             System.out.println(SignatureUtils.verify(publicKey, signature, payload));
-            System.out.println(SignatureUtils.verify(publicKey, signature, payload + "fjioerje"));
-            ValidationUtils.validateWalletTransaction(from, publicKeyString, publicKey, signature, payload + "fjioerje");
+            System.out.println(SignatureUtils.verify(publicKey, signature,  payload + "something-extra"));
+            ValidationUtils.validateWalletTransaction(from, publicKeyString, publicKey, signature, payload);
         }
         catch (InvalidTransaction e) {
             e.printStackTrace();

@@ -110,7 +110,7 @@ public class ApplicationTest {
 
         System.out.println(SignatureUtils.generateKeyPair().getPublic());
 
-        String hexJS = "304502207fd58f2d547de2973405dea66a0dde9d38a32e323a3886fa1687570cd03c15e8022100fc6d686422851abde7e83912e752604f23e01d46bc1e2c19a1ee5a54d1e4328a";
+        String hexJS = "3046022100bb024cd744b0f0d2d81398df1ad41e241b1b228fc353e187bab8643291bf6874022100e1cacdd6f4f4ae8e25b3c4bad83800eb826d89e4ca83319ea40ff3dc2b4ab023";
         String hexJava = SignatureUtils.sign(SignatureUtils.generateKeyPair(), msg);
 
         System.out.println("JS: " + hexJS);
