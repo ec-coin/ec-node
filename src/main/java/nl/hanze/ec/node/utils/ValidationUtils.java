@@ -3,6 +3,7 @@ package nl.hanze.ec.node.utils;
 import nl.hanze.ec.node.database.models.Transaction;
 import nl.hanze.ec.node.exceptions.InvalidTransaction;
 
+import java.math.BigInteger;
 import java.security.PublicKey;
 
 public class ValidationUtils {
@@ -21,6 +22,17 @@ public class ValidationUtils {
         String calculatedHash = HashingUtils.generateTransactionHash(transaction.getFrom(), transaction.getTo(), transaction.getAmount(), transaction.getSignature());
         if (!calculatedHash.equals(transaction.getHash())) {
             throw new InvalidTransaction("Transaction Hash not valid [curr:" + transaction + "]");
+        }
+    }
+
+    public synchronized static void validateWalletTransaction(String address, String publicKeyString, PublicKey publicKey, String signature, String payload) throws InvalidTransaction {
+        String walletAddress = BaseNUtils.Base58Encode(new BigInteger(1, HashingUtils.hash(publicKeyString)).toString(16), 16);
+
+        if (!address.equals(walletAddress)) {
+            throw new InvalidTransaction("Wallet address is not valid!");
+        }
+        if (!SignatureUtils.verify(publicKey, signature, payload)) {
+            throw new InvalidTransaction("Signature is not valid!");
         }
     }
 }

@@ -3,6 +3,7 @@ package nl.hanze.ec.node;
 import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import nl.hanze.ec.node.exceptions.InvalidTransaction;
 import nl.hanze.ec.node.responses.StandardResponse;
 import nl.hanze.ec.node.responses.StatusResponse;
 import nl.hanze.ec.node.database.models.Block;
@@ -11,9 +12,21 @@ import nl.hanze.ec.node.database.repositories.BalancesCacheRepository;
 import nl.hanze.ec.node.database.repositories.BlockRepository;
 import nl.hanze.ec.node.database.repositories.NeighboursRepository;
 import nl.hanze.ec.node.database.repositories.TransactionRepository;
+import nl.hanze.ec.node.utils.SignatureUtils;
+import nl.hanze.ec.node.utils.ValidationUtils;
+import org.joda.time.DateTime;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import spark.Route;
 
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.security.KeyPair;
+import java.security.PublicKey;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import static spark.Spark.*;
@@ -24,6 +37,7 @@ public class API implements Runnable {
     private final BalancesCacheRepository balancesCacheRepository;
     private final BlockRepository blockRepository;
     private final TransactionRepository transactionRepository;
+    private final JSONParser parser = new JSONParser();
 
     @Inject
     public API (Provider<NeighboursRepository> neighboursRepositoryProvider,
@@ -46,8 +60,8 @@ public class API implements Runnable {
 
     public void APISetup() {
         after((request, response) -> {
-            response.header("Access-Control-Allow-Origin", request.headers("Origin"));
-            response.header("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS");
+            response.header("Access-Control-Allow-Origin", "*");
+            response.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH");
             response.header("Access-Control-Allow-Headers", request.headers("Access-Control-Request-Headers"));
         });
     }
@@ -57,17 +71,21 @@ public class API implements Runnable {
         post(path, route);
     }
 
+    public void getCORS(String path, Route route) {
+        options(path, (request, response) -> response);
+        get(path, route);
+    }
+
     public void setupTransactionEndPoints() {
         postCORS("/transactions", (request, response) -> {
             response.type("application/json");
-            System.out.println("request body: " + request.body());
-            Transaction transaction = new Gson().fromJson(request.body(), Transaction.class);
-            transactionRepository.createTransaction(transaction);
+            JSONObject transactionObject = (JSONObject) parser.parse(request.body());
+            createTransaction(transactionObject);
             response.status(200);
             return new Gson().toJson(new StandardResponse(StatusResponse.SUCCESS));
         });
 
-        get("/transactions", (request, response) -> {
+        getCORS("/transactions", (request, response) -> {
             response.type("application/json");
 
             List<Transaction> transactions = new ArrayList<>();
@@ -96,14 +114,6 @@ public class API implements Runnable {
     }
 
     public void setupBlockEndPoints() {
-        get("/blocks", (request, response) -> {
-            response.type("application/json");
-
-            return new Gson().toJson(
-                    new StandardResponse(StatusResponse.SUCCESS, new Gson()
-                            .toJsonTree(blockRepository.getAllBlocks())));
-        });
-
         postCORS("/blocks", (request, response) -> {
             response.type("application/json");
 
@@ -111,6 +121,14 @@ public class API implements Runnable {
             blockRepository.createBlock(block);
 
             return new Gson().toJson(new StandardResponse(StatusResponse.SUCCESS));
+        });
+
+        get("/blocks", (request, response) -> {
+            response.type("application/json");
+
+            return new Gson().toJson(
+                    new StandardResponse(StatusResponse.SUCCESS, new Gson()
+                            .toJsonTree(blockRepository.getAllBlocks())));
         });
 
         get("/blocks/:hash", (request, response) -> {
@@ -133,7 +151,16 @@ public class API implements Runnable {
     }
 
     public void setupBalancesCacheEndPoints() {
-        get("/balances", (request, response) -> {
+        postCORS("/stake", (request, response) -> {
+            response.type("application/json");
+
+            Block block = new Gson().fromJson(request.body(), Block.class);
+            blockRepository.createBlock(block);
+
+            return new Gson().toJson(new StandardResponse(StatusResponse.SUCCESS));
+        });
+
+        getCORS("/balances", (request, response) -> {
             response.type("application/json");
 
             float amount = 0;
@@ -158,5 +185,35 @@ public class API implements Runnable {
                     new StandardResponse(StatusResponse.SUCCESS, new Gson().toJsonTree(amount))
             );
         });
+    }
+
+    private void createTransaction(JSONObject transactionObject) {
+        String from = (String) transactionObject.get("from");
+        String to = (String) transactionObject.get("to");
+        //float amount = Float.parseFloat((String) transactionObject.get("amount"));
+        String signature = (String) transactionObject.get("signature");
+        String publicKeyString = (String) transactionObject.get("public_key");
+        DateTime transactionTimestamp = new DateTime((long) transactionObject.get("timestamp"));
+
+        int amount = Integer.parseInt((String) transactionObject.get("amount"));
+
+        String payload = from + to + transactionObject.get("timestamp") + amount + "!!";
+
+        PublicKey publicKey = null;
+        try {
+            publicKey = SignatureUtils.decodeWalletPublicKey(publicKeyString);
+            System.out.println(publicKey);
+            System.out.println(signature);
+            System.out.println(publicKeyString);
+            System.out.println(SignatureUtils.verify(publicKey, signature, payload));
+            System.out.println(SignatureUtils.verify(publicKey, signature, payload + "fjioerje"));
+            ValidationUtils.validateWalletTransaction(from, publicKeyString, publicKey, signature, payload + "fjioerje");
+        }
+        catch (InvalidTransaction e) {
+            e.printStackTrace();
+        }
+
+        String encodedPublicKey = SignatureUtils.encodePublicKey(publicKey);
+        transactionRepository.createTransaction(null, from, to, amount, signature, "wallet", encodedPublicKey);
     }
 }

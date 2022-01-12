@@ -19,15 +19,20 @@ import nl.hanze.ec.node.modules.annotations.DbSeeding;
 import nl.hanze.ec.node.modules.annotations.NodeStateQueue;
 import nl.hanze.ec.node.network.Server;
 import nl.hanze.ec.node.network.peers.PeerPool;
+import nl.hanze.ec.node.utils.BaseNUtils;
 import nl.hanze.ec.node.utils.FileUtils;
 import nl.hanze.ec.node.utils.HashingUtils;
 import nl.hanze.ec.node.utils.SignatureUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.bouncycastle.util.encoders.Hex;
 import org.joda.time.DateTime;
 
+import java.math.BigInteger;
 import java.security.KeyPair;
+import java.security.PublicKey;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicReference;
@@ -141,9 +146,8 @@ public class Application {
         System.out.println("------Properties------");
         System.out.println("blockHeight        : " + blockRepository.getCurrentBlockHeight());
         System.out.println("# of old neighbors : " + neighboursRepository.getNumberOfNeighbors());
-        System.out.println("node's address     : " + "xxxxxxxxx");
+        System.out.println("node's address     : " + nodeAddress);
         System.out.println("----------------------");
-        System.out.println("");
     }
 
     private void createGenesisBlock() {

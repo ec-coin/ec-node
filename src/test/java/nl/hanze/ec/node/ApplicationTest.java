@@ -10,12 +10,10 @@ import org.json.JSONObject;
 import org.junit.jupiter.api.*;
 
 import java.math.BigInteger;
-import java.security.KeyPair;
-import java.security.PublicKey;
+import java.security.*;
 import java.util.ArrayList;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ApplicationTest {
     @Test
@@ -65,6 +63,7 @@ public class ApplicationTest {
         String value = "message payload";
         String signature = SignatureUtils.sign(keyPair, value);
         String publicKeyString = SignatureUtils.encodePublicKey(keyPair.getPublic());
+        System.out.println("public key: " + publicKeyString);
         PublicKey publicKey = SignatureUtils.decodePublicKey(publicKeyString);
         boolean verified = SignatureUtils.verify(publicKey, signature, value);
         assertTrue(verified);
@@ -88,5 +87,42 @@ public class ApplicationTest {
 
         encoding = BaseNUtils.Base64Encode1("green".getBytes());
         assertEquals("Z3JlZW4=", encoding);
+    }
+
+    @Test
+    public void testSignatureAndBaseUtilsBetweenNodeAndWallet() {
+        String walletPublicKeyString = "04e60ca651f6c87275943e26c3f9ae0c38c08b055393b2d253ff75b20c6f856f1782d3bbf8ee2e0590dd3570b2d2361e2d0c5809ae9b6c25d511611996b105b90b";
+        String walletAddress = BaseNUtils.Base58Encode(new BigInteger(1, HashingUtils.hash(walletPublicKeyString)).toString(16), 16);
+        PublicKey publicKey = SignatureUtils.decodeWalletPublicKey(walletPublicKeyString);
+
+        assertEquals("5KMW7Uf81FDffEz5uoMyWVEYLkvJzJdPhxk1ytB22ome", walletAddress);
+        assertNotNull(publicKey);
+    }
+
+    @Test
+    public void testStuff() {
+        StringBuilder hex = new StringBuilder();
+        String msg = "hello world";
+        for (byte i : msg.getBytes()) {
+            hex.append(String.format("%02X ", i));
+        }
+        System.out.println(hex);
+
+        System.out.println(SignatureUtils.generateKeyPair().getPublic());
+
+        String hexJS = "304502207fd58f2d547de2973405dea66a0dde9d38a32e323a3886fa1687570cd03c15e8022100fc6d686422851abde7e83912e752604f23e01d46bc1e2c19a1ee5a54d1e4328a";
+        String hexJava = SignatureUtils.sign(SignatureUtils.generateKeyPair(), msg);
+
+        System.out.println("JS: " + hexJS);
+
+        System.out.println("Java: " + hexJava);
+
+        boolean valid = SignatureUtils.verify(SignatureUtils.generateKeyPair().getPublic(), hexJS, msg);
+
+        assertTrue(valid);
+
+        boolean valid1 = SignatureUtils.verify(SignatureUtils.generateKeyPair().getPublic(), hexJava, msg);
+
+        assertTrue(valid1);
     }
 }
