@@ -37,4 +37,9 @@ public class TestAnnouncement extends AbstractCommand implements Announcement {
     public Worker getWorker(Command receivedCommand, BlockingQueue<Command> peerCommandQueue) {
         return new TestAnnouncementWorker(receivedCommand, peerCommandQueue);
     }
+
+    @Override
+    public boolean validated() {
+        return false;
+    }
 }

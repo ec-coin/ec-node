@@ -9,32 +9,37 @@ import org.json.JSONObject;
 
 import java.util.concurrent.BlockingQueue;
 
-public class BlockConfirmationAnnouncement extends AbstractCommand implements Announcement {
-    JSONObject block;
+public class PendingTransactionAnnouncement extends AbstractCommand implements Announcement {
+    JSONObject transaction;
 
-    public BlockConfirmationAnnouncement(JSONObject block) {
-        this.block = block;
+    public PendingTransactionAnnouncement(JSONObject transaction) {
+        this.transaction = transaction;
     }
 
-    public BlockConfirmationAnnouncement(JSONObject payload, WorkerFactory workerFactory) {
+    public PendingTransactionAnnouncement(JSONObject payload, WorkerFactory workerFactory) {
         super(payload, workerFactory);
-        this.block = payload.getJSONObject("block");
+        this.transaction = payload.getJSONObject("transaction");
     }
 
     @Override
     protected JSONObject getData(JSONObject payload) {
-        payload.put("block", this.block);
+        payload.put("transaction", this.transaction);
 
         return payload;
     }
 
     @Override
     public String getCommandName() {
-        return "new-block";
+        return "new-transaction";
     }
 
     @Override
     public Worker getWorker(Command receivedCommand, BlockingQueue<Command> peerCommandQueue) {
         return workerFactory.create(NewBlockAnnouncementWorker.class, receivedCommand, peerCommandQueue);
+    }
+
+    @Override
+    public boolean validated() {
+        return false;
     }
 }

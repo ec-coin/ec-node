@@ -5,15 +5,17 @@ import nl.hanze.ec.node.database.models.Block;
 import nl.hanze.ec.node.database.models.Transaction;
 import nl.hanze.ec.node.database.repositories.BalancesCacheRepository;
 import nl.hanze.ec.node.network.peers.commands.Command;
+import nl.hanze.ec.node.network.peers.commands.announcements.NewBlockAnnouncement;
+import nl.hanze.ec.node.network.peers.commands.announcements.PendingTransactionAnnouncement;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 
 import java.util.concurrent.BlockingQueue;
 
-public class NewBlockConfirmationAnnouncementWorker extends Worker {
+public class PendingTransactionWorker extends Worker {
     private final BalancesCacheRepository balanceCacheRepository;
 
-    public NewBlockConfirmationAnnouncementWorker(
+    public PendingTransactionWorker(
         Command receivedCommand,
         BlockingQueue<Command> peerCommandQueue,
         BalancesCacheRepository balancesCacheRepositoryProvider
@@ -25,27 +27,26 @@ public class NewBlockConfirmationAnnouncementWorker extends Worker {
 
     @Override
     public void run() {
-        System.out.println("New block confirmation received");
+        System.out.println("New pending transaction received");
         JSONObject payload = receivedCommand.getPayload();
-        Object blockObject = payload.get("block");
-        Block block = fromJSONToObject(blockObject);
+        Object transactionObject = payload.get("transaction");
+        Transaction transaction = fromJSONToObject(transactionObject);
 
         // If this was a request a response could be sent like this.
         // peerCommandQueue.add(new TestResponse());
 
-        Boolean validTransaction = true;
+        Boolean validTransaction = this.balanceCacheRepository.hasValidBalance(transaction.getFrom(), transaction.getAmount());
 
-        for (Transaction transaction : block.getTransactions()) {
-            validTransaction = this.balanceCacheRepository.hasValidBalance(transaction.getFrom(), transaction.getAmount());
+        if (validTransaction) {
+            PendingTransactionAnnouncement announcement = new PendingTransactionAnnouncement(receivedCommand.getPayload());
+            announcement.notifyAll();
+            peerCommandQueue.
 
-            if (!validTransaction) {
-                break;
-            }
         }
     }
 
-    private Block fromJSONToObject(@NotNull Object block) {
+    private Transaction fromJSONToObject(@NotNull Object transaction) {
         Gson gson= new Gson();
-        return gson.fromJson(block.toString(), Block.class);
+        return gson.fromJson(transaction.toString(), Transaction.class);
     }
 }
