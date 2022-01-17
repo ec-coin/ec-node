@@ -2,7 +2,6 @@ package nl.hanze.ec.node.database.models;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
-import nl.hanze.ec.node.database.repositories.BalancesCacheRepository;
 import org.joda.time.DateTime;
 
 @DatabaseTable(tableName = "transactions")
@@ -34,19 +33,41 @@ public class Transaction {
     @DatabaseField(canBeNull = false, columnName = "address_type")
     private String addressType;
 
+    @DatabaseField(canBeNull = false, columnName = "public_key")
+    private String publicKey;
+
+    @DatabaseField(canBeNull = true, columnName = "order_in_block")
+    private int orderInBlock;
+
     // ORMLite requires a no-arg constructor.
     public Transaction() {}
 
     public Transaction(
-        String hash,
-        Block block,
-        String from,
-        String to,
-        float amount,
-        String signature,
-        String status,
-        String addressType
+            String hash,
+            Block block,
+            String from,
+            String to,
+            float amount,
+            String signature,
+            String status,
+            String addressType,
+            String publicKey
     ) {
+        this(hash, block, from, to, amount, signature, status, addressType, publicKey, new DateTime());
+    }
+
+    public Transaction(
+            String hash,
+            Block block,
+            String from,
+            String to,
+            float amount,
+            String signature,
+            String status,
+            String addressType,
+            String publicKey,
+            DateTime timestamp
+            ) {
         this.hash = hash;
         this.block = block;
         this.from = from;
@@ -55,7 +76,8 @@ public class Transaction {
         this.signature = signature;
         this.status = status;
         this.addressType = addressType;
-        this.timestamp = new DateTime();
+        this.publicKey = publicKey;
+        this.timestamp = timestamp;
     }
 
     public String getHash() {
@@ -90,5 +112,19 @@ public class Transaction {
         return this.timestamp;
     }
 
-    public String getAddressType() { return this.addressType; }
+    public String getAddressType() {
+        return this.addressType;
+    }
+
+    public String getPublicKey() {
+        return this.publicKey;
+    }
+
+    public int getOrderInBlock() {
+        return orderInBlock;
+    }
+
+    public void setOrderInBlock(int orderInBlock) {
+        this.orderInBlock = orderInBlock;
+    }
 }

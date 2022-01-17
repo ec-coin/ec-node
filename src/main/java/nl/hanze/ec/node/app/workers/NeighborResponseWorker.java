@@ -2,9 +2,7 @@ package nl.hanze.ec.node.app.workers;
 
 import nl.hanze.ec.node.database.repositories.NeighboursRepository;
 import nl.hanze.ec.node.network.peers.commands.Command;
-import nl.hanze.ec.node.network.peers.commands.requests.NeighborsRequest;
 import nl.hanze.ec.node.network.peers.commands.responses.NeighborsResponse;
-import org.json.JSONObject;
 
 import java.util.concurrent.BlockingQueue;
 

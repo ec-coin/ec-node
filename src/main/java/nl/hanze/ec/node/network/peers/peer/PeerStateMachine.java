@@ -89,7 +89,6 @@ public class PeerStateMachine {
         // When the command is a handshake command, update state accordingly
         if (command instanceof Handshake) {
             if (command instanceof VersionCommand) {
-                // Save the version number and start height from the peer.
                 VersionCommand cmd = (VersionCommand) command;
                 peer.setVersion(cmd.getVersion());
                 peer.setStartHeight(cmd.getStartHeight());
@@ -99,7 +98,6 @@ public class PeerStateMachine {
                 peer.setState((peer.getState() == PeerState.VERSION_ACK)
                         ? PeerState.ESTABLISHED : PeerState.VERSION_RCVD);
 
-                // Send version acknowledgement
                 commandQueue.add(new VersionAckCommand());
             }
 
@@ -110,14 +108,12 @@ public class PeerStateMachine {
                         ? PeerState.ESTABLISHED : PeerState.VERSION_ACK);
             }
 
-            // When connection is ESTABLISHED with peer inform event via logger.
             if (peer.getState() == PeerState.ESTABLISHED) {
                 logger.info("Connection with peer " + peer.getIp() + " w/ startHeight: " + peer.getStartHeight() + " is now established");
             }
         } else {
-            // When command is not a handshake command, only allow them when the state with this peer is ESTABLISHED.
+            // When command is not a handshake command, only allow it when the state with this peer is ESTABLISHED.
             if (peer.getState() == PeerState.ESTABLISHED) {
-                // Execute the associated worker for this command.
                 Worker worker = command.getWorker(command, commandQueue);
                 if (worker != null) {
                     worker.run();

@@ -12,15 +12,21 @@ import com.j256.ormlite.table.TableUtils;
 import nl.hanze.ec.node.database.models.*;
 import nl.hanze.ec.node.modules.annotations.*;
 
+import java.io.File;
 import java.sql.SQLException;
 
 public class DatabaseModule extends AbstractModule {
     private ConnectionSource connectionSource;
 
-    public DatabaseModule() {
+    public DatabaseModule(boolean clearBlockchain) {
         super();
 
         try {
+            if (clearBlockchain) {
+                File f= new File("./database.db");
+                f.delete();
+            }
+
             String databaseUrl = "jdbc:sqlite:database.db";
             connectionSource = new JdbcConnectionSource(databaseUrl);
 

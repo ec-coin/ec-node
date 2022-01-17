@@ -37,4 +37,15 @@ public class NeighboursRepository {
             e.printStackTrace();
         }
     }
+
+    public synchronized int getNumberOfNeighbors() {
+        int count = 0;
+        try {
+            count = (int) neighbourDAO.queryRawValue("select COUNT(1) from neighbours");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return count;
+    }
 }

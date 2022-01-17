@@ -62,10 +62,14 @@ public abstract class StateListener implements Listener {
             }
 
             this.latch.await();
+
+            beforeWakeup();
         } catch (InterruptedException ignore) {}
     }
 
     protected void beforeSleep() {}
+
+    protected void beforeWakeup() {}
 
     protected abstract void iteration();
 }

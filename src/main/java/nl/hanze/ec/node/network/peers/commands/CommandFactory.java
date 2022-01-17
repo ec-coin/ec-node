@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import nl.hanze.ec.node.exceptions.InvalidCommand;
 import nl.hanze.ec.node.network.peers.commands.announcements.NewBlockAnnouncement;
+import nl.hanze.ec.node.network.peers.commands.announcements.PendingTransactionAnnouncement;
 import nl.hanze.ec.node.network.peers.commands.announcements.TestAnnouncement;
 import nl.hanze.ec.node.network.peers.commands.requests.TransactionsRequest;
 import nl.hanze.ec.node.network.peers.commands.requests.HeadersRequest;
@@ -46,6 +47,8 @@ public class CommandFactory {
                 return new TransactionsResponse(payload, workerFactoryProvider.get());
             case "new-block":
                 return new NewBlockAnnouncement(payload, workerFactoryProvider.get());
+            case "new-transaction":
+                return new PendingTransactionAnnouncement(payload, workerFactoryProvider.get());
             default:
                 throw new InvalidCommand("Invalid or no command found in payload");
         }
