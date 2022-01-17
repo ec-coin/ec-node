@@ -34,6 +34,11 @@ public class StateHandler implements Handler {
         NodeState nodeState;
         while (true) {
             try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            try {
                 nodeState = nodeStateQueue.take();
                 Application.setState(nodeState);
                 for (Listener listener : listeners) {
