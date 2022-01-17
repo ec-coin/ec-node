@@ -156,40 +156,36 @@ public class Application {
     }
 
     private void mockBlockchainData() {
-        String isStartSeed = System.getenv("START_SEED");
+        Block prevBlock = blockRepository.getCurrentBlock();
+        DateTime blockTimestamp = DateTime.parse("2022-01-01T14:10:00.556Z");
+        float amount = 50.4f;
 
-        if (isStartSeed != null) {
-            Block prevBlock = blockRepository.getCurrentBlock();
-            DateTime blockTimestamp = DateTime.parse("2022-01-01T14:10:00.556Z");
-            float amount = 50.4f;
-
-            for (int i = 0; i < 20; i++) {
-                List<Transaction> transactions = new ArrayList<>();
-                for (int j = 0; j < 10; j++) {
-                    DateTime transactionTimestamp = new DateTime();
-                    String fromHash1 = nodeAddress;
-                    String toHash1 = "**addressTo**";
-                    String signature1 = SignatureUtils.sign(keyPair, fromHash1 + toHash1 + transactionTimestamp + amount);
-                    String publicKey1 = SignatureUtils.encodePublicKey(keyPair.getPublic());
-                    String transactionHash1 = HashingUtils.generateTransactionHash(fromHash1, toHash1, amount, signature1);
-                    Transaction transaction = transactionRepository.createTransaction(transactionHash1, null, fromHash1, toHash1, amount, signature1, "pending", "wallet", publicKey1, transactionTimestamp);
-                    transactions.add(transaction);
-                }
-
-                String previousBlockHash = prevBlock.getHash();
-                String merkleRootHash = HashingUtils.generateMerkleRootHash(transactions);
-                String hash = HashingUtils.generateBlockHash(merkleRootHash, previousBlockHash, blockTimestamp);
-                int blockheight = prevBlock.getBlockHeight() + 1;
-
-                Block block = blockRepository.createBlock(hash, previousBlockHash, merkleRootHash, blockheight, "full", blockTimestamp);
-
-                for(Transaction transaction : transactions) {
-                    transactionRepository.setTransactionAsValidated(transaction, block);
-                }
-
-                blockTimestamp = blockTimestamp.plusDays(1);
-                prevBlock = block;
+        for (int i = 0; i < 20; i++) {
+            List<Transaction> transactions = new ArrayList<>();
+            for (int j = 0; j < 10; j++) {
+                DateTime transactionTimestamp = new DateTime();
+                String fromHash1 = nodeAddress;
+                String toHash1 = "**addressTo**";
+                String signature1 = SignatureUtils.sign(keyPair, fromHash1 + toHash1 + transactionTimestamp + amount);
+                String publicKey1 = SignatureUtils.encodePublicKey(keyPair.getPublic());
+                String transactionHash1 = HashingUtils.generateTransactionHash(fromHash1, toHash1, amount, signature1);
+                Transaction transaction = transactionRepository.createTransaction(transactionHash1, null, fromHash1, toHash1, amount, signature1, "pending", "wallet", publicKey1, transactionTimestamp);
+                transactions.add(transaction);
             }
+
+            String previousBlockHash = prevBlock.getHash();
+            String merkleRootHash = HashingUtils.generateMerkleRootHash(transactions);
+            String hash = HashingUtils.generateBlockHash(merkleRootHash, previousBlockHash, blockTimestamp);
+            int blockheight = prevBlock.getBlockHeight() + 1;
+
+            Block block = blockRepository.createBlock(hash, previousBlockHash, merkleRootHash, blockheight, "full", blockTimestamp);
+
+            for(Transaction transaction : transactions) {
+                transactionRepository.setTransactionAsValidated(transaction, block);
+            }
+
+            blockTimestamp = blockTimestamp.plusDays(1);
+            prevBlock = block;
         }
     }
 

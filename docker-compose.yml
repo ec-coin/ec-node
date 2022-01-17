@@ -1,4 +1,10 @@
 version: "3.9"
+networks:
+  dev_network:
+    ipam:
+      config:
+        - subnet: 10.10.10.0/24
+          gateway: 10.10.10.1
 services:
   openvpn:
     cap_add:
@@ -56,10 +62,3 @@ services:
       - ./target:/opt/app
     networks:
       - dev_network
-
-networks:
-  dev_network:
-    ipam:
-      config:
-        - subnet: 10.10.10.0/24
-          gateway: 10.10.10.1
