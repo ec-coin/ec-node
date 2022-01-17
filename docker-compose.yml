@@ -42,6 +42,8 @@ services:
   node_1:
     container_name: node_1
     image: ecnode
+    environment:
+      - START_SEED=1
     volumes:
       - ./target:/opt/app
     networks:
