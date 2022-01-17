@@ -99,9 +99,9 @@ public class Application {
         }
 
         // CLI option for development purposes
-        if (shouldSeedDatabase) {
+        //if (shouldSeedDatabase) {
             mockBlockchainData();
-        }
+        //}
 
         printMessageOfTheDay();
 

@@ -19,14 +19,8 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import spark.Route;
 
-import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
-import java.security.KeyPair;
 import java.security.PublicKey;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 
 import static spark.Spark.*;
@@ -115,15 +109,6 @@ public class API implements Runnable {
     }
 
     public void setupBlockEndPoints() {
-        postCORS("/blocks", (request, response) -> {
-            response.type("application/json");
-
-            Block block = new Gson().fromJson(request.body(), Block.class);
-            blockRepository.createBlock(block);
-
-            return new Gson().toJson(new StandardResponse(StatusResponse.SUCCESS));
-        });
-
         get("/blocks", (request, response) -> {
             response.type("application/json");
 
@@ -155,8 +140,7 @@ public class API implements Runnable {
         postCORS("/stake", (request, response) -> {
             response.type("application/json");
 
-            Block block = new Gson().fromJson(request.body(), Block.class);
-            blockRepository.createBlock(block);
+            Transaction transaction;
 
             return new Gson().toJson(new StandardResponse(StatusResponse.SUCCESS));
         });
@@ -203,8 +187,6 @@ public class API implements Runnable {
         PublicKey publicKey = null;
         try {
             publicKey = SignatureUtils.decodeWalletPublicKey(publicKeyString);
-            System.out.println(SignatureUtils.verify(publicKey, signature, payload));
-            System.out.println(SignatureUtils.verify(publicKey, signature,  payload + "something-extra"));
             ValidationUtils.validateWalletTransaction(from, publicKeyString, publicKey, signature, payload);
         }
         catch (InvalidTransaction e) {
@@ -212,6 +194,6 @@ public class API implements Runnable {
         }
 
         String encodedPublicKey = SignatureUtils.encodePublicKey(publicKey);
-        transactionRepository.createTransaction(null, from, to, amount, signature, "wallet", encodedPublicKey);
+        transactionRepository.createTransaction(null, from, to, amount, signature, "wallet", encodedPublicKey, transactionTimestamp);
     }
 }
