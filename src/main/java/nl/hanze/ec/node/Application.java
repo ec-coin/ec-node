@@ -11,6 +11,7 @@ import nl.hanze.ec.node.app.listeners.ListenerFactory;
 import nl.hanze.ec.node.database.models.Block;
 import nl.hanze.ec.node.database.models.Transaction;
 import nl.hanze.ec.node.database.repositories.BlockRepository;
+import nl.hanze.ec.node.modules.annotations.NodeAddress;
 import nl.hanze.ec.node.modules.annotations.NodeKeyPair;
 import nl.hanze.ec.node.database.repositories.NeighboursRepository;
 import nl.hanze.ec.node.database.repositories.TransactionRepository;
@@ -18,15 +19,20 @@ import nl.hanze.ec.node.modules.annotations.DbSeeding;
 import nl.hanze.ec.node.modules.annotations.NodeStateQueue;
 import nl.hanze.ec.node.network.Server;
 import nl.hanze.ec.node.network.peers.PeerPool;
+import nl.hanze.ec.node.utils.BaseNUtils;
 import nl.hanze.ec.node.utils.FileUtils;
 import nl.hanze.ec.node.utils.HashingUtils;
 import nl.hanze.ec.node.utils.SignatureUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.bouncycastle.util.encoders.Hex;
 import org.joda.time.DateTime;
 
+import java.math.BigInteger;
 import java.security.KeyPair;
+import java.security.PublicKey;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicReference;
@@ -63,7 +69,7 @@ public class Application {
             StateHandler stateHandler,
             ListenerFactory listenerFactory,
             BlockRepository blockRepository,
-            String nodeAddress,
+            @NodeAddress String nodeAddress,
             TransactionRepository transactionRepository,
             NeighboursRepository neighboursRepository,
             @NodeKeyPair KeyPair keyPair,
@@ -140,9 +146,8 @@ public class Application {
         System.out.println("------Properties------");
         System.out.println("blockHeight        : " + blockRepository.getCurrentBlockHeight());
         System.out.println("# of old neighbors : " + neighboursRepository.getNumberOfNeighbors());
-        System.out.println("node's address     : " + "xxxxxxxxx");
+        System.out.println("node's address     : " + nodeAddress);
         System.out.println("----------------------");
-        System.out.println("");
     }
 
     private void createGenesisBlock() {
@@ -162,7 +167,7 @@ public class Application {
                 List<Transaction> transactions = new ArrayList<>();
                 for (int j = 0; j < 10; j++) {
                     DateTime transactionTimestamp = new DateTime();
-                    String fromHash1 = "**addressFrom**";
+                    String fromHash1 = nodeAddress;
                     String toHash1 = "**addressTo**";
                     String signature1 = SignatureUtils.sign(keyPair, fromHash1 + toHash1 + transactionTimestamp + amount);
                     String publicKey1 = SignatureUtils.encodePublicKey(keyPair.getPublic());

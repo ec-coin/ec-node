@@ -32,16 +32,11 @@ public class PendingTransactionWorker extends Worker {
         Object transactionObject = payload.get("transaction");
         Transaction transaction = fromJSONToObject(transactionObject);
 
-        // If this was a request a response could be sent like this.
-        // peerCommandQueue.add(new TestResponse());
-
         Boolean validTransaction = this.balanceCacheRepository.hasValidBalance(transaction.getFrom(), transaction.getAmount());
 
         if (validTransaction) {
             PendingTransactionAnnouncement announcement = new PendingTransactionAnnouncement(receivedCommand.getPayload());
-            announcement.notifyAll();
-            peerCommandQueue.
-
+            peerCommandQueue.add(announcement);
         }
     }
 

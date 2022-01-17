@@ -37,9 +37,4 @@ public class PendingTransactionAnnouncement extends AbstractCommand implements A
     public Worker getWorker(Command receivedCommand, BlockingQueue<Command> peerCommandQueue) {
         return workerFactory.create(NewBlockAnnouncementWorker.class, receivedCommand, peerCommandQueue);
     }
-
-    @Override
-    public boolean validated() {
-        return false;
-    }
 }

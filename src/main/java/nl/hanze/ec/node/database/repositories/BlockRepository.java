@@ -99,7 +99,7 @@ public class BlockRepository {
     public synchronized int getCurrentBlockHeight() {
         int height = 0;
         try {
-            height = (int) blockDAO.queryRawValue("select MAX(block_height) from Blocks");
+            height = (int) blockDAO.queryRawValue("select MAX(block_height) from Blocks where type = 'full'");
         } catch (SQLException e) {
             e.printStackTrace();
         }

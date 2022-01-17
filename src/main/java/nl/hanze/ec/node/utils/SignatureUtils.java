@@ -7,16 +7,13 @@ import io.github.novacrypto.bip39.wordlists.English;
 import org.bouncycastle.jce.ECNamedCurveTable;
 import org.bouncycastle.jce.interfaces.ECPrivateKey;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.jce.spec.ECParameterSpec;
-import org.bouncycastle.jce.spec.ECPrivateKeySpec;
-import org.bouncycastle.jce.spec.ECPublicKeySpec;
+import org.bouncycastle.jce.spec.*;
 import org.bouncycastle.math.ec.ECPoint;
 import org.bouncycastle.math.ec.FixedPointCombMultiplier;
 import java.math.BigInteger;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
-import java.util.Base64;
 
 public class SignatureUtils {
 
@@ -72,7 +69,7 @@ public class SignatureUtils {
         PrivateKey privateKey = keyPair.getPrivate();
         byte[] signature = null;
         try {
-            Signature signer = Signature.getInstance("SHA256WithECDSA", "BC");
+            Signature signer = Signature.getInstance("SHA256withECDSA", "BC");
             signer.initSign(privateKey);
             signer.update(value.getBytes());
             signature = signer.sign();
@@ -85,7 +82,7 @@ public class SignatureUtils {
     public synchronized static boolean verify(PublicKey publicKey, String signatureHex, String value) {
         boolean legitimateSignature = false;
         try {
-            Signature signer = Signature.getInstance("SHA256WithECDSA", "BC");
+            Signature signer = Signature.getInstance("SHA256withECDSA", "BC");
             signer.initVerify(publicKey);
             byte[] bytes = value.getBytes();
             signer.update(bytes);
@@ -97,17 +94,37 @@ public class SignatureUtils {
     }
 
     public synchronized static String encodePublicKey(PublicKey publicKey) {
-        byte[] encodedKey = publicKey.getEncoded();
-        return Base64.getEncoder().encodeToString(encodedKey);
+        return BaseNUtils.Base64Encode(publicKey.getEncoded());
     }
 
     public synchronized static PublicKey decodePublicKey(String publicKeyString) {
-        byte[] encodedKey = Base64.getDecoder().decode(publicKeyString);
+        byte[] encodedKey = BaseNUtils.Base64Decode(publicKeyString);
 
         PublicKey publicKey = null;
         try {
             KeyFactory keyFactory = KeyFactory.getInstance("ECDSA", "BC");
             publicKey = keyFactory.generatePublic(new X509EncodedKeySpec(encodedKey));
+        } catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidKeySpecException e) {
+            e.printStackTrace();
+        }
+        return publicKey;
+    }
+
+    public synchronized static PublicKey decodeWalletPublicKey(String publicKeyStringHex) {
+        ECNamedCurveParameterSpec parameterSpecs = ECNamedCurveTable.getParameterSpec("secp256k1");
+        Security.addProvider(new BouncyCastleProvider());
+
+        String publicKeyString = publicKeyStringHex.substring(2);
+        BigInteger x = new BigInteger(publicKeyString.substring(0, 64), 16);
+        BigInteger y = new BigInteger(publicKeyString.substring(64), 16);
+
+        PublicKey publicKey = null;
+        try {
+            KeyFactory keyFactory = KeyFactory.getInstance("ECDSA", "BC");
+            java.security.spec.ECPoint ecPoint = new java.security.spec.ECPoint(x, y);
+            java.security.spec.ECParameterSpec spec = new ECNamedCurveSpec("secp256k1", parameterSpecs.getCurve(),
+                    parameterSpecs.getG(), parameterSpecs.getN(), parameterSpecs.getH(), parameterSpecs.getSeed());
+            publicKey = keyFactory.generatePublic(new java.security.spec.ECPublicKeySpec(ecPoint, spec));
         } catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidKeySpecException e) {
             e.printStackTrace();
         }

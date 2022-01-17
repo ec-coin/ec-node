@@ -2,7 +2,6 @@ package nl.hanze.ec.node.database.models;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
-import nl.hanze.ec.node.database.repositories.BalancesCacheRepository;
 import org.joda.time.DateTime;
 
 @DatabaseTable(tableName = "transactions")

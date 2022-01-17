@@ -5,6 +5,7 @@ import nl.hanze.ec.node.database.models.Block;
 import nl.hanze.ec.node.database.models.Transaction;
 import nl.hanze.ec.node.database.repositories.BlockRepository;
 import nl.hanze.ec.node.database.repositories.TransactionRepository;
+import nl.hanze.ec.node.exceptions.InvalidTransaction;
 import nl.hanze.ec.node.modules.annotations.NodeStateQueue;
 import nl.hanze.ec.node.network.peers.PeerPool;
 import nl.hanze.ec.node.network.peers.commands.WaitForResponse;
@@ -16,6 +17,7 @@ import nl.hanze.ec.node.network.peers.peer.Peer;
 import nl.hanze.ec.node.network.peers.peer.PeerState;
 import nl.hanze.ec.node.utils.HashingUtils;
 import nl.hanze.ec.node.utils.SignatureUtils;
+import nl.hanze.ec.node.utils.ValidationUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -130,22 +132,19 @@ public class BlockSyncer extends StateListener {
             }
 
             TransactionsResponse response = ((TransactionsResponse) command.getResponse());
-
             List<TransactionsResponse.Tx> transactions = response.getTransactions();
-
-            // TODO: Validate merkle root of transactions with merkle root of block in DB.
             List<String> transactionHashes = new ArrayList<>();
-            String calculatedHash;
-            for(TransactionsResponse.Tx transaction : transactions) {
-                PublicKey publicKey = SignatureUtils.decodePublicKey(transaction.publicKey);
-                String message = transaction.from + transaction.to + transaction.timestamp + transaction.amount;
-                if (!SignatureUtils.verify(publicKey, transaction.signature, message)) {
-                    logger.info("Signature not valid [curr:" + transaction + "]");
-                }
 
-                calculatedHash = HashingUtils.generateTransactionHash(transaction.from, transaction.to, transaction.amount, transaction.signature);
-                if (!calculatedHash.equals(transaction.hash)) {
-                    logger.info("Transaction Hash not valid [curr:" + transaction + "]");
+            for(TransactionsResponse.Tx transaction : transactions) {
+                try {
+                    ValidationUtils.validateTransaction(new Transaction(
+                            transaction.hash, block, transaction.from, transaction.to,
+                            transaction.amount, transaction.signature, transaction.status,
+                            transaction.addressType, transaction.publicKey, transaction.timestamp)
+                    );
+                }
+                catch (InvalidTransaction e) {
+                    logger.info(e.getMessage());
                 }
                 transactionHashes.add(transaction.hash);
             }

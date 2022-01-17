@@ -7,7 +7,6 @@ import nl.hanze.ec.node.database.models.Transaction;
 import nl.hanze.ec.node.database.repositories.BalancesCacheRepository;
 import nl.hanze.ec.node.network.peers.commands.Command;
 import nl.hanze.ec.node.network.peers.commands.announcements.NewBlockAnnouncement;
-import nl.hanze.ec.node.network.peers.commands.announcements.PendingTransactionAnnouncement;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 
@@ -33,9 +32,6 @@ public class NewBlockAnnouncementWorker extends Worker {
         Object blockObject = payload.get("block");
         Block block = fromJSONToObject(blockObject);
 
-//         If this was a request a response could be sent like this.
-//         peerCommandQueue.add(new TestResponse());
-
         Boolean validTransaction = true;
 
         for (Transaction transaction : block.getTransactions()) {
@@ -48,7 +44,7 @@ public class NewBlockAnnouncementWorker extends Worker {
 
         if (validTransaction) {
             NewBlockAnnouncement announcement = new NewBlockAnnouncement(receivedCommand.getPayload());
-            announcement.notifyAll();
+            peerCommandQueue.add(announcement);
         }
     }
 
