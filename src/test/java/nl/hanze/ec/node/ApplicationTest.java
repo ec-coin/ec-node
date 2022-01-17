@@ -100,7 +100,7 @@ public class ApplicationTest {
     }
 
     @Test
-    public void testStuff() {
+    public void testWalletAndNodeSignatureCompatibility() {
         StringBuilder hex = new StringBuilder();
         String msg = "hello world";
         for (byte i : msg.getBytes()) {
