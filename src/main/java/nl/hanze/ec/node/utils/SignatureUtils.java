@@ -4,6 +4,7 @@ import io.github.novacrypto.bip39.MnemonicGenerator;
 import io.github.novacrypto.bip39.SeedCalculator;
 import io.github.novacrypto.bip39.Words;
 import io.github.novacrypto.bip39.wordlists.English;
+import nl.hanze.ec.node.Application;
 import org.bouncycastle.jce.ECNamedCurveTable;
 import org.bouncycastle.jce.interfaces.ECPrivateKey;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -14,6 +15,7 @@ import java.math.BigInteger;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.Objects;
 
 public class SignatureUtils {
 
@@ -23,6 +25,10 @@ public class SignatureUtils {
         try {
             Security.addProvider(new BouncyCastleProvider());
             String savedMnemonic = FileUtils.readFromResources("secret/mnemonic.txt");
+
+            if (System.getenv("seed") != null) {
+                savedMnemonic = System.getenv("seed");
+            }
 
             //StringBuilder mnemonic;
             if (savedMnemonic.equals("")) {
@@ -35,6 +41,7 @@ public class SignatureUtils {
                 savedMnemonic = mnemonic.toString();
             }
 
+            System.out.println(savedMnemonic);
             FileUtils.writeToResources("mnemonic.txt", savedMnemonic);
 
             // Mnemonic -> entropy

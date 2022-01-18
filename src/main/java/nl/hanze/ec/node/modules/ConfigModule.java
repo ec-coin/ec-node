@@ -5,9 +5,11 @@ import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import net.sourceforge.argparse4j.inf.Namespace;
 import nl.hanze.ec.node.modules.annotations.*;
+import nl.hanze.ec.node.utils.FileUtils;
 import nl.hanze.ec.node.utils.HashingUtils;
 import nl.hanze.ec.node.utils.SignatureUtils;
 import java.security.KeyPair;
+import java.util.Objects;
 
 public class ConfigModule extends AbstractModule {
     private final KeyPair keyPair;
@@ -24,6 +26,7 @@ public class ConfigModule extends AbstractModule {
         this.maxPeers = ns.getInt("max-peers");
         this.port = ns.getInt("port");
         this.dbSeeding = ns.getBoolean("db-seeding");
+
     }
 
     protected void configure() {
