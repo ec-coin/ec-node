@@ -25,6 +25,7 @@ import nl.hanze.ec.node.utils.HashingUtils;
 import nl.hanze.ec.node.utils.SignatureUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.bouncycastle.jce.interfaces.ECPublicKey;
 import org.bouncycastle.util.encoders.Hex;
 import org.joda.time.DateTime;
 
@@ -147,9 +148,7 @@ public class Application {
         System.out.println("blockHeight        : " + blockRepository.getCurrentBlockHeight());
         System.out.println("# of old neighbors : " + neighboursRepository.getNumberOfNeighbors());
         System.out.println("node's address     : " + nodeAddress);
-        System.out.println("public key         : " + keyPair.getPublic());
-        System.out.println("public key hash    : " + new BigInteger(1, HashingUtils.hash(keyPair.getPublic().toString())).toString(16));
-        System.out.println("public key hash    : " + Arrays.toString(HashingUtils.hash(keyPair.getPublic().toString())));
+        System.out.println("public key         : " + HashingUtils.getAddress((ECPublicKey) keyPair.getPublic()));
         System.out.println("----------------------");
     }
 

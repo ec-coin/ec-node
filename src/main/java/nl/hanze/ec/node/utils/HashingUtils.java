@@ -1,6 +1,7 @@
 package nl.hanze.ec.node.utils;
 
 import nl.hanze.ec.node.database.models.Transaction;
+import org.bouncycastle.jce.interfaces.ECPublicKey;
 import org.joda.time.DateTime;
 
 import java.math.BigInteger;
@@ -52,8 +53,8 @@ public class HashingUtils {
         return new BigInteger(1, hash(merkleRootHash + previousHash + timestamp.toString())).toString(16);
     }
 
-    public synchronized static String getAddress(PublicKey publicKey) {
-        return BaseNUtils.Base58Encode(new BigInteger(1, hash(publicKey.toString())).toString(16), 16);
+    public synchronized static String getAddress(ECPublicKey publicKey) {
+        return BaseNUtils.Base58Encode(new BigInteger(1, hash("" + publicKey.getQ().getXCoord() + publicKey.getQ().getYCoord())).toString(16), 16);
     }
 
     public synchronized static boolean validateMerkleRootHash(String merkleRootHash, List<String> transactionHashes) {

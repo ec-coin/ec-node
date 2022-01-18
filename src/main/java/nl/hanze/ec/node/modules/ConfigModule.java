@@ -7,6 +7,8 @@ import net.sourceforge.argparse4j.inf.Namespace;
 import nl.hanze.ec.node.modules.annotations.*;
 import nl.hanze.ec.node.utils.HashingUtils;
 import nl.hanze.ec.node.utils.SignatureUtils;
+import org.bouncycastle.jce.interfaces.ECPublicKey;
+
 import java.security.KeyPair;
 
 public class ConfigModule extends AbstractModule {
@@ -19,7 +21,7 @@ public class ConfigModule extends AbstractModule {
 
     public ConfigModule(Namespace ns) {
         this.keyPair = SignatureUtils.generateKeyPair();
-        this.address = HashingUtils.getAddress(keyPair.getPublic());
+        this.address = HashingUtils.getAddress((ECPublicKey) keyPair.getPublic());
         this.minPeers = ns.getInt("min-peers");
         this.maxPeers = ns.getInt("max-peers");
         this.port = ns.getInt("port");
