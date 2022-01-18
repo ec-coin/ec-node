@@ -1,0 +1,74 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "type": "object",
+  "required": [
+    "command",
+    "responseTo",
+    "number",
+    "transactions"
+  ],
+  "properties": {
+    "command": {
+      "const": "tx-response"
+    },
+    "responseTo": {
+      "type": "integer"
+    },
+    "number": {
+      "type": "integer"
+    },
+    "transactions": {
+      "type": "array",
+      "additionalItems": true,
+      "items": {
+        "anyOf": [
+          {
+            "type": "object",
+            "required": [
+              "hash",
+              "from",
+              "to",
+              "amount",
+              "signature",
+              "status",
+              "addressType",
+              "publicKey",
+              "timestamp"
+            ],
+            "properties": {
+              "hash": {
+                "type": "string"
+              },
+              "from": {
+                "type": "string"
+              },
+              "to": {
+                "type": "string"
+              },
+              "amount": {
+                "type": "number"
+              },
+              "signature": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string"
+              },
+              "addressType": {
+                "type": "string"
+              },
+              "publicKey": {
+                "type": "string"
+              },
+              "timestamp": {
+                "type": "integer"
+              }
+            },
+            "additionalProperties": false
+          }
+        ]
+      }
+    }
+  },
+  "additionalProperties": false
+}

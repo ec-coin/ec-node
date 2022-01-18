@@ -2,8 +2,13 @@ package nl.hanze.ec.node.network.peers.commands;
 
 import nl.hanze.ec.node.app.workers.Worker;
 import nl.hanze.ec.node.app.workers.WorkerFactory;
+import org.everit.json.schema.Schema;
+import org.everit.json.schema.ValidationException;
+import org.everit.json.schema.loader.SchemaLoader;
 import org.json.JSONObject;
+import org.json.JSONTokener;
 
+import java.io.InputStream;
 import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 
@@ -13,9 +18,15 @@ public abstract class AbstractCommand implements Command {
 
     public AbstractCommand() {}
 
-    public AbstractCommand(JSONObject payload, WorkerFactory workerFactory) {
+    public AbstractCommand(JSONObject payload, WorkerFactory workerFactory) throws ValidationException {
         this.messageNumber = payload.getInt("number");
         this.workerFactory = workerFactory;
+
+        // Validate if json is well formatted
+        InputStream inputStream = getClass().getResourceAsStream("/json-schemas/" + getCommandName() + ".json");
+        JSONObject rawSchema = new JSONObject(new JSONTokener(inputStream));
+        Schema schema = SchemaLoader.load(rawSchema);
+        schema.validate(payload);
     }
 
     public JSONObject getPayload() {

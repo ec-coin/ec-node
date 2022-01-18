@@ -1,0 +1,58 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "type": "object",
+  "required": [
+    "command",
+    "responseTo",
+    "number",
+    "headers"
+  ],
+  "properties": {
+    "command": {
+      "const": "headers-response"
+    },
+    "responseTo": {
+      "type": "integer"
+    },
+    "number": {
+      "type": "integer"
+    },
+    "headers": {
+      "type": "array",
+      "additionalItems": true,
+      "items": {
+        "anyOf": [
+          {
+            "type": "object",
+            "required": [
+              "merkle_root_hash",
+              "previous_block_hash",
+              "block_height",
+              "hash",
+              "timestamp"
+            ],
+            "properties": {
+              "merkle_root_hash": {
+                "type": "string"
+              },
+              "previous_block_hash": {
+                "type": "string"
+              },
+              "block_height": {
+                "type": "integer"
+              },
+              "hash": {
+                "type": "string"
+              },
+              "timestamp": {
+                "type": "integer"
+              }
+            },
+            "additionalProperties": false
+          }
+        ]
+      }
+    }
+  },
+  "additionalProperties": false
+}

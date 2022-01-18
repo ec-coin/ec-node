@@ -1,0 +1,107 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "type": "object",
+  "required": [
+    "command",
+    "number",
+    "block"
+  ],
+  "properties": {
+    "command": {
+      "const": "new-transaction"
+    },
+    "number": {
+      "type": "integer"
+    },
+    "block": {
+      "type": "object",
+      "required": [
+        "hash",
+        "previous_block_hash",
+        "merkle_root_hash",
+        "block_height",
+        "timestamp",
+        "type",
+        "transactions"
+      ],
+      "properties": {
+        "hash": {
+          "type": "string"
+        },
+        "previous_block_hash": {
+          "type": "string"
+        },
+        "merkle_root_hash": {
+          "type": "string"
+        },
+        "block_height": {
+          "type": "integer"
+        },
+        "timestamp": {
+          "type": "integer"
+        },
+        "type": {
+          "type": "string"
+        },
+        "transactions": {
+          "type": "array",
+          "additionalItems": true,
+          "items": {
+            "anyOf": [
+              {
+                "type": "object",
+                "required": [
+                  "hash",
+                  "block_hash",
+                  "from",
+                  "to",
+                  "amount",
+                  "signature",
+                  "status",
+                  "address_type",
+                  "public_key",
+                  "timestamp"
+                ],
+                "properties": {
+                  "hash": {
+                    "type": "string"
+                  },
+                  "block_hash": {
+                    "type": "string"
+                  },
+                  "from": {
+                    "type": "string"
+                  },
+                  "to": {
+                    "type": "string"
+                  },
+                  "amount": {
+                    "type": "number"
+                  },
+                  "signature": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "const": "pending"
+                  },
+                  "address_type": {
+                    "type": "string"
+                  },
+                  "public_key": {
+                    "type": "string"
+                  },
+                  "timestamp": {
+                    "type": "integer"
+                  }
+                },
+                "additionalProperties": false
+              }
+            ]
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

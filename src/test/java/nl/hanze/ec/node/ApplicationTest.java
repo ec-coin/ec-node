@@ -32,32 +32,6 @@ public class ApplicationTest {
     }
 
     @Test
-    public void testHeadersResponse() {
-        String type = "full";
-        DateTime now = new DateTime();
-        HeadersResponse resp1 = new HeadersResponse(new ArrayList<>() {{
-            add(new Block("$hash$", "$previousBlockHash$", "$merkleRootHash$", 0, type, now));
-        }}, 1);
-
-        String json = resp1.getPayload().toString();
-
-        System.out.println(json);
-
-        HeadersResponse resp2 = new HeadersResponse(new JSONObject(json), null);
-        System.out.println(resp2.getHeaders());
-
-        assertEquals("{\"number\":0," +
-                "\"headers\":[{" +
-                "\"merkle_root_hash\":\"$merkleRootHash$\"," +
-                "\"previous_block_hash\":\"$previousBlockHash$\"," +
-                "\"block_height\":0," +
-                "\"hash\":\"$hash$\"," +
-                "\"timestamp\":\"" + now + "\"" +
-                "}]," +
-                "\"command\":\"headers-response\",\"responseTo\":1}", json);
-    }
-
-    @Test
     public void testSignatureUtils() {
         KeyPair keyPair = SignatureUtils.generateKeyPair();
         String value = "message payload";

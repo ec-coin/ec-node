@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "type": "object",
+  "required": [
+    "command",
+    "number",
+    "version",
+    "start_height"
+  ],
+  "properties": {
+    "command": {
+      "const": "version"
+    },
+    "number": {
+      "type": "integer"
+    },
+    "version": {
+      "type": "number"
+    },
+    "start_height": {
+      "type": "integer"
+    }
+  },
+  "additionalProperties": false
+}
