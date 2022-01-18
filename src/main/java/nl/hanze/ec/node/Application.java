@@ -147,6 +147,9 @@ public class Application {
         System.out.println("blockHeight        : " + blockRepository.getCurrentBlockHeight());
         System.out.println("# of old neighbors : " + neighboursRepository.getNumberOfNeighbors());
         System.out.println("node's address     : " + nodeAddress);
+        System.out.println("public key         : " + keyPair.getPublic());
+        System.out.println("public key hash    : " + new BigInteger(1, HashingUtils.hash(keyPair.getPublic().toString())).toString(16));
+        System.out.println("public key hash    : " + Arrays.toString(HashingUtils.hash(keyPair.getPublic().toString())));
         System.out.println("----------------------");
     }
 

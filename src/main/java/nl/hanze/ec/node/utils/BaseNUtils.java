@@ -26,45 +26,6 @@ public class BaseNUtils {
         return Base64.getDecoder().decode(input);
     }
 
-    public synchronized static String Base64Encode1(byte[] input) {
-        StringBuilder stringBuilder = new StringBuilder();
-        String encodedByte;
-        for (byte b : input) {
-            encodedByte = encode(String.valueOf(b), 10, 2, alphabetMapping.get(2).toCharArray());
-            stringBuilder.append(padString(encodedByte, 8, 0, "0"));
-        }
-
-        String encodedInput = padString(stringBuilder.toString(), 6, stringBuilder.length(), "0");
-        char[] base64CharSet = alphabetMapping.get(64).toCharArray();
-        stringBuilder = new StringBuilder();
-        int decimalRepresentation;
-        String substring;
-
-        int length = encodedInput.length();
-        for (int i = 0; i < length; i += 6) {
-            substring = encodedInput.substring(i, i + 6);
-            decimalRepresentation = Integer.parseInt(encode(substring, 2, 10, alphabetMapping.get(10).toCharArray()));
-            stringBuilder.append(base64CharSet[decimalRepresentation]);
-        }
-
-        return padString(stringBuilder.toString(), 4, stringBuilder.length(), "=");
-    }
-
-    private synchronized static String padString(String string, int padding, int offset, String padChar) {
-        StringBuilder binaryStringBuilder = new StringBuilder(string);
-        int length = binaryStringBuilder.length() % padding;
-
-        for (int i = length; i < padding; i++) {
-            binaryStringBuilder.insert(offset, padChar);
-        }
-
-        return binaryStringBuilder.toString();
-    }
-
-    public synchronized static byte[] Base64Decode1(String input) {
-        return null;
-    }
-
     public synchronized static String Base58Encode(String input, int baseInput) {
         return encode(input, baseInput, 58, alphabetMapping.get(58).toCharArray());
     }

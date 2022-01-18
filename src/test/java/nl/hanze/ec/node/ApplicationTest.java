@@ -84,9 +84,6 @@ public class ApplicationTest {
         assertEquals("453960163", decoding);
         decoding = BaseNUtils.Base58Decode(encoding, 16);
         assertEquals("1b0ee1e3", decoding);
-
-        encoding = BaseNUtils.Base64Encode1("green".getBytes());
-        assertEquals("Z3JlZW4=", encoding);
     }
 
     @Test
