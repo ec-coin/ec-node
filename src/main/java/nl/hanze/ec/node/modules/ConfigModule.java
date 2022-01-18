@@ -8,6 +8,8 @@ import nl.hanze.ec.node.modules.annotations.*;
 import nl.hanze.ec.node.utils.FileUtils;
 import nl.hanze.ec.node.utils.HashingUtils;
 import nl.hanze.ec.node.utils.SignatureUtils;
+import org.bouncycastle.jce.interfaces.ECPublicKey;
+
 import java.security.KeyPair;
 import java.util.Objects;
 
@@ -21,7 +23,7 @@ public class ConfigModule extends AbstractModule {
 
     public ConfigModule(Namespace ns) {
         this.keyPair = SignatureUtils.generateKeyPair();
-        this.address = HashingUtils.getAddress(keyPair.getPublic());
+        this.address = HashingUtils.getAddress((ECPublicKey) keyPair.getPublic());
         this.minPeers = ns.getInt("min-peers");
         this.maxPeers = ns.getInt("max-peers");
         this.port = ns.getInt("port");

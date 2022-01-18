@@ -2,6 +2,7 @@ package nl.hanze.ec.node.utils;
 
 import nl.hanze.ec.node.database.models.Transaction;
 import nl.hanze.ec.node.exceptions.InvalidTransaction;
+import org.bouncycastle.jce.interfaces.ECPublicKey;
 
 import java.math.BigInteger;
 import java.security.PublicKey;
@@ -10,7 +11,7 @@ public class ValidationUtils {
 
     public synchronized static void validateTransaction(Transaction transaction) throws InvalidTransaction {
         PublicKey publicKey = SignatureUtils.decodePublicKey(transaction.getPublicKey());
-        if (!HashingUtils.getAddress(publicKey).equals(transaction.getFrom())) {
+        if (!HashingUtils.getAddress((ECPublicKey) publicKey).equals(transaction.getFrom())) {
             throw new InvalidTransaction("Public key not valid [curr:" + transaction + "]");
         }
 
