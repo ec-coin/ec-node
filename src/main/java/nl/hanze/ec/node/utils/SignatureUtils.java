@@ -41,7 +41,6 @@ public class SignatureUtils {
                 savedMnemonic = mnemonic.toString();
             }
 
-            System.out.println(savedMnemonic);
             FileUtils.writeToResources("mnemonic.txt", savedMnemonic);
 
             // Mnemonic -> entropy
