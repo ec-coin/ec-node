@@ -11,11 +11,11 @@ import nl.hanze.ec.node.app.listeners.ListenerFactory;
 import nl.hanze.ec.node.database.models.Block;
 import nl.hanze.ec.node.database.models.Transaction;
 import nl.hanze.ec.node.database.repositories.BlockRepository;
+import nl.hanze.ec.node.modules.annotations.DbSeeding;
 import nl.hanze.ec.node.modules.annotations.NodeAddress;
 import nl.hanze.ec.node.modules.annotations.NodeKeyPair;
 import nl.hanze.ec.node.database.repositories.NeighboursRepository;
 import nl.hanze.ec.node.database.repositories.TransactionRepository;
-import nl.hanze.ec.node.modules.annotations.DbSeeding;
 import nl.hanze.ec.node.modules.annotations.NodeStateQueue;
 import nl.hanze.ec.node.network.Server;
 import nl.hanze.ec.node.network.peers.PeerPool;
@@ -154,7 +154,16 @@ public class Application {
 
     private void createGenesisBlock() {
         DateTime timestamp = DateTime.parse("2022-01-01T00:00:00.556Z");
-        blockRepository.createBlock("GENESIS", "NULL", "GENESIS", 0, "full", timestamp);
+        Block genesisBlock = blockRepository.createBlock("GENESIS", "NULL", "GENESIS", 0, "full", timestamp);
+
+        String transactionHash = HashingUtils.generateTransactionHash("minter", "6oMokioyFBRWa3ozvJBN8mnbkS14qsefYL2cgoX5Zzog", 1000, "");
+        transactionRepository.createTransaction(transactionHash, genesisBlock, "minter", "6oMokioyFBRWa3ozvJBN8mnbkS14qsefYL2cgoX5Zzog", 1000, "", "validated", "wallet", "", timestamp);
+
+        transactionHash = HashingUtils.generateTransactionHash("minter", "3hLz5b6ztVQaYBAC9k4JvkJAk6vP1E3PvFHnPe4h1cjr", 1000, "");
+        transactionRepository.createTransaction(transactionHash, genesisBlock, "minter", "3hLz5b6ztVQaYBAC9k4JvkJAk6vP1E3PvFHnPe4h1cjr", 1000, "", "validated", "wallet", "", timestamp);
+
+        transactionHash = HashingUtils.generateTransactionHash("minter", "eGgM89aqjucuPybGqLPB3ASwrjpcVcE5iDEDpf4Ksxv", 1000, "");
+        transactionRepository.createTransaction(transactionHash, genesisBlock, "minter", "eGgM89aqjucuPybGqLPB3ASwrjpcVcE5iDEDpf4Ksxv", 1000, "", "validated", "wallet", "", timestamp);
     }
 
     private void mockBlockchainData() {
