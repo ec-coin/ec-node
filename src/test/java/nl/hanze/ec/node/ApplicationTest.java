@@ -1,17 +1,29 @@
 package nl.hanze.ec.node;
 
+import io.github.novacrypto.bip39.SeedCalculator;
 import nl.hanze.ec.node.database.models.Block;
 import nl.hanze.ec.node.network.peers.commands.responses.HeadersResponse;
 import nl.hanze.ec.node.utils.BaseNUtils;
 import nl.hanze.ec.node.utils.HashingUtils;
 import nl.hanze.ec.node.utils.SignatureUtils;
+import org.bouncycastle.jce.ECNamedCurveTable;
+import org.bouncycastle.jce.interfaces.ECPrivateKey;
+import org.bouncycastle.jce.interfaces.ECPublicKey;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.jce.spec.ECParameterSpec;
+import org.bouncycastle.jce.spec.ECPrivateKeySpec;
+import org.bouncycastle.jce.spec.ECPublicKeySpec;
+import org.bouncycastle.math.ec.ECPoint;
+import org.bouncycastle.math.ec.FixedPointCombMultiplier;
 import org.joda.time.DateTime;
 import org.json.JSONObject;
 import org.junit.jupiter.api.*;
 
 import java.math.BigInteger;
 import java.security.*;
+import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -84,9 +96,6 @@ public class ApplicationTest {
         assertEquals("453960163", decoding);
         decoding = BaseNUtils.Base58Decode(encoding, 16);
         assertEquals("1b0ee1e3", decoding);
-
-        encoding = BaseNUtils.Base64Encode1("green".getBytes());
-        assertEquals("Z3JlZW4=", encoding);
     }
 
     @Test
@@ -124,5 +133,35 @@ public class ApplicationTest {
         boolean valid1 = SignatureUtils.verify(SignatureUtils.generateKeyPair().getPublic(), hexJava, msg);
 
         assertTrue(valid1);
+    }
+
+    @Test
+    public void testAddressGeneration() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
+        Security.addProvider(new BouncyCastleProvider());
+
+        String mnemonic = "assume mistake soft attract panic engage become hood best consider sunset quiz";
+
+        // Mnemonic -> entropy
+        byte[] entropy = new SeedCalculator().calculateSeed(mnemonic, "");
+
+        // entropy -> sha256(entropy)
+        MessageDigest md = MessageDigest.getInstance("SHA-256");
+        BigInteger hash = new BigInteger(1, md.digest(entropy));
+
+        // sha256(entropy) -> ECPrivateKey
+        ECParameterSpec ecSpec = ECNamedCurveTable.getParameterSpec("secp256k1");
+        KeyFactory keyFactory = KeyFactory.getInstance("ECDSA", "BC");
+
+        ECPrivateKeySpec privateKeySpec = new ECPrivateKeySpec(hash, ecSpec);
+        ECPrivateKey privateKey = (ECPrivateKey) keyFactory.generatePrivate(privateKeySpec);
+
+        // ECPrivateKey -> ECPublicKey
+        ECPoint Q = (new FixedPointCombMultiplier()).multiply(ecSpec.getG(), privateKey.getD()).normalize();
+        ECPublicKeySpec pubSpec = new ECPublicKeySpec(Q, ecSpec);
+        ECPublicKey publicKey = (ECPublicKey) keyFactory.generatePublic(pubSpec);
+
+        String address = HashingUtils.getAddress(publicKey);
+
+        assertEquals( "HbTtVZF7avhnZTSCNcxHkfdxZg3FXhydmjvnJUynhdr1", address);
     }
 }

@@ -3,16 +3,24 @@ package nl.hanze.ec.node.database.repositories;
 import com.google.inject.Inject;
 import com.j256.ormlite.dao.Dao;
 import nl.hanze.ec.node.database.models.BalancesCache;
+import nl.hanze.ec.node.database.models.Transaction;
 import nl.hanze.ec.node.modules.annotations.BalancesCacheDAO;
+import nl.hanze.ec.node.modules.annotations.TransactionDAO;
+
 import java.sql.SQLException;
 import java.util.List;
 
 public class BalancesCacheRepository {
     private final Dao<BalancesCache, String> balancesCacheDAO;
+    private final TransactionRepository transactionRepository;
 
     @Inject
-    public BalancesCacheRepository(@BalancesCacheDAO Dao<BalancesCache, String> balancesCacheDAO) {
+    public BalancesCacheRepository(
+            @BalancesCacheDAO Dao<BalancesCache, String> balancesCacheDAO,
+            TransactionRepository transactionRepository
+    ) {
         this.balancesCacheDAO = balancesCacheDAO;
+        this.transactionRepository = transactionRepository;
     }
 
     public synchronized List<BalancesCache> getAllBalancesInCache() {
@@ -31,9 +39,16 @@ public class BalancesCacheRepository {
     ) {
         try {
             List<BalancesCache> balances = balancesCacheDAO.queryBuilder().where().eq("address", hash).query();
-            if (balances.get(0).getBalance() > amount) {
+            float balance;
+            if (balances.size() == 0) {
+                balance = transactionRepository.getBalance(hash);
+            } else {
+                balance = balances.get(0).getBalance();
+            }
+
+            if (balance > amount) {
                 return true;
-            };
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }

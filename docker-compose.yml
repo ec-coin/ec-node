@@ -21,6 +21,8 @@ services:
   seed_1:
     container_name: seed001.ec.dylaan.nl
     image: ecnode
+    environment:
+      - seed=tiny version loop stuff canvas cradle else hundred hint whisper fish goose
     volumes:
       - ./target:/opt/app
     networks:
@@ -30,6 +32,8 @@ services:
   seed_2:
     container_name: seed002.ec.dylaan.nl
     image: ecnode
+    environment:
+      - seed=piece valid wine zebra spread sheriff pioneer swap wink animal illness happy
     volumes:
       - ./target:/opt/app
     networks:
@@ -39,6 +43,8 @@ services:
   seed_3:
     container_name: seed003.ec.dylaan.nl
     image: ecnode
+    environment:
+      - seed=brave double east wool have two vacant velvet trumpet accuse stay crew
     volumes:
       - ./target:/opt/app
     networks:

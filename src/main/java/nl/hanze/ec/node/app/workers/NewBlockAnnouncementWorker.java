@@ -5,8 +5,10 @@ import nl.hanze.ec.node.database.models.Block;
 import nl.hanze.ec.node.database.models.Transaction;
 
 import nl.hanze.ec.node.database.repositories.BalancesCacheRepository;
+import nl.hanze.ec.node.exceptions.InvalidTransaction;
 import nl.hanze.ec.node.network.peers.commands.Command;
 import nl.hanze.ec.node.network.peers.commands.announcements.NewBlockAnnouncement;
+import nl.hanze.ec.node.utils.ValidationUtils;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 
@@ -37,7 +39,14 @@ public class NewBlockAnnouncementWorker extends Worker {
         for (Transaction transaction : block.getTransactions()) {
             validTransaction = this.balanceCacheRepository.hasValidBalance(transaction.getFrom(), transaction.getAmount());
 
-            if (!validTransaction) {
+            if (validTransaction) {
+                try {
+                    ValidationUtils.validateTransaction(transaction);
+                } catch (InvalidTransaction e) {
+                    e.printStackTrace();
+                }
+            }
+            else {
                 break;
             }
         }
