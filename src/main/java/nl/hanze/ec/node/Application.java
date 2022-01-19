@@ -64,7 +64,7 @@ public class Application {
 
     @Inject
     public Application(
-            API api,
+            APIFactory apiFactory,
             Server server,
             PeerPool peerPool,
             StateHandler stateHandler,
@@ -77,7 +77,7 @@ public class Application {
             @NodeStateQueue BlockingQueue<NodeState> nodeStateQueue,
             @DbSeeding boolean shouldSeedDatabase
     ) {
-        this.api = api;
+        this.api = apiFactory.create(peerPool);
         this.server = server;
         this.peerPool = peerPool;
         this.listenerFactory = listenerFactory;

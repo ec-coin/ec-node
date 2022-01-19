@@ -40,6 +40,8 @@ public class WorkerFactory {
             return new TransactionsRequestWorker(receivedCommand, peerCommandQueue, blockRepositoryProvider.get());
         } else if (workerClass == NewBlockAnnouncementWorker.class) {
             return new NewBlockAnnouncementWorker(receivedCommand, peerCommandQueue, balancesCacheRepositoryProvider.get());
+        } else if (workerClass == PendingTransactionWorker.class) {
+            return new PendingTransactionWorker(receivedCommand, peerCommandQueue, balancesCacheRepositoryProvider.get());
         }
 
         throw new UnsupportedOperationException("Factory has not defined how the given worker class has to be created");

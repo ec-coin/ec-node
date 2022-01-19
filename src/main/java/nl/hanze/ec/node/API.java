@@ -35,18 +35,18 @@ public class API implements Runnable {
     private final BlockRepository blockRepository;
     private final TransactionRepository transactionRepository;
     private final PeerPool peerPool;
-
-    @Inject
-    public API (Provider<NeighboursRepository> neighboursRepositoryProvider,
-                Provider<BalancesCacheRepository> balancesCacheRepositoryProvider,
-                Provider<BlockRepository> blockRepositoryProvider,
-                Provider<TransactionRepository> transactionRepositoryProvider,
-                PeerPool peerPool
+    
+    public API (
+            NeighboursRepository neighboursRepositoryProvider,
+            BalancesCacheRepository balancesCacheRepositoryProvider,
+            BlockRepository blockRepositoryProvider,
+            TransactionRepository transactionRepositoryProvider,
+            PeerPool peerPool
     ) {
-        this.neighboursRepository = neighboursRepositoryProvider.get();
-        this.balancesCacheRepository = balancesCacheRepositoryProvider.get();
-        this.blockRepository = blockRepositoryProvider.get();
-        this.transactionRepository = transactionRepositoryProvider.get();
+        this.neighboursRepository = neighboursRepositoryProvider;
+        this.balancesCacheRepository = balancesCacheRepositoryProvider;
+        this.blockRepository = blockRepositoryProvider;
+        this.transactionRepository = transactionRepositoryProvider;
         this.peerPool = peerPool;
     }
 
@@ -86,18 +86,18 @@ public class API implements Runnable {
             );
 
             try {
-                if (sufficientBalance) {
-                    createTransaction(transactionObject);
-                    response.status(200);
-                    return new Gson().toJson(new StandardResponse(StatusResponse.SUCCESS));
+                if (!sufficientBalance) {
+                    response.status(400);
+                    return new Gson().toJson(new StandardResponse(StatusResponse.ERROR));
                 }
-            }
-            catch(InvalidTransaction e) {
+
+                createTransaction(transactionObject);
+                response.status(200);
+                return new Gson().toJson(new StandardResponse(StatusResponse.SUCCESS));
+            } catch(InvalidTransaction e) {
                 response.status(400);
                 return new Gson().toJson(new StandardResponse(StatusResponse.ERROR));
             }
-            response.status(400);
-            return new Gson().toJson(new StandardResponse(StatusResponse.ERROR));
         });
 
         getCORS("/transactions", (request, response) -> {
@@ -207,7 +207,7 @@ public class API implements Runnable {
 
         String payload = from + to + transactionObject.get("timestamp") + amount;
         PublicKey publicKey = SignatureUtils.decodeWalletPublicKey(publicKeyString);
-        ValidationUtils.validateWalletTransaction(from, publicKeyString, publicKey, signature, payload);
+        ValidationUtils.validateWalletTransaction(from, publicKey, signature, payload);
 
         String encodedPublicKey = SignatureUtils.encodePublicKey(publicKey);
         transactionRepository.createTransaction(null, from, to, amount, signature, "wallet", encodedPublicKey, transactionTimestamp);

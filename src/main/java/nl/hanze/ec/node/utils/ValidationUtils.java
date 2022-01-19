@@ -26,8 +26,8 @@ public class ValidationUtils {
         }
     }
 
-    public synchronized static void validateWalletTransaction(String address, String publicKeyString, PublicKey publicKey, String signature, String payload) throws InvalidTransaction {
-        String walletAddress = BaseNUtils.Base58Encode(new BigInteger(1, HashingUtils.hash(publicKeyString)).toString(16), 16);
+    public synchronized static void validateWalletTransaction(String address, PublicKey publicKey, String signature, String payload) throws InvalidTransaction {
+        String walletAddress = HashingUtils.getAddress((ECPublicKey) publicKey);
 
         if (!address.equals(walletAddress)) {
             throw new InvalidTransaction("Wallet address is not valid!");

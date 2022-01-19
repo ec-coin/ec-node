@@ -1,6 +1,7 @@
 package nl.hanze.ec.node.network.peers.commands.announcements;
 
 import nl.hanze.ec.node.app.workers.NewBlockAnnouncementWorker;
+import nl.hanze.ec.node.app.workers.PendingTransactionWorker;
 import nl.hanze.ec.node.app.workers.Worker;
 import nl.hanze.ec.node.app.workers.WorkerFactory;
 import nl.hanze.ec.node.network.peers.commands.AbstractCommand;
@@ -35,6 +36,6 @@ public class PendingTransactionAnnouncement extends AbstractCommand implements A
 
     @Override
     public Worker getWorker(Command receivedCommand, BlockingQueue<Command> peerCommandQueue) {
-        return workerFactory.create(NewBlockAnnouncementWorker.class, receivedCommand, peerCommandQueue);
+        return workerFactory.create(PendingTransactionWorker.class, receivedCommand, peerCommandQueue);
     }
 }
