@@ -12,6 +12,7 @@ import java.util.concurrent.BlockingQueue;
 
 public class PendingTransactionAnnouncement extends AbstractCommand implements Announcement {
     JSONObject transaction;
+    boolean validated = false;
 
     public PendingTransactionAnnouncement(JSONObject transaction) {
         this.transaction = transaction;
@@ -37,5 +38,13 @@ public class PendingTransactionAnnouncement extends AbstractCommand implements A
     @Override
     public Worker getWorker(Command receivedCommand, BlockingQueue<Command> peerCommandQueue) {
         return workerFactory.create(PendingTransactionWorker.class, receivedCommand, peerCommandQueue);
+    }
+
+    public boolean isValidated() {
+        return validated;
+    }
+
+    public void setValidated(boolean validated) {
+        this.validated = validated;
     }
 }

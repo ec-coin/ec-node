@@ -22,8 +22,10 @@ import org.joda.time.DateTime;
 import org.json.JSONObject;
 import spark.Route;
 
+import java.math.BigDecimal;
 import java.security.PublicKey;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static spark.Spark.*;
@@ -35,7 +37,7 @@ public class API implements Runnable {
     private final BlockRepository blockRepository;
     private final TransactionRepository transactionRepository;
     private final PeerPool peerPool;
-    
+
     public API (
             NeighboursRepository neighboursRepositoryProvider,
             BalancesCacheRepository balancesCacheRepositoryProvider,
@@ -80,9 +82,16 @@ public class API implements Runnable {
         postCORS("/transactions", (request, response) -> {
             response.type("application/json");
             JSONObject transactionObject = new JSONObject(request.body());
+            float amount;
+            if (transactionObject.get("amount") instanceof Integer) {
+                amount = ((Integer) transactionObject.get("amount")).floatValue();
+            } else {
+                amount = ((BigDecimal) transactionObject.get("amount")).floatValue();
+            }
+
             boolean sufficientBalance = this.balancesCacheRepository.hasValidBalance(
                     (String) transactionObject.get("from"),
-                    Integer.parseInt((String) transactionObject.get("amount"))
+                    amount
             );
 
             try {
@@ -203,7 +212,12 @@ public class API implements Runnable {
         String publicKeyString = (String) transactionObject.get("public_key");
         DateTime transactionTimestamp = new DateTime((long) transactionObject.get("timestamp"));
 
-        int amount = Integer.parseInt((String) transactionObject.get("amount"));
+        float amount;
+        if (transactionObject.get("amount") instanceof Integer) {
+            amount = ((Integer) transactionObject.get("amount")).floatValue();
+        } else {
+            amount = ((BigDecimal) transactionObject.get("amount")).floatValue();
+        }
 
         String payload = from + to + transactionObject.get("timestamp") + amount;
         PublicKey publicKey = SignatureUtils.decodeWalletPublicKey(publicKeyString);

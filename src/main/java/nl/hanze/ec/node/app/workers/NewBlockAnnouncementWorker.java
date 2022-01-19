@@ -7,6 +7,7 @@ import nl.hanze.ec.node.database.models.Transaction;
 import nl.hanze.ec.node.database.repositories.BalancesCacheRepository;
 import nl.hanze.ec.node.exceptions.InvalidTransaction;
 import nl.hanze.ec.node.network.peers.commands.Command;
+import nl.hanze.ec.node.network.peers.commands.announcements.Announcement;
 import nl.hanze.ec.node.network.peers.commands.announcements.NewBlockAnnouncement;
 import nl.hanze.ec.node.utils.ValidationUtils;
 import org.jetbrains.annotations.NotNull;
@@ -39,21 +40,22 @@ public class NewBlockAnnouncementWorker extends Worker {
         for (Transaction transaction : block.getTransactions()) {
             validTransaction = this.balanceCacheRepository.hasValidBalance(transaction.getFrom(), transaction.getAmount());
 
-            if (validTransaction) {
-                try {
-                    ValidationUtils.validateTransaction(transaction);
-                } catch (InvalidTransaction e) {
-                    e.printStackTrace();
-                }
+            if (!validTransaction) {
+                break;
             }
-            else {
+
+            try {
+                ValidationUtils.validateTransaction(transaction);
+            } catch (InvalidTransaction e) {
+                e.printStackTrace();
+                validTransaction = false;
                 break;
             }
         }
 
         if (validTransaction) {
-            NewBlockAnnouncement announcement = new NewBlockAnnouncement(receivedCommand.getPayload());
-            peerCommandQueue.add(announcement);
+            Announcement announcement = (Announcement) receivedCommand;
+            announcement.setValidated(true);
         }
     }
 
