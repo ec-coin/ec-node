@@ -225,6 +225,7 @@ public class API implements Runnable {
 
         String encodedPublicKey = SignatureUtils.encodePublicKey(publicKey);
         transactionRepository.createTransaction(null, from, to, amount, signature, "wallet", encodedPublicKey, transactionTimestamp);
+        transactionObject.put("public_key", SignatureUtils.encodePublicKey(publicKey));
         peerPool.sendBroadcast(new PendingTransactionAnnouncement(transactionObject));
     }
 }

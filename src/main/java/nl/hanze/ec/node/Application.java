@@ -148,7 +148,7 @@ public class Application {
         System.out.println("blockHeight        : " + blockRepository.getCurrentBlockHeight());
         System.out.println("# of old neighbors : " + neighboursRepository.getNumberOfNeighbors());
         System.out.println("node's address     : " + nodeAddress);
-        System.out.println("public key         : " + HashingUtils.getAddress((ECPublicKey) keyPair.getPublic()));
+        System.out.println("public key         : " + SignatureUtils.encodePublicKey(keyPair.getPublic()));
         System.out.println("----------------------");
     }
 

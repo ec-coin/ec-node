@@ -7,6 +7,9 @@ import net.sourceforge.argparse4j.inf.ArgumentParserException;
 import net.sourceforge.argparse4j.inf.Namespace;
 import nl.hanze.ec.node.Application;
 import nl.hanze.ec.node.modules.*;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+
+import java.security.Security;
 
 /**
  * Hanzehogeschool Groningen University of Applied Sciences HBO-ICT
@@ -51,6 +54,8 @@ public class ECNetworkNodeRunner {
                 .dest("db-seeding")
                 .setDefault(false)
                 .help("Seed blockchain with mock data for debug purposes");
+
+        Security.addProvider(new BouncyCastleProvider());
 
         //################################
         //  Parse command line arguments

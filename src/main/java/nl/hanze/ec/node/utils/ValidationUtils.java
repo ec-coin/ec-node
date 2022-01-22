@@ -15,7 +15,7 @@ public class ValidationUtils {
             throw new InvalidTransaction("Public key not valid [curr:" + transaction + "]");
         }
 
-        String message = transaction.getFrom() + transaction.getTo() + transaction.getTimestamp() + transaction.getAmount();
+        String message = transaction.getFrom() + transaction.getTo() + transaction.getTimestamp().getMillis() + transaction.getAmount();
         if (!SignatureUtils.verify(publicKey, transaction.getSignature(), message)) {
             throw new InvalidTransaction("Signature not valid [curr:" + transaction + "]");
         }

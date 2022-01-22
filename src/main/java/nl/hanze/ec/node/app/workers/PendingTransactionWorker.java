@@ -33,7 +33,6 @@ public class PendingTransactionWorker extends Worker {
 
     @Override
     public void run() {
-        System.out.println("New pending transaction received");
         JSONObject payload = receivedCommand.getPayload();
         Object transactionObject = payload.get("transaction");
         Transaction transaction = fromJSONToObject((JSONObject) transactionObject);
@@ -48,8 +47,7 @@ public class PendingTransactionWorker extends Worker {
         try {
             ValidationUtils.validateTransaction(transaction);
         } catch (InvalidTransaction e) {
-            System.out.println(e.getMessage());
-            e.printStackTrace();
+            System.out.println("Invalid signature");
             return;
         }
 
@@ -93,7 +91,7 @@ public class PendingTransactionWorker extends Worker {
                 "pending",
                 tx.get("address_type").toString(),
                 tx.get("public_key").toString(),
-                DateTime.parse(tx.get("timestamp").toString())
+                new DateTime(Long.parseLong(tx.get("timestamp").toString()))
         );
     }
 }

@@ -164,4 +164,17 @@ public class ApplicationTest {
 
         assertEquals( "HbTtVZF7avhnZTSCNcxHkfdxZg3FXhydmjvnJUynhdr1", address);
     }
+
+    @Test
+    public void testTimestampToDatetime() {
+        DateTime date = new DateTime(Long.parseLong("1642842392900"));
+
+        assertEquals("2022-01-22T10:06:32.900+01:00", date.toString());
+    }
+
+    @Test void testDatetimeToTimestamp() {
+        DateTime date = DateTime.parse("2022-01-22T09:57:13.944Z");
+
+        assertEquals(1642845433944L, date.getMillis());
+    }
 }
