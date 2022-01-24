@@ -90,7 +90,6 @@ public class API implements Runnable {
 
             try {
                 if (!sufficientBalance) {
-                    System.out.println("INSUFFICIENT BALANCE");
                     response.status(400);
                     return new Gson().toJson(new StandardResponse(StatusResponse.ERROR, "Insufficent balance"));
                 }
@@ -177,12 +176,7 @@ public class API implements Runnable {
                 String parameter = (String) request.queryParams().toArray()[0];
                 String parameterValue = request.queryParamsValues(parameter)[0];
 
-                if (parameter.equals("stake")) {
-                    amount = transactionRepository.getStake(parameterValue);
-                }
-                else if (parameter.equals("balance")) {
-                    amount = transactionRepository.getBalance(parameterValue);
-                }
+                amount = transactionRepository.getBalance(parameterValue);
             }
 
             return new Gson().toJson(

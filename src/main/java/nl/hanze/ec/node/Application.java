@@ -4,10 +4,7 @@ import com.google.inject.Inject;
 import nl.hanze.ec.node.app.NodeState;
 import nl.hanze.ec.node.app.handlers.Handler;
 import nl.hanze.ec.node.app.handlers.StateHandler;
-import nl.hanze.ec.node.app.listeners.BlockSyncer;
-import nl.hanze.ec.node.app.listeners.Consensus;
-import nl.hanze.ec.node.app.listeners.Listener;
-import nl.hanze.ec.node.app.listeners.ListenerFactory;
+import nl.hanze.ec.node.app.listeners.*;
 import nl.hanze.ec.node.database.models.Block;
 import nl.hanze.ec.node.database.models.Transaction;
 import nl.hanze.ec.node.database.repositories.BlockRepository;
@@ -50,6 +47,7 @@ public class Application {
         {
             add(Consensus.class);
             add(BlockSyncer.class);
+            add(BlockCreator.class);
         }
     };
     private final Handler stateHandler;
@@ -157,13 +155,23 @@ public class Application {
         Block genesisBlock = blockRepository.createBlock("GENESIS", "NULL", "GENESIS", 0, "full", timestamp);
 
         String transactionHash = HashingUtils.generateTransactionHash("minter", "6oMokioyFBRWa3ozvJBN8mnbkS14qsefYL2cgoX5Zzog", 1000, "");
-        transactionRepository.createTransaction(transactionHash, genesisBlock, "minter", "6oMokioyFBRWa3ozvJBN8mnbkS14qsefYL2cgoX5Zzog", 1000, "", "validated", "wallet", "", timestamp);
+        transactionRepository.createTransaction(transactionHash, genesisBlock, "minter", "6oMokioyFBRWa3ozvJBN8mnbkS14qsefYL2cgoX5Zzog", 1000, "", "validated", "node", "", timestamp);
 
         transactionHash = HashingUtils.generateTransactionHash("minter", "3hLz5b6ztVQaYBAC9k4JvkJAk6vP1E3PvFHnPe4h1cjr", 1000, "");
-        transactionRepository.createTransaction(transactionHash, genesisBlock, "minter", "3hLz5b6ztVQaYBAC9k4JvkJAk6vP1E3PvFHnPe4h1cjr", 1000, "", "validated", "wallet", "", timestamp);
+        transactionRepository.createTransaction(transactionHash, genesisBlock, "minter", "3hLz5b6ztVQaYBAC9k4JvkJAk6vP1E3PvFHnPe4h1cjr", 1000, "", "validated", "node", "", timestamp);
 
         transactionHash = HashingUtils.generateTransactionHash("minter", "eGgM89aqjucuPybGqLPB3ASwrjpcVcE5iDEDpf4Ksxv", 1000, "");
-        transactionRepository.createTransaction(transactionHash, genesisBlock, "minter", "eGgM89aqjucuPybGqLPB3ASwrjpcVcE5iDEDpf4Ksxv", 1000, "", "validated", "wallet", "", timestamp);
+        transactionRepository.createTransaction(transactionHash, genesisBlock, "minter", "eGgM89aqjucuPybGqLPB3ASwrjpcVcE5iDEDpf4Ksxv", 1000, "", "validated", "node", "", timestamp);
+
+        // Stake registry
+        transactionHash = HashingUtils.generateTransactionHash("6oMokioyFBRWa3ozvJBN8mnbkS14qsefYL2cgoX5Zzog", "stake_register", 0, "");
+        transactionRepository.createTransaction(transactionHash, genesisBlock, "6oMokioyFBRWa3ozvJBN8mnbkS14qsefYL2cgoX5Zzog", "stake_register", 0, "", "validated", "node", "", timestamp);
+
+        transactionHash = HashingUtils.generateTransactionHash("3hLz5b6ztVQaYBAC9k4JvkJAk6vP1E3PvFHnPe4h1cjr", "stake_register", 0, "");
+        transactionRepository.createTransaction(transactionHash, genesisBlock, "3hLz5b6ztVQaYBAC9k4JvkJAk6vP1E3PvFHnPe4h1cjr", "stake_register", 0, "", "validated", "node", "", timestamp);
+
+        transactionHash = HashingUtils.generateTransactionHash("eGgM89aqjucuPybGqLPB3ASwrjpcVcE5iDEDpf4Ksxv", "stake_register", 0, "");
+        transactionRepository.createTransaction(transactionHash, genesisBlock, "eGgM89aqjucuPybGqLPB3ASwrjpcVcE5iDEDpf4Ksxv", "stake_register", 0, "", "validated", "node", "", timestamp);
     }
 
     private void mockBlockchainData() {
@@ -192,7 +200,9 @@ public class Application {
             Block block = blockRepository.createBlock(hash, previousBlockHash, merkleRootHash, blockheight, "full", blockTimestamp);
 
             for(Transaction transaction : transactions) {
-                transactionRepository.setTransactionAsValidated(transaction, block);
+                transaction.setStatus("validated");
+                transaction.setBlock(block);
+                transactionRepository.update(transaction);
             }
 
             blockTimestamp = blockTimestamp.plusDays(1);

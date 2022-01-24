@@ -43,7 +43,7 @@ public class WorkerFactory {
         } else if (workerClass == TransactionsRequestWorker.class) {
             return new TransactionsRequestWorker(receivedCommand, peerCommandQueue, blockRepositoryProvider.get());
         } else if (workerClass == NewBlockAnnouncementWorker.class) {
-            return new NewBlockAnnouncementWorker(receivedCommand, peerCommandQueue, balancesCacheRepositoryProvider.get());
+            return new NewBlockAnnouncementWorker(receivedCommand, peerCommandQueue, blockRepositoryProvider.get(), transactionRepositoryProvider.get(), balancesCacheRepositoryProvider.get());
         } else if (workerClass == PendingTransactionWorker.class) {
             return new PendingTransactionWorker(receivedCommand, peerCommandQueue, balancesCacheRepositoryProvider.get(), transactionRepositoryProvider.get());
         }

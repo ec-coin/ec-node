@@ -54,23 +54,14 @@ public class TransactionRepository {
         return null;
     }
 
-    public synchronized float getStake(String address) {
-        return getAmount(address, "node");
-    }
-
     public synchronized float getBalance(String address) {
-        return getAmount(address, "wallet") - getStake(address);
-    }
-
-    public synchronized float getAmount(String address, String address_type) {
         int amount = 0;
         try {
-            Where<Transaction, String> where = transactionDAO.queryBuilder()
+            List<Transaction> transactions = transactionDAO.queryBuilder()
                 .where().eq("status", "validated")
                 .and().eq("from", address)
-                .or().eq("to", address);
-
-            List<Transaction> transactions = where.and().eq("address_type", address_type).query();
+                .or().eq("to", address)
+                .query();
 
             for(Transaction transaction : transactions) {
                 if (transaction.getFrom().equals(transaction.getTo())) {
@@ -90,15 +81,15 @@ public class TransactionRepository {
         return amount;
     }
 
-    public synchronized List<String> getAllNodeAddresses() {
+    public synchronized List<String> getStakeAddresses() {
         Set<String> addresses = new HashSet<>();
         try {
             List<Transaction> query = transactionDAO.queryBuilder()
-                    .where().eq("address_type", "node").query();
+                    .where().eq("to", "stake_register")
+                    .query();
 
             for (Transaction transaction : query) {
                 addresses.add(transaction.getFrom());
-                addresses.add(transaction.getTo());
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -122,11 +113,10 @@ public class TransactionRepository {
         return false;
     }
 
-    public synchronized List<Transaction> getFiniteNumberOfPendingTransactions() {
+    public synchronized List<Transaction> getPendingTransactions() {
         List<Transaction> pendingTransactions = new ArrayList<>();
         try {
             pendingTransactions = transactionDAO.queryBuilder()
-                    .limit((long) PeerPool.getTransactionThreshold())
                     .where().eq("status", "pending")
                     .query();
         } catch (SQLException e) {
@@ -136,11 +126,17 @@ public class TransactionRepository {
         return pendingTransactions;
     }
 
-    public synchronized void setTransactionAsValidated(Transaction t, Block block) {
+    public synchronized void update(Transaction t) {
         try {
-            transactionDAO.createOrUpdate(
-                    new Transaction(t.getHash(), block, t.getFrom(), t.getTo(), t.getAmount(), t.getSignature(), "validated", t.getAddressType(), t.getPublicKey(), t.getTimestamp())
-            );
+            transactionDAO.update(t);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public synchronized void createOrUpdate(Transaction t) {
+        try {
+            transactionDAO.createOrUpdate(t);
         } catch (SQLException e) {
             e.printStackTrace();
         }

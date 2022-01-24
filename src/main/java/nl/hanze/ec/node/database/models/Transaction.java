@@ -127,4 +127,12 @@ public class Transaction {
     public void setOrderInBlock(int orderInBlock) {
         this.orderInBlock = orderInBlock;
     }
+
+    public void setBlock(Block block) {
+        this.block = block;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
 }

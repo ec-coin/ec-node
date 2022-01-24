@@ -13,7 +13,6 @@ import nl.hanze.ec.node.modules.annotations.NodeStateQueue;
 import nl.hanze.ec.node.network.peers.PeerPool;
 import nl.hanze.ec.node.network.peers.commands.announcements.NewBlockAnnouncement;
 import nl.hanze.ec.node.utils.HashingUtils;
-import nl.hanze.ec.node.utils.SignatureUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
@@ -23,61 +22,53 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 
-public class Consensus extends StateListener {
-    private static final Logger logger = LogManager.getLogger(Consensus.class);
-    private static long timestamp = -1;
+public class BlockCreator extends StateListener {
+    private static final Logger logger = LogManager.getLogger(BlockCreator.class);
     private final TransactionRepository transactionRepository;
+    private final BlockRepository blockRepository;
     private final String nodeAddress;
 
     private final List<NodeState> listenFor = new ArrayList<>() {
         {
-            add(NodeState.PARTICIPATING);
+            add(NodeState.VALIDATING);
         }
     };
 
     @Inject
-    public Consensus(
+    public BlockCreator(
         @NodeStateQueue BlockingQueue<NodeState> nodeStateQueue,
         @NodeAddress String address,
         PeerPool peerPool,
-        TransactionRepository transactionRepository
+        TransactionRepository transactionRepository,
+        BlockRepository blockRepository
     ) {
         super(nodeStateQueue, peerPool);
         this.transactionRepository = transactionRepository;
+        this.blockRepository = blockRepository;
         this.nodeAddress = address;
     }
 
     protected void iteration() {
-        if (!transactionRepository.transactionThresholdReached()) {
-            timestamp = -1;
-            return;
+        List<Transaction> pendingTransactions = transactionRepository.getPendingTransactions();
+
+        int blockHeight = blockRepository.getCurrentBlockHeight();
+        String prevHash = blockRepository.getCurrentBlockHash(blockHeight);
+        String merkleRootHash = HashingUtils.generateMerkleRootHash(pendingTransactions);
+        DateTime createdAt = new DateTime();
+        String blockHash = HashingUtils.generateBlockHash(merkleRootHash, prevHash, createdAt);
+        Block block = blockRepository.createBlock(blockHash, prevHash, merkleRootHash, blockHeight + 1, "full", createdAt);
+
+        int i = 0;
+        for(Transaction transaction : pendingTransactions) {
+            transaction.setBlock(block);
+            transaction.setStatus("validated");
+            transaction.setOrderInBlock(i++);
+            transactionRepository.update(transaction);
         }
 
-        // TODO: if threshold for making a block has passed, choose second best node
-        if (timestamp != -1) {
-            return;
-        }
+        peerPool.sendBroadcast(new NewBlockAnnouncement(block.toJSONObject()));
 
-        List<String> addresses = transactionRepository.getStakeAddresses();
-
-        float highestStake = 0;
-        float currentStake;
-        String leader = "";
-        for (String address : addresses) {
-            currentStake = transactionRepository.getBalance(address);
-
-            if (currentStake > highestStake) {
-                highestStake = currentStake;
-                leader = address;
-            }
-        }
-
-        if (leader.equals(this.nodeAddress)) {
-            logger.info("This node has been chosen to be the leader, moving to validating");
-            nodeStateQueue.add(NodeState.VALIDATING);
-        }
-
-        timestamp = DateTime.now().getMillis();
+        nodeStateQueue.add(NodeState.PARTICIPATING);
     }
 
     public List<NodeState> listenFor() {

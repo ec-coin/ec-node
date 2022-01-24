@@ -45,7 +45,6 @@ public class BalancesCacheRepository {
                     balance = balances.get(0).getBalance();
                 }
             }
-            System.out.println("BALANCE: " + balance);
 
             if (balance > amount) {
                 updateBalanceCache(hash, balance - amount);

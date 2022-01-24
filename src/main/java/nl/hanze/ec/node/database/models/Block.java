@@ -99,6 +99,8 @@ public class Block {
         JSONObject object = null;
         try {
             object = new JSONObject(gson.toJson(this));
+            object.put("transactions", this.getTransactions());
+            object.put("timestamp", this.timestamp.getMillis());
         } catch (JSONException exception) {
             exception.printStackTrace();
         }

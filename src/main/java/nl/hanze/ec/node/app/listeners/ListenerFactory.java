@@ -17,36 +17,27 @@ import java.util.concurrent.BlockingQueue;
 public class ListenerFactory {
     private BlockingQueue<NodeState> nodeStateQueue;
     private final Provider<TransactionRepository> transactionRepositoryProvider;
-    private final Provider<NeighboursRepository> neighboursRepositoryProvider;
     private final Provider<BlockRepository> blockRepositoryProvider;
-    private final KeyPair nodeKeyPair;
     private final String nodeAddress;
 
     @Inject
     public ListenerFactory(@NodeStateQueue BlockingQueue<NodeState> nodeStateQueue,
-                           @NodeKeyPair KeyPair keyPair,
                            @NodeAddress String address,
                            Provider<TransactionRepository> transactionRepositoryProvider,
-                           Provider<NeighboursRepository> neighboursRepositoryProvider,
                            Provider<BlockRepository> blockRepositoryProvider) {
         this.nodeStateQueue = nodeStateQueue;
         this.transactionRepositoryProvider = transactionRepositoryProvider;
-        this.neighboursRepositoryProvider = neighboursRepositoryProvider;
         this.blockRepositoryProvider = blockRepositoryProvider;
         this.nodeAddress = address;
-        this.nodeKeyPair = keyPair;
     }
 
     public Listener create(Class<? extends Listener> listener, PeerPool peerPool) {
         if (listener == Consensus.class) {
             return new Consensus(
                 nodeStateQueue,
-                nodeKeyPair,
                 nodeAddress,
                 peerPool,
-                transactionRepositoryProvider.get(),
-                neighboursRepositoryProvider.get(),
-                blockRepositoryProvider.get()
+                transactionRepositoryProvider.get()
             );
         } else if (listener == BlockSyncer.class) {
             return new BlockSyncer(
@@ -54,6 +45,14 @@ public class ListenerFactory {
                     peerPool,
                     blockRepositoryProvider.get(),
                     transactionRepositoryProvider.get()
+            );
+        } else if (listener == BlockCreator.class) {
+            return new BlockCreator(
+                    nodeStateQueue,
+                    nodeAddress,
+                    peerPool,
+                    transactionRepositoryProvider.get(),
+                    blockRepositoryProvider.get()
             );
         }
 

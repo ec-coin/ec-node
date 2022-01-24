@@ -61,6 +61,7 @@ public class BlockSyncer extends StateListener {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+
             String hash = blockRepository.getCurrentBlockHash(localBlockHeight);
             Block block = blockRepository.getBlock(localBlockHeight);
 
