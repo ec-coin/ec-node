@@ -59,7 +59,7 @@ public class TransactionRepository {
     }
 
     public synchronized float getBalance(String address) {
-        return getAmount(address, "wallet");
+        return getAmount(address, "wallet") - getStake(address);
     }
 
     public synchronized float getAmount(String address, String address_type) {

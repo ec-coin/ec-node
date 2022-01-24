@@ -82,21 +82,23 @@ public class API implements Runnable {
             JSONObject transactionObject = new JSONObject(request.body());
             boolean sufficientBalance = this.balancesCacheRepository.hasValidBalance(
                     (String) transactionObject.get("from"),
-                    Integer.parseInt((String) transactionObject.get("amount"))
+                    Float.parseFloat((String) transactionObject.get("amount"))
             );
 
             try {
                 if (!sufficientBalance) {
+                    System.out.println("INSUFFICIENT BALANCE");
                     response.status(400);
-                    return new Gson().toJson(new StandardResponse(StatusResponse.ERROR));
+                    return new Gson().toJson(new StandardResponse(StatusResponse.ERROR, "Insufficent balance"));
                 }
 
                 createTransaction(transactionObject);
                 response.status(200);
                 return new Gson().toJson(new StandardResponse(StatusResponse.SUCCESS));
             } catch(InvalidTransaction e) {
+                e.printStackTrace();
                 response.status(400);
-                return new Gson().toJson(new StandardResponse(StatusResponse.ERROR));
+                return new Gson().toJson(new StandardResponse(StatusResponse.ERROR, "Transaction details not valid"));
             }
         });
 
@@ -160,14 +162,6 @@ public class API implements Runnable {
     }
 
     public void setupBalancesCacheEndPoints() {
-        postCORS("/stake", (request, response) -> {
-            response.type("application/json");
-
-            Transaction transaction;
-
-            return new Gson().toJson(new StandardResponse(StatusResponse.SUCCESS));
-        });
-
         getCORS("/balances", (request, response) -> {
             response.type("application/json");
 
@@ -198,19 +192,19 @@ public class API implements Runnable {
     private void createTransaction(JSONObject transactionObject) throws InvalidTransaction {
         String from = (String) transactionObject.get("from");
         String to = (String) transactionObject.get("to");
-        //float amount = Float.parseFloat((String) transactionObject.get("amount"));
+        float amount = Float.parseFloat((String) transactionObject.get("amount"));
         String signature = (String) transactionObject.get("signature");
         String publicKeyString = (String) transactionObject.get("public_key");
         DateTime transactionTimestamp = new DateTime((long) transactionObject.get("timestamp"));
-
-        int amount = Integer.parseInt((String) transactionObject.get("amount"));
+        String addressType = (String) transactionObject.get("address_type");
 
         String payload = from + to + transactionObject.get("timestamp") + amount;
+        System.out.println("payload: " + payload);
         PublicKey publicKey = SignatureUtils.decodeWalletPublicKey(publicKeyString);
         ValidationUtils.validateWalletTransaction(from, publicKey, signature, payload);
 
         String encodedPublicKey = SignatureUtils.encodePublicKey(publicKey);
-        transactionRepository.createTransaction(null, from, to, amount, signature, "wallet", encodedPublicKey, transactionTimestamp);
+        transactionRepository.createTransaction(null, from, to, amount, signature, addressType, encodedPublicKey, transactionTimestamp);
         peerPool.sendBroadcast(new PendingTransactionAnnouncement(transactionObject));
     }
 }

@@ -39,14 +39,16 @@ public class BalancesCacheRepository {
     ) {
         try {
             List<BalancesCache> balances = balancesCacheDAO.queryBuilder().where().eq("address", hash).query();
-            float balance;
-            if (balances.size() == 0) {
-                balance = transactionRepository.getBalance(hash);
-            } else {
-                balance = balances.get(0).getBalance();
+            float balance = transactionRepository.getBalance(hash);
+            if (balances.size() != 0) {
+                if (balances.get(0).getBalance() < balance) {
+                    balance = balances.get(0).getBalance();
+                }
             }
+            System.out.println("BALANCE: " + balance);
 
             if (balance > amount) {
+                updateBalanceCache(hash, balance - amount);
                 return true;
             }
         } catch (SQLException e) {

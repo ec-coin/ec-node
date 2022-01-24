@@ -11,6 +11,11 @@ public class StandardResponse {
         this.status = status;
     }
 
+    public StandardResponse(StatusResponse status, String message) {
+        this.status = status;
+        this.message = message;
+    }
+
     public StandardResponse(StatusResponse status, JsonElement data) {
         if (data.isJsonNull()) {
             this.status = StatusResponse.NO_CONTENT;
