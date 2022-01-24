@@ -135,7 +135,11 @@ public class PeerStateMachine {
 
                 // Inform peers (neighbors) about the received announcement
                 if (command instanceof Announcement) {
-                    peerPool.sendBroadcast(command);
+                    Announcement announcement = (Announcement) command;
+
+                    if (announcement.isValidated()) {
+                        peerPool.sendBroadcast(command);
+                    }
                 }
             }
         }

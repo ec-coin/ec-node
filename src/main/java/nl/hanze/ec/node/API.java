@@ -22,8 +22,10 @@ import org.joda.time.DateTime;
 import org.json.JSONObject;
 import spark.Route;
 
+import java.math.BigDecimal;
 import java.security.PublicKey;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static spark.Spark.*;
@@ -35,7 +37,7 @@ public class API implements Runnable {
     private final BlockRepository blockRepository;
     private final TransactionRepository transactionRepository;
     private final PeerPool peerPool;
-    
+
     public API (
             NeighboursRepository neighboursRepositoryProvider,
             BalancesCacheRepository balancesCacheRepositoryProvider,
@@ -132,7 +134,6 @@ public class API implements Runnable {
             );
         });
     }
-
     public void setupBlockEndPoints() {
         getCORS("/blocks", (request, response) -> {
             response.type("application/json");
@@ -205,6 +206,7 @@ public class API implements Runnable {
 
         String encodedPublicKey = SignatureUtils.encodePublicKey(publicKey);
         transactionRepository.createTransaction(null, from, to, amount, signature, addressType, encodedPublicKey, transactionTimestamp);
+        transactionObject.put("public_key", SignatureUtils.encodePublicKey(publicKey));
         peerPool.sendBroadcast(new PendingTransactionAnnouncement(transactionObject));
     }
 }

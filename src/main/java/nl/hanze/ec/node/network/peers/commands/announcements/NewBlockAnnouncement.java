@@ -11,6 +11,7 @@ import java.util.concurrent.BlockingQueue;
 
 public class NewBlockAnnouncement extends AbstractCommand implements Announcement {
     JSONObject block;
+    boolean validated = false;
 
     public NewBlockAnnouncement(JSONObject block) {
         this.block = block;
@@ -36,5 +37,13 @@ public class NewBlockAnnouncement extends AbstractCommand implements Announcemen
     @Override
     public Worker getWorker(Command receivedCommand, BlockingQueue<Command> peerCommandQueue) {
         return workerFactory.create(NewBlockAnnouncementWorker.class, receivedCommand, peerCommandQueue);
+    }
+
+    public boolean isValidated() {
+        return validated;
+    }
+
+    public void setValidated(boolean validated) {
+        this.validated = validated;
     }
 }

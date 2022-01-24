@@ -5,6 +5,7 @@ import com.google.inject.Provider;
 import nl.hanze.ec.node.database.repositories.BalancesCacheRepository;
 import nl.hanze.ec.node.database.repositories.BlockRepository;
 import nl.hanze.ec.node.database.repositories.NeighboursRepository;
+import nl.hanze.ec.node.database.repositories.TransactionRepository;
 import nl.hanze.ec.node.network.peers.commands.Command;
 
 import java.util.concurrent.BlockingQueue;
@@ -13,16 +14,19 @@ public class WorkerFactory {
     private final Provider<NeighboursRepository> neighboursRepositoryProvider;
     private final Provider<BlockRepository> blockRepositoryProvider;
     private final Provider<BalancesCacheRepository> balancesCacheRepositoryProvider;
+    private final Provider<TransactionRepository> transactionRepositoryProvider;
 
     @Inject
     public WorkerFactory(
         Provider<NeighboursRepository> neighboursRepositoryProvider,
         Provider<BlockRepository> blockRepositoryProvider,
-        Provider<BalancesCacheRepository> balancesCacheRepositoryProvider
+        Provider<BalancesCacheRepository> balancesCacheRepositoryProvider,
+        Provider<TransactionRepository> transactionRepositoryProvider
     ) {
         this.neighboursRepositoryProvider = neighboursRepositoryProvider;
         this.blockRepositoryProvider = blockRepositoryProvider;
         this.balancesCacheRepositoryProvider = balancesCacheRepositoryProvider;
+        this.transactionRepositoryProvider = transactionRepositoryProvider;
     }
 
     public Worker create(
@@ -41,7 +45,7 @@ public class WorkerFactory {
         } else if (workerClass == NewBlockAnnouncementWorker.class) {
             return new NewBlockAnnouncementWorker(receivedCommand, peerCommandQueue, balancesCacheRepositoryProvider.get());
         } else if (workerClass == PendingTransactionWorker.class) {
-            return new PendingTransactionWorker(receivedCommand, peerCommandQueue, balancesCacheRepositoryProvider.get());
+            return new PendingTransactionWorker(receivedCommand, peerCommandQueue, balancesCacheRepositoryProvider.get(), transactionRepositoryProvider.get());
         }
 
         throw new UnsupportedOperationException("Factory has not defined how the given worker class has to be created");

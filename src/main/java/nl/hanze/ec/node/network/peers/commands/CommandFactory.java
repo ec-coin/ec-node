@@ -5,7 +5,6 @@ import com.google.inject.Provider;
 import nl.hanze.ec.node.exceptions.InvalidCommand;
 import nl.hanze.ec.node.network.peers.commands.announcements.NewBlockAnnouncement;
 import nl.hanze.ec.node.network.peers.commands.announcements.PendingTransactionAnnouncement;
-import nl.hanze.ec.node.network.peers.commands.announcements.TestAnnouncement;
 import nl.hanze.ec.node.network.peers.commands.requests.TransactionsRequest;
 import nl.hanze.ec.node.network.peers.commands.requests.HeadersRequest;
 import nl.hanze.ec.node.network.peers.commands.requests.NeighborsRequest;
@@ -31,8 +30,6 @@ public class CommandFactory {
                 return new VersionCommand(payload, workerFactoryProvider.get());
             case "verack":
                 return new VersionAckCommand(payload, workerFactoryProvider.get());
-            case "test-announcement":
-                return new TestAnnouncement(payload, workerFactoryProvider.get());
             case "neighbors-request":
                 return new NeighborsRequest(payload, workerFactoryProvider.get());
             case "neighbors-response":
