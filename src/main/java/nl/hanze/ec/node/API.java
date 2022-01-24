@@ -16,6 +16,7 @@ import nl.hanze.ec.node.database.repositories.BalancesCacheRepository;
 import nl.hanze.ec.node.database.repositories.BlockRepository;
 import nl.hanze.ec.node.database.repositories.NeighboursRepository;
 import nl.hanze.ec.node.database.repositories.TransactionRepository;
+import nl.hanze.ec.node.utils.FloatUtils;
 import nl.hanze.ec.node.utils.SignatureUtils;
 import nl.hanze.ec.node.utils.ValidationUtils;
 import org.joda.time.DateTime;
@@ -84,7 +85,7 @@ public class API implements Runnable {
             JSONObject transactionObject = new JSONObject(request.body());
             boolean sufficientBalance = this.balancesCacheRepository.hasValidBalance(
                     (String) transactionObject.get("from"),
-                    Float.parseFloat((String) transactionObject.get("amount"))
+                    FloatUtils.parse(transactionObject, "amount")
             );
 
             try {
@@ -193,7 +194,7 @@ public class API implements Runnable {
     private void createTransaction(JSONObject transactionObject) throws InvalidTransaction {
         String from = (String) transactionObject.get("from");
         String to = (String) transactionObject.get("to");
-        float amount = Float.parseFloat((String) transactionObject.get("amount"));
+        float amount = FloatUtils.parse(transactionObject, "amount");
         String signature = (String) transactionObject.get("signature");
         String publicKeyString = (String) transactionObject.get("public_key");
         DateTime transactionTimestamp = new DateTime((long) transactionObject.get("timestamp"));

@@ -59,16 +59,16 @@ public class Consensus extends StateListener {
 
         waitIfStateIncorrect();
 
-        // 2. Set nodes as validating nodes by paying a transaction fee.
-        String encodedPublicKey = SignatureUtils.encodePublicKey(nodeKeyPair.getPublic());
-        String signature;
-        for (String node : nodes) {
-            // TODO ensure each node pays a transaction fee before being allowed to validate.
-            signature = SignatureUtils.sign(nodeKeyPair, node);
-            transactionRepository.addNodeAsValidatingNode(null, node, signature, encodedPublicKey);
-        }
-
-        waitIfStateIncorrect();
+//        // 2. Set nodes as validating nodes by paying a transaction fee.
+//        String encodedPublicKey = SignatureUtils.encodePublicKey(nodeKeyPair.getPublic());
+//        String signature;
+//        for (String node : nodes) {
+//            // TODO ensure each node pays a transaction fee before being allowed to validate.
+//            signature = SignatureUtils.sign(nodeKeyPair, node);
+//            transactionRepository.addNodeAsValidatingNode(null, node, signature, encodedPublicKey);
+//        }
+//
+//        waitIfStateIncorrect();
 
         // 3. Check which node's nodeState == validating.
         List<String> validatingNodes = transactionRepository.getAllValidatingNodes();

@@ -6,6 +6,7 @@ import nl.hanze.ec.node.database.repositories.TransactionRepository;
 import nl.hanze.ec.node.exceptions.InvalidTransaction;
 import nl.hanze.ec.node.network.peers.commands.Command;
 import nl.hanze.ec.node.network.peers.commands.announcements.Announcement;
+import nl.hanze.ec.node.utils.FloatUtils;
 import nl.hanze.ec.node.utils.HashingUtils;
 import nl.hanze.ec.node.utils.ValidationUtils;
 import org.jetbrains.annotations.NotNull;
@@ -69,12 +70,7 @@ public class PendingTransactionWorker extends Worker {
     }
 
     private Transaction fromJSONToObject(@NotNull JSONObject tx) {
-        float amount;
-        if (tx.get("amount") instanceof Integer) {
-            amount = ((Integer) tx.get("amount")).floatValue();
-        } else {
-            amount = ((BigDecimal) tx.get("amount")).floatValue();
-        }
+        float amount = FloatUtils.parse(tx, "amount");
 
         return new Transaction(
                 HashingUtils.generateTransactionHash(
