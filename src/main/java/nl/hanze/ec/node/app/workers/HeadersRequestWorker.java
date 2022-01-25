@@ -28,12 +28,6 @@ public class HeadersRequestWorker extends Worker {
 
         Integer blockHeight = blockRepository.getBlockHeight(hash);
 
-        // Requested block not present in database
-        if (blockHeight == null) {
-            // TODO
-            blockHeight = 0;
-        }
-
         List<Block> blocks = new ArrayList<>();
 
         for (int i = 1; i <= 50; i++) {

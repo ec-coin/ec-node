@@ -139,6 +139,16 @@ public class TransactionRepository {
         }
     }
 
+    public synchronized Transaction createOrUpdate(Transaction t) {
+        try {
+            transactionDAO.createOrUpdate(t);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return t;
+    }
+
     public synchronized Transaction getTransaction(String hash) {
         Transaction transaction = null;
         try {

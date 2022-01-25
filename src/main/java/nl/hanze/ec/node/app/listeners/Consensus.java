@@ -25,7 +25,6 @@ import java.util.concurrent.BlockingQueue;
 
 public class Consensus extends StateListener {
     private static final Logger logger = LogManager.getLogger(Consensus.class);
-    private static long timestamp = -1;
     private final TransactionRepository transactionRepository;
     private final String nodeAddress;
 
@@ -49,12 +48,6 @@ public class Consensus extends StateListener {
 
     protected void iteration() {
         if (!transactionRepository.transactionThresholdReached()) {
-            timestamp = -1;
-            return;
-        }
-
-        // TODO: if threshold for making a block has passed, choose second best node
-        if (timestamp != -1) {
             return;
         }
 
@@ -72,12 +65,12 @@ public class Consensus extends StateListener {
             }
         }
 
+        System.out.println("Expecting block from: " + leader);
+
         if (leader.equals(this.nodeAddress)) {
             logger.info("This node has been chosen to be the leader, moving to validating");
             nodeStateQueue.add(NodeState.VALIDATING);
         }
-
-        timestamp = DateTime.now().getMillis();
     }
 
     public List<NodeState> listenFor() {

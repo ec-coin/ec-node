@@ -5,9 +5,12 @@ import com.j256.ormlite.dao.ForeignCollection;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.field.ForeignCollectionField;
 import com.j256.ormlite.table.DatabaseTable;
+import nl.hanze.ec.node.network.peers.commands.responses.TransactionsResponse;
 import org.joda.time.DateTime;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.stream.Collectors;
 
 @DatabaseTable(tableName = "blocks")
 public class Block {
@@ -99,8 +102,20 @@ public class Block {
         JSONObject object = null;
         try {
             object = new JSONObject(gson.toJson(this));
-            object.put("transactions", this.getTransactions());
-            object.put("timestamp", this.timestamp.getMillis());
+            object.put("transactions", this.getTransactions().stream()
+                    .map(tx -> new TransactionsResponse.Tx(
+                            tx.getHash(),
+                            tx.getFrom(),
+                            tx.getTo(),
+                            tx.getAmount(),
+                            tx.getSignature(),
+                            tx.getStatus(),
+                            tx.getAddressType(),
+                            tx.getPublicKey(),
+                            tx.getTimestamp()
+                    ).toMap())
+                    .collect(Collectors.toList()));
+            object.put("timestamp", this.timestamp.toString());
         } catch (JSONException exception) {
             exception.printStackTrace();
         }

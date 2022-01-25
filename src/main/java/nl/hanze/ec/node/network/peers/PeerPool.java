@@ -36,7 +36,6 @@ public class PeerPool implements Runnable {
     private final BlockingQueue<NodeState> nodeStateQueue;
     private final static int transactionThreshold = 3;
 
-    // TODO: maybe use other data structure, this list will eventually get really big
     List<Command> receivedAnnouncements = new LinkedList<>();
 
     /**

@@ -51,6 +51,9 @@ public class BlockCreator extends StateListener {
     protected void iteration() {
         List<Transaction> pendingTransactions = transactionRepository.getPendingTransactions();
 
+        System.out.println(pendingTransactions);
+        System.out.println("Pending txs:" + pendingTransactions.size());
+
         int blockHeight = blockRepository.getCurrentBlockHeight();
         String prevHash = blockRepository.getCurrentBlockHash(blockHeight);
         String merkleRootHash = HashingUtils.generateMerkleRootHash(pendingTransactions);
@@ -66,7 +69,7 @@ public class BlockCreator extends StateListener {
             transactionRepository.update(transaction);
         }
 
-        peerPool.sendBroadcast(new NewBlockAnnouncement(block.toJSONObject()));
+        peerPool.sendBroadcast(new NewBlockAnnouncement((blockRepository.getBlock(blockHash)).toJSONObject()));
 
         nodeStateQueue.add(NodeState.PARTICIPATING);
     }
