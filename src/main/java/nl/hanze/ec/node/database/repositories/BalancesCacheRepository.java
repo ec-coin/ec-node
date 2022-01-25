@@ -3,9 +3,7 @@ package nl.hanze.ec.node.database.repositories;
 import com.google.inject.Inject;
 import com.j256.ormlite.dao.Dao;
 import nl.hanze.ec.node.database.models.BalancesCache;
-import nl.hanze.ec.node.database.models.Transaction;
 import nl.hanze.ec.node.modules.annotations.BalancesCacheDAO;
-import nl.hanze.ec.node.modules.annotations.TransactionDAO;
 
 import java.sql.SQLException;
 import java.util.List;

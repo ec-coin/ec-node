@@ -41,10 +41,6 @@ public class BlockRepository {
         return createBlock(hash, previousBlockHash, merkleRootHash, blockHeight, "header", dateTime);
     }
 
-    public synchronized Block createBlock(String hash, String previousBlockHash, String merkleRootHash, int blockHeight, String type) {
-        return createBlock(new Block(hash, previousBlockHash, merkleRootHash, blockHeight, type));
-    }
-
     public synchronized Block createBlock(String hash, String previousBlockHash, String merkleRootHash, int blockHeight, String type, DateTime dateTime) {
         return createBlock(new Block(hash, previousBlockHash, merkleRootHash, blockHeight, type, dateTime));
     }

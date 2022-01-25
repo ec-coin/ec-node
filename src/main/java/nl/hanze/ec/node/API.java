@@ -183,6 +183,31 @@ public class API implements Runnable {
                     new StandardResponse(StatusResponse.SUCCESS, new Gson().toJsonTree(amount))
             );
         });
+
+        postCORS("/register_node", (request, response) -> {
+            response.type("application/json");
+            JSONObject transactionObject = new JSONObject(request.body());
+            String address = (String) transactionObject.get("address");
+
+            if (!transactionRepository.stakeNodeIsInRegistry(address)) {
+                String publicKeyString = (String) transactionObject.get("public_key");
+                PublicKey publicKey = SignatureUtils.decodeWalletPublicKey(publicKeyString);
+                String signature = (String) transactionObject.get("signature");
+                String payload = address + "stake_register" + transactionObject.get("timestamp") + 0.0;
+
+                try {
+                    ValidationUtils.validateWalletTransaction(address, publicKey, signature, payload);
+                } catch (InvalidTransaction e) {
+                    e.printStackTrace();
+                    response.status(400);
+                    return new Gson().toJson(new StandardResponse(StatusResponse.ERROR, "Transaction details not valid"));
+                }
+
+                transactionRepository.addStakeNodeToRegistry(address, publicKeyString, signature);
+            }
+            response.status(200);
+            return new Gson().toJson(new StandardResponse(StatusResponse.SUCCESS));
+        });
     }
 
     private void createTransaction(JSONObject transactionObject) throws InvalidTransaction {
@@ -195,7 +220,6 @@ public class API implements Runnable {
         String addressType = (String) transactionObject.get("address_type");
 
         String payload = from + to + transactionObject.get("timestamp") + amount;
-        System.out.println("payload: " + payload);
         PublicKey publicKey = SignatureUtils.decodeWalletPublicKey(publicKeyString);
         ValidationUtils.validateWalletTransaction(from, publicKey, signature, payload);
 

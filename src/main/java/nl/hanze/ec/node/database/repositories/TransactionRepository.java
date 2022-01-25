@@ -5,6 +5,7 @@ import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.stmt.Where;
 import nl.hanze.ec.node.database.models.Block;
 import nl.hanze.ec.node.database.models.Transaction;
+import nl.hanze.ec.node.modules.annotations.BlockDAO;
 import nl.hanze.ec.node.modules.annotations.TransactionDAO;
 import nl.hanze.ec.node.network.peers.PeerPool;
 import nl.hanze.ec.node.utils.HashingUtils;
@@ -18,11 +19,15 @@ import java.util.Set;
 
 public class TransactionRepository {
     private final Dao<Transaction, String> transactionDAO;
-    private final float transactionFee = 1;
+    private final BlockRepository blockRepository;
 
     @Inject
-    public TransactionRepository(@TransactionDAO Dao<Transaction, String> blockDAO) {
-        this.transactionDAO = blockDAO;
+    public TransactionRepository(
+            @TransactionDAO Dao<Transaction, String> transactionDAO,
+            BlockRepository blockRepository
+            ) {
+        this.transactionDAO = transactionDAO;
+        this.blockRepository = blockRepository;
     }
 
     public synchronized List<Transaction> getAllTransactions() {
@@ -36,7 +41,7 @@ public class TransactionRepository {
     }
 
     public synchronized Transaction createTransaction(Block block, String from, String to, float amount, String signature, String addressType, String publicKey, DateTime dateTime) {
-        String hash = HashingUtils.generateTransactionHash(from, to, transactionFee, signature);
+        String hash = HashingUtils.generateTransactionHash(from, to, amount, signature);
         return createTransaction(new Transaction(hash, block, from, to, amount, signature, "pending", addressType, publicKey, dateTime));
     }
 
@@ -134,41 +139,6 @@ public class TransactionRepository {
         }
     }
 
-    public synchronized void createOrUpdate(Transaction t) {
-        try {
-            transactionDAO.createOrUpdate(t);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public synchronized List<String> getAllValidatingNodes() {
-        Set<String> addresses = new HashSet<>();
-        try {
-            List<Transaction> transactions = transactionDAO.queryBuilder()
-                    .where().eq("to", "-1").query();
-
-            for (Transaction transaction : transactions) {
-                addresses.add(transaction.getFrom());
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return new ArrayList<>(addresses);
-    }
-
-    public synchronized void addNodeAsValidatingNode(Block block, String from, String signature, String publicKey) {
-        String to = "-1";
-        try {
-            String hash = HashingUtils.generateTransactionHash(from, to, transactionFee, signature);
-            Transaction transactionWithFee = new Transaction(hash, block, from, to, transactionFee, signature, "validated", "node", publicKey);
-            transactionDAO.createOrUpdate(transactionWithFee);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
     public synchronized Transaction getTransaction(String hash) {
         Transaction transaction = null;
         try {
@@ -196,5 +166,32 @@ public class TransactionRepository {
         }
 
         return transactions;
+    }
+
+    public synchronized boolean stakeNodeIsInRegistry(String from) {
+        try {
+            List<Transaction> transactions = transactionDAO.queryBuilder()
+                    .where().eq("from", from)
+                    .and().eq("to", "stake_register")
+                    .query();
+            if (transactions.size() > 0) {
+                return true;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public synchronized void addStakeNodeToRegistry(String from, String signature, String publicKey) {
+        String to = "stake_register";
+        Block genesisBlock = blockRepository.getBlock(0);
+        try {
+            String hash = HashingUtils.generateTransactionHash(from, to, 0, signature);
+            Transaction transaction = new Transaction(hash, genesisBlock, from, to, 0, signature, "validated", "node", publicKey);
+            transactionDAO.createOrUpdate(transaction);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }
