@@ -1,5 +1,6 @@
 package nl.hanze.ec.node.app.workers;
 
+import nl.hanze.ec.node.app.listeners.BlockCreator;
 import nl.hanze.ec.node.app.listeners.BlockSyncer;
 import nl.hanze.ec.node.database.models.Block;
 import nl.hanze.ec.node.database.models.Transaction;
@@ -52,16 +53,17 @@ public class NewBlockAnnouncementWorker extends Worker {
 
         // Check if block already exists in DB.
         if (blockRepository.getBlock(block.getHash()) != null) {
+            System.out.println("already exists in DB");
             return;
         }
 
-        if (validateBlock(block, ((JSONObject) payload.get("block")).getJSONArray("transactions").toList())) {
+        if (validateAndSaveBlock(block, ((JSONObject) payload.get("block")).getJSONArray("transactions").toList())) {
             Announcement announcement = (Announcement) receivedCommand;
             announcement.setValidated(true);
         }
     }
 
-    private boolean validateBlock(Block block, List<Object> transactionObjects) {
+    private boolean validateAndSaveBlock(Block block, List<Object> transactionObjects) {
         String previousHash = blockRepository.getCurrentBlockHash(blockRepository.getCurrentBlockHeight());
         Block previousBlock = blockRepository.getBlock(previousHash);
 
@@ -81,6 +83,7 @@ public class NewBlockAnnouncementWorker extends Worker {
         List<String> transactionHashes = new ArrayList<>();
         List<Transaction> transactions = new ArrayList<>();
         Transaction transaction;
+        int blockRewardTransactions = 0;
         for (Object obj : transactionObjects) {
             if (obj instanceof HashMap) {
                 HashMap<?, ?> tx = (HashMap<?, ?>) obj;
@@ -88,7 +91,7 @@ public class NewBlockAnnouncementWorker extends Worker {
                 transaction = transactionRepository.getTransaction(tx.get("hash").toString());
 
                 if (transaction == null) {
-                    transaction  = new Transaction(
+                    transaction = new Transaction(
                             tx.get("hash").toString(),
                             null,
                             tx.get("from").toString(),
@@ -102,13 +105,25 @@ public class NewBlockAnnouncementWorker extends Worker {
                     );
                 }
 
-                if (! this.balanceCacheRepository.hasValidBalance(transaction.getFrom(), transaction.getAmount())) {
+                if (transaction.getFrom().equals("minter")) {
+                    if (transaction.getAmount() > BlockCreator.blockReward) {
+                        System.out.println("Block reward set to high");
+
+                        return false;
+                    }
+
+                    blockRewardTransactions++;
+                }
+
+                if (!this.balanceCacheRepository.hasValidBalance(transaction.getFrom(), transaction.getAmount()) && !transaction.getFrom().equals("minter")) {
+                    System.out.println("Invalid balance");
                     return false;
                 }
 
                 try {
                     ValidationUtils.validateTransaction(transaction);
                 } catch (InvalidTransaction e) {
+                    System.out.println("Invalid transaction: " + e.getMessage());
                     return false;
                 }
 
@@ -118,10 +133,13 @@ public class NewBlockAnnouncementWorker extends Worker {
             }
         }
 
-        System.out.println(transactionHashes);
-
         if (!HashingUtils.validateMerkleRootHash(block.getMerkleRootHash(), transactionHashes)) {
             System.out.println("Merkle Root Hash not valid");
+            return false;
+        }
+
+        if (blockRewardTransactions > 1) {
+            System.out.println("To many reward transactions");
             return false;
         }
 

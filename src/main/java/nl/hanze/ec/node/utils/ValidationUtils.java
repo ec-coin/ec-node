@@ -6,16 +6,20 @@ import org.bouncycastle.jce.interfaces.ECPublicKey;
 
 import java.math.BigInteger;
 import java.security.PublicKey;
+import java.util.Objects;
 
 public class ValidationUtils {
 
     public synchronized static void validateTransaction(Transaction transaction) throws InvalidTransaction {
         PublicKey publicKey = SignatureUtils.decodePublicKey(transaction.getPublicKey());
-        if (!HashingUtils.getAddress((ECPublicKey) publicKey).equals(transaction.getFrom())) {
+        String address = transaction.getFrom().equals("minter") ? transaction.getTo() : transaction.getFrom();
+
+        if (!HashingUtils.getAddress((ECPublicKey) publicKey).equals(address)) {
             throw new InvalidTransaction("Public key not valid [curr:" + transaction + "]");
         }
 
         String message = transaction.getFrom() + transaction.getTo() + transaction.getTimestamp().getMillis() + transaction.getAmount();
+        System.out.println("payload ValidationUtils: " + message);
         if (!SignatureUtils.verify(publicKey, transaction.getSignature(), message)) {
             throw new InvalidTransaction("Signature not valid [curr:" + transaction + "]");
         }
