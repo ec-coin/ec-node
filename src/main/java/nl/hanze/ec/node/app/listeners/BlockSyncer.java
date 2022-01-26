@@ -172,7 +172,7 @@ public class BlockSyncer extends StateListener {
                 );
             }
 
-            block.setType("full");
+            block.setType("block");
             blockRepository.update(block);
 
             waitIfStateIncorrect();

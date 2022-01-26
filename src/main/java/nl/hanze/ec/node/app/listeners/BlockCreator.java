@@ -70,7 +70,7 @@ public class BlockCreator extends StateListener {
         String merkleRootHash = HashingUtils.generateMerkleRootHash(pendingTransactions);
         DateTime createdAt = new DateTime();
         String blockHash = HashingUtils.generateBlockHash(merkleRootHash, prevHash, createdAt);
-        Block block = blockRepository.createBlock(blockHash, prevHash, merkleRootHash, blockHeight + 1, "full", createdAt);
+        Block block = blockRepository.createBlock(blockHash, prevHash, merkleRootHash, blockHeight + 1, "block", createdAt);
 
         int i = 0;
         for(Transaction transaction : pendingTransactions) {
@@ -83,6 +83,7 @@ public class BlockCreator extends StateListener {
         peerPool.sendBroadcast(new NewBlockAnnouncement((blockRepository.getBlock(blockHash)).toJSONObject()));
 
         nodeStateQueue.add(NodeState.PARTICIPATING);
+        stateChanged(NodeState.PARTICIPATING);
     }
 
     public List<NodeState> listenFor() {

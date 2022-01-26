@@ -15,7 +15,7 @@ public abstract class StateListener implements Listener {
     /**
      * Is the Listener running?
      */
-    private final AtomicBoolean running = new AtomicBoolean(true);
+    protected final AtomicBoolean running = new AtomicBoolean(true);
 
     /**
      * Constructs listener

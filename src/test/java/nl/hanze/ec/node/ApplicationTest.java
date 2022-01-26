@@ -45,7 +45,7 @@ public class ApplicationTest {
 
     @Test
     public void testHeadersResponse() {
-        String type = "full";
+        String type = "block";
         DateTime now = new DateTime();
         HeadersResponse resp1 = new HeadersResponse(new ArrayList<>() {{
             add(new Block("$hash$", "$previousBlockHash$", "$merkleRootHash$", 0, type, now));

@@ -2,6 +2,8 @@ package nl.hanze.ec.node.database.repositories;
 
 import com.google.inject.Inject;
 import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.dao.GenericRawResults;
+import com.j256.ormlite.dao.RawRowMapper;
 import com.j256.ormlite.stmt.Where;
 import nl.hanze.ec.node.database.models.Block;
 import nl.hanze.ec.node.database.models.Transaction;
@@ -50,6 +52,7 @@ public class TransactionRepository {
     }
 
     public synchronized Transaction createTransaction(Transaction transaction) {
+        System.out.println("Create transaction: " + transaction.toString());
         try {
             transactionDAO.createOrUpdate(transaction);
             return transaction;
@@ -62,11 +65,11 @@ public class TransactionRepository {
     public synchronized float getBalance(String address) {
         int amount = 0;
         try {
-            List<Transaction> transactions = transactionDAO.queryBuilder()
-                .where().eq("status", "validated")
-                .and().eq("from", address)
-                .or().eq("to", address)
-                .query();
+            Where<Transaction, String> where = transactionDAO.queryBuilder()
+                    .where().eq("from", address)
+                    .or().eq("to", address)
+                    .and().eq("status", "validated");
+            List<Transaction> transactions = where.query();
 
             for(Transaction transaction : transactions) {
                 if (transaction.getFrom().equals(transaction.getTo())) {
@@ -131,7 +134,21 @@ public class TransactionRepository {
         return pendingTransactions;
     }
 
+    public synchronized List<Transaction> getValidatedTransactions() {
+        List<Transaction> validatedTransactions = new ArrayList<>();
+        try {
+            validatedTransactions = transactionDAO.queryBuilder()
+                    .where().eq("status", "validated")
+                    .query();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return validatedTransactions;
+    }
+
     public synchronized void update(Transaction t) {
+        System.out.println("Update transaction: " + t.toString());
         try {
             transactionDAO.update(t);
         } catch (SQLException e) {
@@ -140,6 +157,7 @@ public class TransactionRepository {
     }
 
     public synchronized Transaction createOrUpdate(Transaction t) {
+        System.out.println("Create or update transaction: " + t.toString());
         try {
             transactionDAO.createOrUpdate(t);
         } catch (SQLException e) {

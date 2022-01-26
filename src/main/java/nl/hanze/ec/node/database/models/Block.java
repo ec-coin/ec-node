@@ -122,4 +122,16 @@ public class Block {
 
         return object;
     }
+
+    @Override
+    public String toString() {
+        return "Block{" +
+                "hash='" + hash + '\'' +
+                ", previousBlockHash='" + previousBlockHash + '\'' +
+                ", merkleRootHash='" + merkleRootHash + '\'' +
+                ", blockHeight=" + blockHeight +
+                ", timestamp=" + timestamp +
+                ", type='" + type + '\'' +
+                '}';
+    }
 }

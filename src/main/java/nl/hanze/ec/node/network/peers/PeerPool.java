@@ -34,7 +34,7 @@ public class PeerPool implements Runnable {
     private final int minPeers;
     private final BlockingQueue<Socket> incomingConnectionsQueue;
     private final BlockingQueue<NodeState> nodeStateQueue;
-    private final static int transactionThreshold = 250;
+    private final static int transactionThreshold = 10;
 
     List<Command> receivedAnnouncements = new LinkedList<>();
 
@@ -332,6 +332,9 @@ public class PeerPool implements Runnable {
         }
 
         receivedAnnouncements.add(command);
+        if (receivedAnnouncements.size() == 500) {
+            receivedAnnouncements = new ArrayList<>();
+        }
 
         for (BlockingQueue<Command> queue : connectedPeers.values()) {
             queue.add(command);

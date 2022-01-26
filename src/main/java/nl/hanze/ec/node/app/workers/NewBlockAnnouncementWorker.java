@@ -53,7 +53,6 @@ public class NewBlockAnnouncementWorker extends Worker {
 
         // Check if block already exists in DB.
         if (blockRepository.getBlock(block.getHash()) != null) {
-            System.out.println("already exists in DB");
             return;
         }
 
@@ -69,7 +68,9 @@ public class NewBlockAnnouncementWorker extends Worker {
 
         // Validate previous hash.
         if (!previousHash.equals(block.getPreviousBlockHash()) || (previousBlock.getBlockHeight() + 1) != block.getBlockHeight()) {
-            System.out.println("INVALID BLOCK FOUND");
+            System.out.println("INVALID BLOCK FOUND block_height: " + block.getBlockHeight() + " hash: " + block.getHash());
+            System.out.println("Expected previousHash: " + previousHash + " received blockHash" + block.getPreviousBlockHash());
+            System.out.println("Expected blockHeight: " + (previousBlock.getBlockHeight() + 1) + " received blockHeight: " + block.getBlockHeight());
             return false;
         }
 

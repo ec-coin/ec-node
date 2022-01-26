@@ -19,7 +19,6 @@ public class ValidationUtils {
         }
 
         String message = transaction.getFrom() + transaction.getTo() + transaction.getTimestamp().getMillis() + transaction.getAmount();
-        System.out.println("payload ValidationUtils: " + message);
         if (!SignatureUtils.verify(publicKey, transaction.getSignature(), message)) {
             throw new InvalidTransaction("Signature not valid [curr:" + transaction + "]");
         }

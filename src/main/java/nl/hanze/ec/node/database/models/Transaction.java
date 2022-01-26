@@ -135,4 +135,21 @@ public class Transaction {
     public void setStatus(String status) {
         this.status = status;
     }
+
+    @Override
+    public String toString() {
+        return "Transaction{" +
+                "hash='" + hash + '\'' +
+                ", block=" + block +
+                ", from='" + from + '\'' +
+                ", to='" + to + '\'' +
+                ", amount=" + amount +
+                ", signature='" + signature + '\'' +
+                ", status='" + status + '\'' +
+                ", timestamp=" + timestamp +
+                ", addressType='" + addressType + '\'' +
+                ", publicKey='" + publicKey + '\'' +
+                ", orderInBlock=" + orderInBlock +
+                '}';
+    }
 }
