@@ -114,6 +114,7 @@ public class API implements Runnable {
             else {
                 String parameter = (String) request.queryParams().toArray()[0];
                 String parameterValue = request.queryParamsValues(parameter)[0];
+                System.out.println("queryparams " + Arrays.toString(request.queryParams().toArray()));
 
                 if (parameter.equals("hash")) {
                     return new Gson().toJson(
@@ -124,8 +125,13 @@ public class API implements Runnable {
                 else if (parameter.equals("from") || parameter.equals("to")) {
                     transactions = transactionRepository.getTransactionsByAddress(parameterValue);
                 }
-                else if (parameter.equals("page")) {
-                    transactions = transactionRepository.getTransactionsByAddress(parameterValue);
+                else if (parameter.equals("tx")) {
+                    String windowParameter = (String) request.queryParams().toArray()[1];
+                    if (windowParameter.equals("window")) {
+                        String windowParameterValue = request.queryParamsValues(windowParameter)[0];
+                        System.out.println("window parameter value: " + windowParameterValue);
+                        transactions = transactionRepository.getNumberOfTransactions(Long.parseLong(parameterValue), Long.parseLong(windowParameterValue));
+                    }
                 }
             }
 

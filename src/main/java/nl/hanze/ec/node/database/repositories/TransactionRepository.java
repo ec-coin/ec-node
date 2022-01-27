@@ -5,7 +5,6 @@ import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.stmt.Where;
 import nl.hanze.ec.node.database.models.Block;
 import nl.hanze.ec.node.database.models.Transaction;
-import nl.hanze.ec.node.modules.annotations.BlockDAO;
 import nl.hanze.ec.node.modules.annotations.TransactionDAO;
 import nl.hanze.ec.node.network.peers.PeerPool;
 import nl.hanze.ec.node.utils.HashingUtils;
@@ -59,14 +58,24 @@ public class TransactionRepository {
         return null;
     }
 
+    public synchronized List<Transaction> getNumberOfTransactions(long offset, long limit) {
+        try {
+            return transactionDAO.queryBuilder().offset(offset).limit(limit).query();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public synchronized float getBalance(String address) {
         int amount = 0;
         try {
-            List<Transaction> transactions = transactionDAO.queryBuilder()
-                .where().eq("status", "validated")
-                .and().eq("from", address)
-                .or().eq("to", address)
-                .query();
+            Where<Transaction, String> where = transactionDAO.queryBuilder()
+                    .where().eq("from", address)
+                    .or().eq("to", address)
+                    .or().eq("status", "validated");
+            System.out.println(where.prepare().getStatement());
+            List<Transaction> transactions = where.query();
 
             for(Transaction transaction : transactions) {
                 if (transaction.getFrom().equals(transaction.getTo())) {

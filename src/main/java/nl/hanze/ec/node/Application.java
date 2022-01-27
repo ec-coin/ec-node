@@ -102,7 +102,7 @@ public class Application {
             mockBlockchainData();
         }
 
-        printMessageOfTheDay();
+        //printMessageOfTheDay();
 
         // Sets up server and client communication
         Thread APIThread = new Thread(this.api);
@@ -110,7 +110,8 @@ public class Application {
         Thread peersThread = new Thread(this.peerPool);
 
         APIThread.start();
-        serverThread.start();
+        return;
+        /*serverThread.start();
         peersThread.start();
 
         // Initialize handler(s)
@@ -147,7 +148,7 @@ public class Application {
         System.out.println("# of old neighbors : " + neighboursRepository.getNumberOfNeighbors());
         System.out.println("node's address     : " + nodeAddress);
         System.out.println("public key         : " + SignatureUtils.encodePublicKey(keyPair.getPublic()));
-        System.out.println("----------------------");
+        System.out.println("----------------------");*/
     }
 
     private void createGenesisBlock() {
