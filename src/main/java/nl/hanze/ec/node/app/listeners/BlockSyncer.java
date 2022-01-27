@@ -29,6 +29,7 @@ import java.util.concurrent.BlockingQueue;
 
 public class BlockSyncer extends StateListener {
     private static final Logger logger = LogManager.getLogger(BlockSyncer.class);
+    public static final int blockSyncWindow = 10;
 
     private final List<NodeState> listenFor = new ArrayList<>() {{
         add(NodeState.SYNCING);
@@ -53,8 +54,6 @@ public class BlockSyncer extends StateListener {
     }
 
     protected void iteration() {
-        // TODO: only download blocks up until a certain threshold (to prevent downloading blocks that are incorrect)
-        // Historic data / simulator data (use number of unverified txs?) [block sync window]
         while (localBlockHeight < syncingPeer.getStartHeight()) {
             try {
                 Thread.sleep(100);
@@ -78,8 +77,6 @@ public class BlockSyncer extends StateListener {
             HeadersResponse response = ((HeadersResponse) command.getResponse());
 
             List<HeadersResponse.Header> headers = response.getHeaders();
-
-            // TODO: Update syncing peer start height.
 
             HeadersResponse.Header prevHeader = new HeadersResponse.Header(
                     block.getHash(),
@@ -157,6 +154,7 @@ public class BlockSyncer extends StateListener {
 
             if (!HashingUtils.validateMerkleRootHash(block.getMerkleRootHash(), transactionHashes)) {
                 logger.info("Merkle Root Hash not valid [curr:" + transactionHashes + "]");
+                continue;
             }
 
             for(TransactionsResponse.Tx transaction : transactions) {
@@ -174,7 +172,7 @@ public class BlockSyncer extends StateListener {
                 );
             }
 
-            block.setType("full");
+            block.setType("block");
             blockRepository.update(block);
 
             waitIfStateIncorrect();

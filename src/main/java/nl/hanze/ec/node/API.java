@@ -230,7 +230,8 @@ public class API implements Runnable {
         ValidationUtils.validateWalletTransaction(from, publicKey, signature, payload);
 
         String encodedPublicKey = SignatureUtils.encodePublicKey(publicKey);
-        transactionRepository.createTransaction(null, from, to, amount, signature, addressType, encodedPublicKey, transactionTimestamp);
+        Transaction tx = transactionRepository.createTransaction(null, from, to, amount, signature, addressType, encodedPublicKey, transactionTimestamp);
+        transactionObject.put("hash", tx.getHash());
         transactionObject.put("public_key", SignatureUtils.encodePublicKey(publicKey));
         peerPool.sendBroadcast(new PendingTransactionAnnouncement(transactionObject));
     }

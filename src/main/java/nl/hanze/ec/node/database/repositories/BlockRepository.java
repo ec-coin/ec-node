@@ -46,6 +46,11 @@ public class BlockRepository {
     }
 
     public synchronized Block createBlock(Block block) {
+        System.out.println("*******************");
+        System.out.println();
+        System.out.println("Create block: " + block.toString());
+        System.out.println();
+        System.out.println("*******************");
         try {
             blockDAO.createOrUpdate(block);
         } catch (SQLException e) {
@@ -95,7 +100,7 @@ public class BlockRepository {
     public synchronized int getCurrentBlockHeight() {
         int height = 0;
         try {
-            height = (int) blockDAO.queryRawValue("select MAX(block_height) from Blocks where type = 'full'");
+            height = (int) blockDAO.queryRawValue("select MAX(block_height) from Blocks where type = 'block'");
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -123,7 +128,7 @@ public class BlockRepository {
             List<Block> blocks = blockDAO.queryBuilder()
                     .orderBy("block_height", true)
                     .where().eq("block_height", block_height)
-                    .and().eq("type", "full").query();
+                    .and().eq("type", "block").query();
 
             if (blocks.size() == 1) {
                 return blocks.get(0);

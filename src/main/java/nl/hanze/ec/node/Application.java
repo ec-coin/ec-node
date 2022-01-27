@@ -97,12 +97,7 @@ public class Application {
             createGenesisBlock();
         }
 
-        // CLI option for development purposes
-        if (shouldSeedDatabase) {
-            mockBlockchainData();
-        }
-
-        //printMessageOfTheDay();
+        printMessageOfTheDay();
 
         // Sets up server and client communication
         Thread APIThread = new Thread(this.api);
@@ -110,8 +105,7 @@ public class Application {
         Thread peersThread = new Thread(this.peerPool);
 
         APIThread.start();
-        return;
-        /*serverThread.start();
+        serverThread.start();
         peersThread.start();
 
         // Initialize handler(s)
@@ -135,6 +129,16 @@ public class Application {
 
         // All threads have been started.
         nodeStateQueue.add(NodeState.COM_SETUP);
+
+        while (true) {
+            printMessageOfTheDay();
+
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private void printMessageOfTheDay() {
@@ -148,21 +152,24 @@ public class Application {
         System.out.println("# of old neighbors : " + neighboursRepository.getNumberOfNeighbors());
         System.out.println("node's address     : " + nodeAddress);
         System.out.println("public key         : " + SignatureUtils.encodePublicKey(keyPair.getPublic()));
-        System.out.println("----------------------");*/
+        System.out.println("# of pending tx's  : " + transactionRepository.getPendingTransactions().size());
+        System.out.println("# of validated tx's: " + transactionRepository.getValidatedTransactions().size());
+        System.out.println("# of blocks        : " + blockRepository.getAllBlocks().size());
+        System.out.println("----------------------");
     }
 
     private void createGenesisBlock() {
         DateTime timestamp = DateTime.parse("2022-01-01T00:00:00.556Z");
-        Block genesisBlock = blockRepository.createBlock("GENESIS", "NULL", "GENESIS", 0, "full", timestamp);
+        Block genesisBlock = blockRepository.createBlock("GENESIS", "NULL", "GENESIS", 0, "block", timestamp);
 
-        String transactionHash = HashingUtils.generateTransactionHash("minter", "6oMokioyFBRWa3ozvJBN8mnbkS14qsefYL2cgoX5Zzog", 1000, "");
-        transactionRepository.createTransaction(transactionHash, genesisBlock, "minter", "6oMokioyFBRWa3ozvJBN8mnbkS14qsefYL2cgoX5Zzog", 1000, "", "validated", "node", "", timestamp);
+        String transactionHash = HashingUtils.generateTransactionHash("minter", "6oMokioyFBRWa3ozvJBN8mnbkS14qsefYL2cgoX5Zzog", 1000000, "");
+        transactionRepository.createTransaction(transactionHash, genesisBlock, "minter", "6oMokioyFBRWa3ozvJBN8mnbkS14qsefYL2cgoX5Zzog", 1000000, "", "validated", "node", "", timestamp);
 
-        transactionHash = HashingUtils.generateTransactionHash("minter", "3hLz5b6ztVQaYBAC9k4JvkJAk6vP1E3PvFHnPe4h1cjr", 1000, "");
-        transactionRepository.createTransaction(transactionHash, genesisBlock, "minter", "3hLz5b6ztVQaYBAC9k4JvkJAk6vP1E3PvFHnPe4h1cjr", 1000, "", "validated", "node", "", timestamp);
+        transactionHash = HashingUtils.generateTransactionHash("minter", "3hLz5b6ztVQaYBAC9k4JvkJAk6vP1E3PvFHnPe4h1cjr", 1000000, "");
+        transactionRepository.createTransaction(transactionHash, genesisBlock, "minter", "3hLz5b6ztVQaYBAC9k4JvkJAk6vP1E3PvFHnPe4h1cjr", 1000000, "", "validated", "node", "", timestamp);
 
-        transactionHash = HashingUtils.generateTransactionHash("minter", "eGgM89aqjucuPybGqLPB3ASwrjpcVcE5iDEDpf4Ksxv", 1000, "");
-        transactionRepository.createTransaction(transactionHash, genesisBlock, "minter", "eGgM89aqjucuPybGqLPB3ASwrjpcVcE5iDEDpf4Ksxv", 1000, "", "validated", "node", "", timestamp);
+        transactionHash = HashingUtils.generateTransactionHash("minter", "eGgM89aqjucuPybGqLPB3ASwrjpcVcE5iDEDpf4Ksxv", 1000000, "");
+        transactionRepository.createTransaction(transactionHash, genesisBlock, "minter", "eGgM89aqjucuPybGqLPB3ASwrjpcVcE5iDEDpf4Ksxv", 1000000, "", "validated", "node", "", timestamp);
 
         // Stake registry
         transactionHash = HashingUtils.generateTransactionHash("6oMokioyFBRWa3ozvJBN8mnbkS14qsefYL2cgoX5Zzog", "stake_register", 0, "");
@@ -173,42 +180,6 @@ public class Application {
 
         transactionHash = HashingUtils.generateTransactionHash("eGgM89aqjucuPybGqLPB3ASwrjpcVcE5iDEDpf4Ksxv", "stake_register", 0, "");
         transactionRepository.createTransaction(transactionHash, genesisBlock, "eGgM89aqjucuPybGqLPB3ASwrjpcVcE5iDEDpf4Ksxv", "stake_register", 0, "", "validated", "node", "", timestamp);
-    }
-
-    private void mockBlockchainData() {
-        Block prevBlock = blockRepository.getCurrentBlock();
-        DateTime blockTimestamp = DateTime.parse("2022-01-01T14:10:00.556Z");
-        float amount = 50.4f;
-
-        for (int i = 0; i < 20; i++) {
-            List<Transaction> transactions = new ArrayList<>();
-            for (int j = 0; j < 10; j++) {
-                DateTime transactionTimestamp = new DateTime();
-                String fromHash1 = nodeAddress;
-                String toHash1 = "**addressTo**";
-                String signature1 = SignatureUtils.sign(keyPair, fromHash1 + toHash1 + transactionTimestamp + amount);
-                String publicKey1 = SignatureUtils.encodePublicKey(keyPair.getPublic());
-                String transactionHash1 = HashingUtils.generateTransactionHash(fromHash1, toHash1, amount, signature1);
-                Transaction transaction = transactionRepository.createTransaction(transactionHash1, null, fromHash1, toHash1, amount, signature1, "pending", "wallet", publicKey1, transactionTimestamp);
-                transactions.add(transaction);
-            }
-
-            String previousBlockHash = prevBlock.getHash();
-            String merkleRootHash = HashingUtils.generateMerkleRootHash(transactions);
-            String hash = HashingUtils.generateBlockHash(merkleRootHash, previousBlockHash, blockTimestamp);
-            int blockheight = prevBlock.getBlockHeight() + 1;
-
-            Block block = blockRepository.createBlock(hash, previousBlockHash, merkleRootHash, blockheight, "full", blockTimestamp);
-
-            for(Transaction transaction : transactions) {
-                transaction.setStatus("validated");
-                transaction.setBlock(block);
-                transactionRepository.update(transaction);
-            }
-
-            blockTimestamp = blockTimestamp.plusDays(1);
-            prevBlock = block;
-        }
     }
 
     public static NodeState getState() {

@@ -18,16 +18,19 @@ public class ListenerFactory {
     private BlockingQueue<NodeState> nodeStateQueue;
     private final Provider<TransactionRepository> transactionRepositoryProvider;
     private final Provider<BlockRepository> blockRepositoryProvider;
+    private final KeyPair keyPair;
     private final String nodeAddress;
 
     @Inject
     public ListenerFactory(@NodeStateQueue BlockingQueue<NodeState> nodeStateQueue,
                            @NodeAddress String address,
+                           @NodeKeyPair KeyPair keyPair,
                            Provider<TransactionRepository> transactionRepositoryProvider,
                            Provider<BlockRepository> blockRepositoryProvider) {
         this.nodeStateQueue = nodeStateQueue;
         this.transactionRepositoryProvider = transactionRepositoryProvider;
         this.blockRepositoryProvider = blockRepositoryProvider;
+        this.keyPair = keyPair;
         this.nodeAddress = address;
     }
 
@@ -50,6 +53,7 @@ public class ListenerFactory {
             return new BlockCreator(
                     nodeStateQueue,
                     nodeAddress,
+                    keyPair,
                     peerPool,
                     transactionRepositoryProvider.get(),
                     blockRepositoryProvider.get()

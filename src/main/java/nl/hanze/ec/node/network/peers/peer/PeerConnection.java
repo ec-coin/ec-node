@@ -2,7 +2,10 @@ package nl.hanze.ec.node.network.peers.peer;
 
 import nl.hanze.ec.node.exceptions.InvalidCommand;
 import nl.hanze.ec.node.network.peers.commands.*;
+import nl.hanze.ec.node.network.peers.commands.announcements.PendingTransactionAnnouncement;
 import nl.hanze.ec.node.network.peers.commands.handshake.Handshake;
+import nl.hanze.ec.node.network.peers.commands.requests.NeighborsRequest;
+import nl.hanze.ec.node.network.peers.commands.responses.NeighborsResponse;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;

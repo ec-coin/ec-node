@@ -34,9 +34,8 @@ public class PeerPool implements Runnable {
     private final int minPeers;
     private final BlockingQueue<Socket> incomingConnectionsQueue;
     private final BlockingQueue<NodeState> nodeStateQueue;
-    private final static int transactionThreshold = 3;
+    private final static int transactionThreshold = 10;
 
-    // TODO: maybe use other data structure, this list will eventually get really big
     List<Command> receivedAnnouncements = new LinkedList<>();
 
     /**
@@ -333,6 +332,9 @@ public class PeerPool implements Runnable {
         }
 
         receivedAnnouncements.add(command);
+        if (receivedAnnouncements.size() == 500) {
+            receivedAnnouncements = new ArrayList<>();
+        }
 
         for (BlockingQueue<Command> queue : connectedPeers.values()) {
             queue.add(command);

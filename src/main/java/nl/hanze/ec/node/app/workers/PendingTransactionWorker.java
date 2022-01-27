@@ -38,6 +38,10 @@ public class PendingTransactionWorker extends Worker {
         Object transactionObject = payload.get("transaction");
         Transaction transaction = fromJSONToObject((JSONObject) transactionObject);
 
+        if (transactionRepository.getTransaction(transaction.getHash()) != null) {
+            return;
+        }
+
         Boolean validTransaction = this.balanceCacheRepository.hasValidBalance(transaction.getFrom(), transaction.getAmount());
 
         if (!validTransaction) {
@@ -73,12 +77,7 @@ public class PendingTransactionWorker extends Worker {
         float amount = FloatUtils.parse(tx, "amount");
 
         return new Transaction(
-                HashingUtils.generateTransactionHash(
-                        tx.get("from").toString(),
-                        tx.get("to").toString(),
-                        amount,
-                        tx.get("signature").toString()
-                ),
+                tx.get("hash").toString(),
                 null,
                 tx.get("from").toString(),
                 tx.get("to").toString(),
