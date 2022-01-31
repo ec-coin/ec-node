@@ -2,9 +2,8 @@ package nl.hanze.ec.node.database.repositories;
 
 import com.google.inject.Inject;
 import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.stmt.QueryBuilder;
 import com.j256.ormlite.stmt.Where;
-import com.j256.ormlite.dao.GenericRawResults;
-import com.j256.ormlite.dao.RawRowMapper;
 import nl.hanze.ec.node.database.models.Block;
 import nl.hanze.ec.node.database.models.Transaction;
 import nl.hanze.ec.node.modules.annotations.TransactionDAO;
@@ -41,6 +40,16 @@ public class TransactionRepository {
         return null;
     }
 
+    public synchronized List<Transaction> getAllPendingTransactions() {
+        try {
+            return transactionDAO.queryBuilder().where().eq("status", "pending").query();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return new ArrayList<>();
+    }
+
     public synchronized Transaction createTransaction(Block block, String from, String to, float amount, String signature, String addressType, String publicKey, DateTime dateTime) {
         String hash = HashingUtils.generateTransactionHash(from, to, amount, signature);
         return createTransaction(new Transaction(hash, block, from, to, amount, signature, "pending", addressType, publicKey, dateTime));
@@ -51,7 +60,7 @@ public class TransactionRepository {
     }
 
     public synchronized Transaction createTransaction(Transaction transaction) {
-        System.out.println("Create transaction: " + transaction.toString());
+        //System.out.println("Create transaction: " + transaction.toString());
         try {
             transactionDAO.createOrUpdate(transaction);
             return transaction;
@@ -63,7 +72,17 @@ public class TransactionRepository {
 
     public synchronized List<Transaction> getNumberOfTransactions(long offset, long limit) {
         try {
-            return transactionDAO.queryBuilder().offset(offset).limit(limit).query();
+            return transactionDAO.queryBuilder().offset(offset).limit(limit).orderBy("timestamp", false).query();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public synchronized List<Transaction> getNumberOfPendingTransactions(long offset, long limit) {
+        try {
+            return transactionDAO.queryBuilder().offset(offset).limit(limit).orderBy("timestamp", false)
+                    .where().eq("status", "pending").query();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -156,7 +175,7 @@ public class TransactionRepository {
     }
 
     public synchronized void update(Transaction t) {
-        System.out.println("Update transaction: " + t.toString());
+        //System.out.println("Update transaction: " + t.toString());
         try {
             transactionDAO.update(t);
         } catch (SQLException e) {
@@ -165,7 +184,7 @@ public class TransactionRepository {
     }
 
     public synchronized Transaction createOrUpdate(Transaction t) {
-        System.out.println("Create or update transaction: " + t.toString());
+        //System.out.println("Create or update transaction: " + t.toString());
         try {
             transactionDAO.createOrUpdate(t);
         } catch (SQLException e) {

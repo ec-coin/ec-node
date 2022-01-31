@@ -3,6 +3,7 @@ package nl.hanze.ec.node.responses;
 import com.google.gson.JsonElement;
 
 public class StandardResponse {
+    private JsonElement meta_data;
     private StatusResponse status;
     private String message;
     private JsonElement data;
@@ -24,6 +25,17 @@ public class StandardResponse {
             this.status = status;
         }
         this.data = data;
+    }
+
+    public StandardResponse(StatusResponse status, JsonElement meta_data, JsonElement data) {
+        if (data.isJsonNull()) {
+            this.status = StatusResponse.NO_CONTENT;
+        }
+        else {
+            this.status = status;
+        }
+        this.data = data;
+        this.meta_data = meta_data;
     }
 
     public StatusResponse getStatusResponse() {

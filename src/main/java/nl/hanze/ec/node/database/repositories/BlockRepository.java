@@ -46,11 +46,11 @@ public class BlockRepository {
     }
 
     public synchronized Block createBlock(Block block) {
-        System.out.println("*******************");
+        /*System.out.println("*******************");
         System.out.println();
         System.out.println("Create block: " + block.toString());
         System.out.println();
-        System.out.println("*******************");
+        System.out.println("*******************");*/
         try {
             blockDAO.createOrUpdate(block);
         } catch (SQLException e) {

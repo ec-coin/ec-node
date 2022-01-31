@@ -1,6 +1,8 @@
 package nl.hanze.ec.node;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import nl.hanze.ec.node.app.NodeState;
@@ -108,13 +110,13 @@ public class API implements Runnable {
             response.type("application/json");
 
             List<Transaction> transactions = new ArrayList<>();
+            StandardResponse standardResponse = null;
             if (request.queryParams().size() == 0) {
                 transactions = transactionRepository.getAllTransactions();
             }
             else {
                 String parameter = (String) request.queryParams().toArray()[0];
                 String parameterValue = request.queryParamsValues(parameter)[0];
-                System.out.println("queryparams " + Arrays.toString(request.queryParams().toArray()));
 
                 if (parameter.equals("hash")) {
                     return new Gson().toJson(
@@ -126,20 +128,36 @@ public class API implements Runnable {
                     transactions = transactionRepository.getTransactionsByAddress(parameterValue);
                 }
                 else if (parameter.equals("tx")) {
-                    String windowParameter = (String) request.queryParams().toArray()[1];
+                    String windowParameter = (String) request.queryParams().toArray()[2];
+                    int numberOfTransactions = 0;
                     if (windowParameter.equals("window")) {
                         String windowParameterValue = request.queryParamsValues(windowParameter)[0];
-                        System.out.println("window parameter value: " + windowParameterValue);
-                        transactions = transactionRepository.getNumberOfTransactions(Long.parseLong(parameterValue), Long.parseLong(windowParameterValue));
+                        String pendingParameter = (String) request.queryParams().toArray()[1];
+
+                        boolean getPendingTransactions = Boolean.parseBoolean(request.queryParamsValues(pendingParameter)[0]);
+                        if (getPendingTransactions) {
+                            transactions = transactionRepository.getNumberOfPendingTransactions(Long.parseLong(parameterValue), Long.parseLong(windowParameterValue));
+                            numberOfTransactions = transactionRepository.getAllPendingTransactions().size();
+                        }
+                        else {
+                            transactions = transactionRepository.getNumberOfTransactions(Long.parseLong(parameterValue), Long.parseLong(windowParameterValue));
+                            numberOfTransactions = transactionRepository.getAllTransactions().size();
+                        }
                     }
+                    JsonObject metaData = new JsonObject();
+                    metaData.addProperty("total_size", numberOfTransactions);
+                    standardResponse = new StandardResponse(StatusResponse.SUCCESS, metaData, new Gson().toJsonTree(transactions));
                 }
             }
 
-            return new Gson().toJson(
-                    new StandardResponse(StatusResponse.SUCCESS, new Gson().toJsonTree(transactions))
-            );
+            if (standardResponse == null) {
+                standardResponse = new StandardResponse(StatusResponse.SUCCESS, new Gson().toJsonTree(transactions));
+            }
+
+            return new Gson().toJson(standardResponse);
         });
     }
+
     public void setupBlockEndPoints() {
         getCORS("/blocks", (request, response) -> {
             response.type("application/json");
