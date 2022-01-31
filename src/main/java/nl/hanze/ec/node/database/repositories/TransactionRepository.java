@@ -2,6 +2,7 @@ package nl.hanze.ec.node.database.repositories;
 
 import com.google.inject.Inject;
 import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.stmt.PreparedQuery;
 import com.j256.ormlite.stmt.QueryBuilder;
 import com.j256.ormlite.stmt.Where;
 import nl.hanze.ec.node.database.models.Block;
@@ -12,10 +13,7 @@ import nl.hanze.ec.node.utils.HashingUtils;
 import org.joda.time.DateTime;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class TransactionRepository {
     private final Dao<Transaction, String> transactionDAO;
@@ -40,14 +38,24 @@ public class TransactionRepository {
         return null;
     }
 
-    public synchronized List<Transaction> getAllPendingTransactions() {
+    public synchronized int pendingTransactionsSize() {
         try {
-            return transactionDAO.queryBuilder().where().eq("status", "pending").query();
+            return (int) transactionDAO.queryBuilder().where().eq("status", "pending").countOf();
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
-        return new ArrayList<>();
+        return 0;
+    }
+
+    public synchronized int allTransactionsSize() {
+        try {
+            return (int) transactionDAO.countOf();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return 0;
     }
 
     public synchronized Transaction createTransaction(Block block, String from, String to, float amount, String signature, String addressType, String publicKey, DateTime dateTime) {

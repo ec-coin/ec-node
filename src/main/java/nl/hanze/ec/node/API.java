@@ -137,11 +137,11 @@ public class API implements Runnable {
                         boolean getPendingTransactions = Boolean.parseBoolean(request.queryParamsValues(pendingParameter)[0]);
                         if (getPendingTransactions) {
                             transactions = transactionRepository.getNumberOfPendingTransactions(Long.parseLong(parameterValue), Long.parseLong(windowParameterValue));
-                            numberOfTransactions = transactionRepository.getAllPendingTransactions().size();
+                            numberOfTransactions = transactionRepository.pendingTransactionsSize();
                         }
                         else {
                             transactions = transactionRepository.getNumberOfTransactions(Long.parseLong(parameterValue), Long.parseLong(windowParameterValue));
-                            numberOfTransactions = transactionRepository.getAllTransactions().size();
+                            numberOfTransactions = transactionRepository.allTransactionsSize();
                         }
                     }
                     JsonObject metaData = new JsonObject();
