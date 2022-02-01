@@ -58,6 +58,18 @@ public class TransactionRepository {
         return 0;
     }
 
+    public synchronized int transactionsByAddressSize(String address) {
+        try {
+            return (int) transactionDAO.queryBuilder()
+                    .where().eq("from", address)
+                    .or().eq("to", address).countOf();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return 0;
+    }
+
     public synchronized Transaction createTransaction(Block block, String from, String to, float amount, String signature, String addressType, String publicKey, DateTime dateTime) {
         String hash = HashingUtils.generateTransactionHash(from, to, amount, signature);
         return createTransaction(new Transaction(hash, block, from, to, amount, signature, "pending", addressType, publicKey, dateTime));
@@ -218,10 +230,11 @@ public class TransactionRepository {
         return transaction;
     }
 
-    public synchronized List<Transaction> getTransactionsByAddress(String address) {
+    public synchronized List<Transaction> getTransactionsByAddress(String address, long offset, long limit) {
         List<Transaction> transactions = new ArrayList<>();
         try {
             transactions = transactionDAO.queryBuilder()
+                    .offset(offset).limit(limit)
                     .where().eq("from", address)
                     .or().eq("to", address).query();
         } catch (SQLException e) {

@@ -131,8 +131,6 @@ public class Application {
         nodeStateQueue.add(NodeState.COM_SETUP);
 
         while (true) {
-            printMessageOfTheDay();
-
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
@@ -171,6 +169,9 @@ public class Application {
         transactionHash = HashingUtils.generateTransactionHash("minter", "eGgM89aqjucuPybGqLPB3ASwrjpcVcE5iDEDpf4Ksxv", 1000000, "");
         transactionRepository.createTransaction(transactionHash, genesisBlock, "minter", "eGgM89aqjucuPybGqLPB3ASwrjpcVcE5iDEDpf4Ksxv", 1000000, "", "validated", "node", "", timestamp);
 
+        transactionHash = HashingUtils.generateTransactionHash("minter", "ETJm7VWxHhUUoVhrNRDwrWovxa51EzKxYuvEPQgjxory", 1000000, "");
+        transactionRepository.createTransaction(transactionHash, blockRepository.getBlock(0), "minter", "ETJm7VWxHhUUoVhrNRDwrWovxa51EzKxYuvEPQgjxory", 1000000, "", "validated", "node", "", timestamp);
+
         // Stake registry
         transactionHash = HashingUtils.generateTransactionHash("6oMokioyFBRWa3ozvJBN8mnbkS14qsefYL2cgoX5Zzog", "stake_register", 0, "");
         transactionRepository.createTransaction(transactionHash, genesisBlock, "6oMokioyFBRWa3ozvJBN8mnbkS14qsefYL2cgoX5Zzog", "stake_register", 0, "", "validated", "node", "", timestamp);
@@ -180,6 +181,9 @@ public class Application {
 
         transactionHash = HashingUtils.generateTransactionHash("eGgM89aqjucuPybGqLPB3ASwrjpcVcE5iDEDpf4Ksxv", "stake_register", 0, "");
         transactionRepository.createTransaction(transactionHash, genesisBlock, "eGgM89aqjucuPybGqLPB3ASwrjpcVcE5iDEDpf4Ksxv", "stake_register", 0, "", "validated", "node", "", timestamp);
+
+        transactionHash = HashingUtils.generateTransactionHash("ETJm7VWxHhUUoVhrNRDwrWovxa51EzKxYuvEPQgjxory", "stake_register", 0, "");
+        transactionRepository.createTransaction(transactionHash, blockRepository.getBlock(0), "ETJm7VWxHhUUoVhrNRDwrWovxa51EzKxYuvEPQgjxory", "stake_register", 0, "", "validated", "node", "", timestamp);
     }
 
     public static NodeState getState() {

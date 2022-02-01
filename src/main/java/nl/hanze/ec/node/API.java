@@ -124,14 +124,18 @@ public class API implements Runnable {
                                     new Gson().toJsonTree(transactionRepository.getTransaction(parameterValue)))
                     );
                 }
-                else if (parameter.equals("from") || parameter.equals("to")) {
-                    transactions = transactionRepository.getTransactionsByAddress(parameterValue);
-                }
                 else if (parameter.equals("tx")) {
                     String windowParameter = (String) request.queryParams().toArray()[2];
+                    String typeParameter = (String) request.queryParams().toArray()[1];
+                    String windowParameterValue = request.queryParamsValues(windowParameter)[0];
+
                     int numberOfTransactions = 0;
-                    if (windowParameter.equals("window")) {
-                        String windowParameterValue = request.queryParamsValues(windowParameter)[0];
+                    if (typeParameter.equals("from") || typeParameter.equals("to")) {
+                        String typeParameterValue = request.queryParamsValues(typeParameter)[0];
+                        transactions = transactionRepository.getTransactionsByAddress(typeParameterValue, Long.parseLong(parameterValue), Long.parseLong(windowParameterValue));
+                        numberOfTransactions = transactionRepository.transactionsByAddressSize(typeParameterValue);
+                    }
+                    else if (windowParameter.equals("window")) {
                         String pendingParameter = (String) request.queryParams().toArray()[1];
 
                         boolean getPendingTransactions = Boolean.parseBoolean(request.queryParamsValues(pendingParameter)[0]);
