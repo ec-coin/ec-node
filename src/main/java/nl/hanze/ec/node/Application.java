@@ -29,9 +29,7 @@ import org.joda.time.DateTime;
 import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.PublicKey;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -129,14 +127,6 @@ public class Application {
 
         // All threads have been started.
         nodeStateQueue.add(NodeState.COM_SETUP);
-
-        while (true) {
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
     }
 
     private void printMessageOfTheDay() {

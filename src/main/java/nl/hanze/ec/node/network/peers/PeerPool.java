@@ -34,7 +34,7 @@ public class PeerPool implements Runnable {
     private final int minPeers;
     private final BlockingQueue<Socket> incomingConnectionsQueue;
     private final BlockingQueue<NodeState> nodeStateQueue;
-    private final static int transactionThreshold = 10;
+    private final static int transactionThreshold = 3;
 
     List<Command> receivedAnnouncements = new LinkedList<>();
 

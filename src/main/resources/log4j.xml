@@ -12,8 +12,13 @@
         <appender-ref ref="stdout"/>
     </logger>
 
-    <root>
+    <logger name="org.eclipse.jetty">
         <level value="FATAL"/>
+        <appender-ref ref="stdout"/>
+    </logger>
+
+    <root>
+        <level value="INFO"/>
         <appender-ref ref="stdout"/>
     </root>
 </log4j:configuration>
